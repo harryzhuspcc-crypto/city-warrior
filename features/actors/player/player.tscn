@@ -1,0 +1,88 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://features/actors/player/player.gd" id="1_player"]
+[ext_resource type="Resource" path="res://features/actors/player/billy_stats.tres" id="2_stats"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/billy/billy_sprite_frames.tres" id="3_frames"]
+[ext_resource type="Script" path="res://features/actors/player/player_visuals.gd" id="4_visuals"]
+[ext_resource type="Script" path="res://features/actors/common/health_component.gd" id="5_health"]
+[ext_resource type="Script" path="res://features/actors/common/movement_component.gd" id="6_movement"]
+[ext_resource type="Script" path="res://features/actors/common/combat_component.gd" id="7_combat"]
+[ext_resource type="Script" path="res://features/actors/player/player_input.gd" id="8_input"]
+[ext_resource type="Script" path="res://features/actors/player/player_state_machine.gd" id="9_state"]
+
+[sub_resource type="RectangleShape2D" id="BodyShape"]
+size = Vector2(14, 8)
+
+[sub_resource type="RectangleShape2D" id="HurtboxShape"]
+size = Vector2(18, 44)
+
+[sub_resource type="RectangleShape2D" id="HitboxShape"]
+size = Vector2(18, 18)
+
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "input_component", "state_machine", "visuals")]
+texture_filter = 1
+position = Vector2(192, 150)
+motion_mode = 1
+collision_layer = 2
+collision_mask = 3
+script = ExtResource("1_player")
+fighter_stats = ExtResource("2_stats")
+health_component = NodePath("HealthComponent")
+movement_component = NodePath("MovementComponent")
+combat_component = NodePath("CombatComponent")
+input_component = NodePath("InputComponent")
+state_machine = NodePath("StateMachine")
+visuals = NodePath("Visuals")
+
+[node name="BodyCollision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("BodyShape")
+
+[node name="Visuals" type="Node2D" parent="." node_paths=PackedStringArray("animated_sprite")]
+position = Vector2(0, -40)
+script = ExtResource("4_visuals")
+animated_sprite = NodePath("AnimatedSprite2D")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visuals"]
+sprite_frames = ExtResource("3_frames")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 32
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -24)
+shape = SubResource("HurtboxShape")
+
+[node name="AttackOrigin" type="Node2D" parent="."]
+
+[node name="Hitbox" type="Area2D" parent="AttackOrigin"]
+collision_layer = 16
+collision_mask = 8
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/Hitbox"]
+position = Vector2(20, -28)
+shape = SubResource("HitboxShape")
+disabled = true
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("5_health")
+
+[node name="MovementComponent" type="Node" parent="." node_paths=PackedStringArray("body")]
+script = ExtResource("6_movement")
+body = NodePath("..")
+
+[node name="CombatComponent" type="Node" parent="."]
+script = ExtResource("7_combat")
+
+[node name="InputComponent" type="Node" parent="."]
+script = ExtResource("8_input")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("9_state")
+

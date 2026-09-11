@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="FighterStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/fighter_stats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+max_health = 100
+horizontal_speed = 90.0
+depth_speed = 60.0
+

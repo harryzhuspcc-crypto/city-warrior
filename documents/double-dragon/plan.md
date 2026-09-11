@@ -139,6 +139,7 @@ move_up
 move_down
 attack
 jump
+kick
 grab
 pause
 ```
@@ -149,7 +150,8 @@ Suggested keyboard defaults:
 WASD / arrows  Movement
 J              Attack
 K              Jump
-L              Grab
+L              Kick
+Unbound        Grab (reserved)
 ```
 
 Read movement using actions rather than hardcoded keys:
@@ -314,5 +316,22 @@ After the vertical slice feels good:
 8. Local co-op
 9. Additional stages
 10. Original replacement artwork and branding
+
+### Kick and deferred hit-confirmed combo requirements
+
+Reference images are stored under `documents/double-dragon/references/`.
+
+- Implemented: the L-bound basic two-pose kick shown in `basic-kick.png` uses
+  chamber and high side-kick extension poses.
+- Implement the following combos only after Williams and the enemy
+  fighting/damage feedback loop exist.
+- Add the three-hit punch sequence shown in `three-hit-punch.png`. The first
+  two connected punches advance the chain; only the third connected input uses
+  the rising finisher. Whiffing must not advance the combo counter.
+- Add the three-hit kick sequence shown in `three-hit-kick.png`. The first two
+  connected kicks advance the chain; only the third connected input uses the
+  turning/back-kick finisher. Whiffing must not advance the combo counter.
+- Combo progression must be driven by confirmed enemy hits, not merely by
+  button presses or animation completion.
 
 Avoid implementing inventory, online multiplayer, elaborate AnimationTrees, or boss systems before the first encounter is enjoyable.

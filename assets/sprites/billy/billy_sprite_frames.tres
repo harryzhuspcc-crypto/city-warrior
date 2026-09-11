@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=21 format=3]
+[gd_resource type="SpriteFrames" load_steps=25 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/idle/idle_00.png" id="1_idle_0"]
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/idle/idle_01.png" id="2_idle_1"]
@@ -20,6 +20,10 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_01.png" id="22_walk_down_1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_02.png" id="23_walk_down_2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_03.png" id="24_walk_down_3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump/jump_00.png" id="25_jump_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump/jump_01.png" id="26_jump_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/kick/kick_00.png" id="27_kick_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/kick/kick_01.png" id="28_kick_1"]
 
 [resource]
 animations = [{
@@ -52,6 +56,28 @@ animations = [{
 "loop": true,
 "name": &"idle",
 "speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("25_jump_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_jump_1")
+}],
+"loop": false,
+"name": &"jump",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("27_kick_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_kick_1")
+}],
+"loop": false,
+"name": &"kick",
+"speed": 6.0
 }, {
 "frames": [{
 "duration": 1.0,

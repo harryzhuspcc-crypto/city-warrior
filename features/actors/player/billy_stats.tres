@@ -7,4 +7,5 @@ script = ExtResource("1_stats")
 max_health = 100
 horizontal_speed = 90.0
 depth_speed = 60.0
-
+jump_takeoff_speed = 252.4
+jump_gravity = 600.0

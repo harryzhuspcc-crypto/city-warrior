@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://features/actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://features/actors/player/billy_stats.tres" id="2_stats"]
@@ -9,6 +9,10 @@
 [ext_resource type="Script" path="res://features/actors/common/combat_component.gd" id="7_combat"]
 [ext_resource type="Script" path="res://features/actors/player/player_input.gd" id="8_input"]
 [ext_resource type="Script" path="res://features/actors/player/player_state_machine.gd" id="9_state"]
+[ext_resource type="Script" path="res://features/actors/common/jump_component.gd" id="10_jump"]
+[ext_resource type="Script" path="res://features/actors/common/hurtbox_component.gd" id="11_hurtbox"]
+[ext_resource type="Resource" path="res://features/combat/billy_punch.tres" id="12_punch"]
+[ext_resource type="Resource" path="res://features/combat/billy_kick.tres" id="13_kick"]
 
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
@@ -19,7 +23,7 @@ size = Vector2(18, 44)
 [sub_resource type="RectangleShape2D" id="HitboxShape"]
 size = Vector2(18, 18)
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "input_component", "state_machine", "visuals")]
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "jump_component", "combat_component", "input_component", "state_machine", "visuals")]
 texture_filter = 1
 position = Vector2(192, 150)
 motion_mode = 1
@@ -27,8 +31,10 @@ collision_layer = 2
 collision_mask = 3
 script = ExtResource("1_player")
 fighter_stats = ExtResource("2_stats")
+kick_attack_data = ExtResource("13_kick")
 health_component = NodePath("HealthComponent")
 movement_component = NodePath("MovementComponent")
+jump_component = NodePath("JumpComponent")
 combat_component = NodePath("CombatComponent")
 input_component = NodePath("InputComponent")
 state_machine = NodePath("StateMachine")
@@ -48,10 +54,12 @@ sprite_frames = ExtResource("3_frames")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="Hurtbox" type="Area2D" parent="."]
+[node name="Hurtbox" type="Area2D" parent="." node_paths=PackedStringArray("health_component")]
 collision_layer = 4
 collision_mask = 32
 monitoring = false
+script = ExtResource("11_hurtbox")
+health_component = NodePath("../HealthComponent")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
 position = Vector2(0, -24)
@@ -77,12 +85,20 @@ script = ExtResource("5_health")
 script = ExtResource("6_movement")
 body = NodePath("..")
 
-[node name="CombatComponent" type="Node" parent="."]
+[node name="JumpComponent" type="Node" parent="." node_paths=PackedStringArray("body", "visual_target")]
+script = ExtResource("10_jump")
+body = NodePath("..")
+visual_target = NodePath("../Visuals")
+
+[node name="CombatComponent" type="Node" parent="." node_paths=PackedStringArray("hitbox", "hitbox_shape", "source_actor")]
 script = ExtResource("7_combat")
+attack_data = ExtResource("12_punch")
+hitbox = NodePath("../AttackOrigin/Hitbox")
+hitbox_shape = NodePath("../AttackOrigin/Hitbox/CollisionShape2D")
+source_actor = NodePath("..")
 
 [node name="InputComponent" type="Node" parent="."]
 script = ExtResource("8_input")
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("9_state")
-

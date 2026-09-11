@@ -23,7 +23,9 @@ mkdir -p \
   "$OUTPUT_ROOT/idle" \
   "$OUTPUT_ROOT/walk_up" \
   "$OUTPUT_ROOT/walk_down" \
+  "$OUTPUT_ROOT/jump" \
   "$OUTPUT_ROOT/punch" \
+  "$OUTPUT_ROOT/kick" \
   "$OUTPUT_ROOT/hurt" \
   "$OUTPUT_ROOT/knockdown" \
   "$OUTPUT_ROOT/death"
@@ -40,14 +42,48 @@ extract_frame() {
   local relative_path="$1"
   local crop_rect="$2"
   local destination="$OUTPUT_ROOT/$relative_path"
+  local trimmed_pose
+  trimmed_pose="$(mktemp -t billy-frame).png"
 
   magick "$CLEAN_SHEET" \
     -crop "$crop_rect" +repage \
     -trim +repage \
-    -gravity south \
-    -background none \
-    -extent 80x80 \
+    "$trimmed_pose"
+
+  local pose_width
+  local pose_height
+  read -r pose_width pose_height < <(
+    magick identify -format '%w %h\n' "$trimmed_pose"
+  )
+
+  # Use the lowest eight opaque rows as the feet/lower-leg band. Four rows can
+  # see only one planted boot in wide stances; eight captures both feet while
+  # staying below the torso. Align its midpoint to x=40.
+  local foot_band_height=8
+  if (( pose_height < foot_band_height )); then
+    foot_band_height=$pose_height
+  fi
+  local foot_band_y=$((pose_height - foot_band_height))
+  local foot_width
+  local foot_x
+  read -r foot_width foot_x < <(
+    magick "$trimmed_pose" \
+      -alpha extract \
+      -crop "${pose_width}x${foot_band_height}+0+${foot_band_y}" +repage \
+      -trim \
+      -format '%w %X\n' \
+      info:
+  )
+
+  local destination_x=$(((80 - (2 * foot_x) - foot_width) / 2))
+  local destination_y=$((80 - pose_height))
+  local destination_geometry
+  printf -v destination_geometry '%+d%+d' "$destination_x" "$destination_y"
+
+  magick -size 80x80 canvas:none \
+    "$trimmed_pose" -geometry "$destination_geometry" -composite \
     "$destination"
+  rm -f "$trimmed_pose"
 }
 
 # Coordinates refer to the original 611×1341 source sheet. Keep this list as
@@ -58,21 +94,27 @@ extract_frame "idle/idle_01.png" "32x75+10+88"
 extract_frame "walk_down/walk_down_00.png" "32x75+10+88"
 extract_frame "walk_down/walk_down_01.png" "32x75+43+88"
 extract_frame "walk_down/walk_down_02.png" "32x75+76+88"
-extract_frame "walk_down/walk_down_03.png" "32x75+109+88"
+extract_frame "walk_down/walk_down_03.png" "33x75+108+88"
 
 extract_frame "walk_up/walk_up_00.png" "32x75+153+88"
 extract_frame "walk_up/walk_up_01.png" "32x75+186+88"
 extract_frame "walk_up/walk_up_02.png" "32x75+220+88"
 extract_frame "walk_up/walk_up_03.png" "32x75+252+88"
 
+extract_frame "jump/jump_00.png" "38x75+10+430"
+extract_frame "jump/jump_01.png" "42x60+50+445"
+
 extract_frame "punch/punch_00.png" "42x72+10+270"
-extract_frame "punch/punch_01.png" "58x72+50+270"
+extract_frame "punch/punch_01.png" "56x72+50+270"
 extract_frame "punch/punch_02.png" "45x72+103+270"
 
-extract_frame "hurt/hurt_00.png" "55x75+5+920"
-extract_frame "hurt/hurt_01.png" "70x75+52+920"
+extract_frame "kick/kick_00.png" "34x72+12+350"
+extract_frame "kick/kick_01.png" "45x72+47+350"
 
-extract_frame "knockdown/knockdown_00.png" "55x75+5+920"
+extract_frame "hurt/hurt_00.png" "58x75+5+920"
+extract_frame "hurt/hurt_01.png" "55x75+66+920"
+
+extract_frame "knockdown/knockdown_00.png" "58x75+5+920"
 extract_frame "knockdown/knockdown_01.png" "55x75+66+920"
 extract_frame "knockdown/knockdown_02.png" "54x75+123+920"
 extract_frame "knockdown/knockdown_03.png" "48x75+180+920"

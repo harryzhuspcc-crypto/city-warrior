@@ -7,7 +7,8 @@ const ACTION_KEYS: Dictionary = {
 	&"move_down": [KEY_S, KEY_DOWN],
 	&"attack": [KEY_J],
 	&"jump": [KEY_K],
-	&"grab": [KEY_L],
+	&"kick": [KEY_L],
+	&"grab": [],
 	&"pause": [KEY_ESCAPE],
 }
 
@@ -17,7 +18,7 @@ func _initialize() -> void:
 	_configure_input_map()
 	ProjectSettings.set_setting(
 		&"application/run/main_scene",
-		&"res://features/actors/player/player.tscn"
+		&"res://levels/prototype_alley/prototype_alley.tscn"
 	)
 	ProjectSettings.save()
 	quit()

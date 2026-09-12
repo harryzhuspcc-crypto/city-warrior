@@ -15,3 +15,8 @@ movement share the front-facing `walk_down` animation.
 
 Jumping uses two physics-selected poses: `jump_00` while rising and `jump_01`
 while descending. Sprite playback does not control jump physics.
+
+Special moves use explicit physics-frame pose schedules from their AttackData:
+grounded J+K elbow, directional double-tap head attack, grounded L+K back
+kick, and airborne L jump kick. Their sprite playback never controls hitboxes
+or jump physics.

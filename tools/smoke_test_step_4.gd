@@ -40,10 +40,9 @@ func _run() -> void:
 		_fail("Billy's jump animation must contain exactly two referenced poses")
 		return
 
-	Input.action_press(&"jump")
-	for _frame: int in range(2):
+	player.input_component.queue_jump()
+	for _frame: int in range(player.input_component.chord_window_frames + 2):
 		await physics_frame
-	Input.action_release(&"jump")
 	if not player.jump_component.is_airborne:
 		_fail("Jump input did not start the physics jump")
 		return

@@ -13,3 +13,4 @@ damage = 15
 hitstun_frames = 18
 knockback = Vector2(100, 0)
 hitbox_rect = Rect2(10, -50, 30, 30)
+animation_frame_starts = PackedInt32Array(0, 6)

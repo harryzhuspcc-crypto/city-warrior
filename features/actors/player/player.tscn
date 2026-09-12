@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://features/actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://features/actors/player/billy_stats.tres" id="2_stats"]
@@ -13,6 +13,10 @@
 [ext_resource type="Script" path="res://features/actors/common/hurtbox_component.gd" id="11_hurtbox"]
 [ext_resource type="Resource" path="res://features/combat/billy_punch.tres" id="12_punch"]
 [ext_resource type="Resource" path="res://features/combat/billy_kick.tres" id="13_kick"]
+[ext_resource type="Resource" path="res://features/combat/billy_elbow.tres" id="14_elbow"]
+[ext_resource type="Resource" path="res://features/combat/billy_head_attack.tres" id="15_head"]
+[ext_resource type="Resource" path="res://features/combat/billy_back_kick.tres" id="16_back_kick"]
+[ext_resource type="Resource" path="res://features/combat/billy_jump_kick.tres" id="17_jump_kick"]
 
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
@@ -32,6 +36,10 @@ collision_mask = 3
 script = ExtResource("1_player")
 fighter_stats = ExtResource("2_stats")
 kick_attack_data = ExtResource("13_kick")
+elbow_attack_data = ExtResource("14_elbow")
+head_attack_data = ExtResource("15_head")
+back_kick_attack_data = ExtResource("16_back_kick")
+jump_kick_attack_data = ExtResource("17_jump_kick")
 health_component = NodePath("HealthComponent")
 movement_component = NodePath("MovementComponent")
 jump_component = NodePath("JumpComponent")

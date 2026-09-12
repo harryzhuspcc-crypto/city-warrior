@@ -30,12 +30,12 @@ func configure(stats: FighterStats) -> void:
 	_gravity = stats.jump_gravity
 
 
-func try_jump() -> bool:
+func try_jump(apex_scale: float = 1.0) -> bool:
 	if is_airborne or _takeoff_speed <= 0.0 or _gravity <= 0.0:
 		return false
 
 	is_airborne = true
-	jump_velocity = _takeoff_speed
+	jump_velocity = _takeoff_speed_for_apex_scale(apex_scale)
 	jumped.emit()
 	return true
 
@@ -76,3 +76,36 @@ func land_immediately() -> void:
 
 func _apply_visual_height() -> void:
 	visual_target.position = _grounded_visual_position + Vector2.UP * jump_height
+
+
+func _takeoff_speed_for_apex_scale(apex_scale: float) -> float:
+	if is_equal_approx(apex_scale, 1.0):
+		return _takeoff_speed
+
+	var physics_ticks := float(
+		ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 60)
+	)
+	var delta := 1.0 / maxf(physics_ticks, 1.0)
+	var target_apex := _simulate_apex(_takeoff_speed, delta) * maxf(apex_scale, 0.01)
+	var lower_speed := 0.0
+	var upper_speed := _takeoff_speed
+	while _simulate_apex(upper_speed, delta) < target_apex:
+		upper_speed *= 2.0
+	for _iteration: int in range(32):
+		var candidate_speed := (lower_speed + upper_speed) * 0.5
+		if _simulate_apex(candidate_speed, delta) < target_apex:
+			lower_speed = candidate_speed
+		else:
+			upper_speed = candidate_speed
+	return (lower_speed + upper_speed) * 0.5
+
+
+func _simulate_apex(takeoff_speed: float, delta: float) -> float:
+	var simulated_height := 0.0
+	var maximum_height := 0.0
+	var simulated_velocity := takeoff_speed
+	while simulated_velocity > 0.0:
+		simulated_velocity -= _gravity * delta
+		simulated_height += simulated_velocity * delta
+		maximum_height = maxf(maximum_height, simulated_height)
+	return maximum_height

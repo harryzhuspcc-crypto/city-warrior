@@ -4,7 +4,8 @@ extends Node
 signal attack_started
 signal attack_phase_changed(previous_phase: StringName, current_phase: StringName)
 signal hit_landed(target: HurtboxComponent, attack_data: AttackData, knockback: Vector2)
-signal attack_finished
+signal facing_changed(facing: float)
+signal attack_finished(completed_attack: AttackData, completed_naturally: bool)
 
 const INACTIVE: StringName = &"inactive"
 const STARTUP: StringName = &"startup"
@@ -18,6 +19,7 @@ const RECOVERY: StringName = &"recovery"
 
 var attack_frame: int = 0
 var attack_facing: float = 1.0
+var attack_hit_direction: float = 1.0
 var current_attack_data: AttackData
 var current_phase: StringName = INACTIVE
 var is_attacking: bool = false
@@ -25,6 +27,8 @@ var is_hitbox_active: bool = false
 
 var _desired_facing: float = 1.0
 var _already_hit_targets: Dictionary[int, bool] = {}
+var _is_finishing: bool = false
+var _attack_generation: int = 0
 
 
 func _ready() -> void:
@@ -42,40 +46,76 @@ func _ready() -> void:
 
 
 func set_facing(horizontal_direction: float) -> void:
-	if is_zero_approx(horizontal_direction):
+	if is_attacking or is_zero_approx(horizontal_direction):
 		return
 	_desired_facing = signf(horizontal_direction)
-	if not is_attacking:
-		attack_facing = _desired_facing
-		_configure_hitbox_geometry()
+	attack_facing = _desired_facing
+	_configure_hitbox_geometry()
 
 
 func try_start_attack(requested_attack_data: AttackData = null) -> bool:
 	var selected_attack := requested_attack_data if requested_attack_data != null else attack_data
-	if is_attacking or selected_attack == null:
+	if is_attacking or _is_finishing or selected_attack == null:
 		return false
 
+	_attack_generation += 1
+	var starting_generation := _attack_generation
 	is_attacking = true
 	current_attack_data = selected_attack
 	attack_frame = 0
 	attack_facing = _desired_facing
+	attack_hit_direction = attack_facing * float(selected_attack.hit_direction_multiplier)
 	_already_hit_targets.clear()
 	_configure_hitbox_geometry()
 	_set_phase(_phase_for_frame(attack_frame))
+	if (
+		not is_attacking
+		or current_attack_data != selected_attack
+		or _attack_generation != starting_generation
+	):
+		return false
 	attack_started.emit()
-	return true
+	return (
+		is_attacking
+		and current_attack_data == selected_attack
+		and _attack_generation == starting_generation
+	)
 
 
-func physics_tick() -> void:
+func physics_tick(is_airborne: bool = false) -> void:
 	if not is_attacking:
+		return
+	var ticking_attack := current_attack_data
+	var ticking_generation := _attack_generation
+	if ticking_attack.finishes_on_landing and not is_airborne:
+		_finish_attack(true)
 		return
 
 	if current_phase == ACTIVE:
 		_resolve_current_overlaps()
+		if (
+			not is_attacking
+			or current_attack_data != ticking_attack
+			or _attack_generation != ticking_generation
+		):
+			return
+
+	if current_attack_data.finishes_on_landing:
+		if attack_frame >= current_attack_data.landing_hold_frame:
+			attack_frame = current_attack_data.landing_hold_frame
+			_set_phase(ACTIVE)
+			return
+		attack_frame += 1
+		if attack_frame >= current_attack_data.landing_hold_frame:
+			attack_frame = current_attack_data.landing_hold_frame
+			_set_phase(ACTIVE)
+		else:
+			_set_phase(_phase_for_frame(attack_frame))
+		return
 
 	attack_frame += 1
 	if attack_frame >= current_attack_data.total_frames():
-		_finish_attack()
+		_finish_attack(true)
 		return
 
 	_set_phase(_phase_for_frame(attack_frame))
@@ -84,11 +124,11 @@ func physics_tick() -> void:
 func cancel_attack() -> void:
 	if not is_attacking:
 		return
-	_finish_attack(Engine.is_in_physics_frame())
+	_finish_attack(false, Engine.is_in_physics_frame())
 
 
 func resolve_hurtbox(target: HurtboxComponent) -> bool:
-	if current_phase != ACTIVE or target == null:
+	if current_phase != ACTIVE or current_attack_data == null or target == null:
 		return false
 
 	var receiver_id := target.damage_receiver_id()
@@ -96,15 +136,16 @@ func resolve_hurtbox(target: HurtboxComponent) -> bool:
 		return false
 	_already_hit_targets[receiver_id] = true
 
+	var resolved_attack := current_attack_data
 	var knockback := Vector2(
-		absf(current_attack_data.knockback.x) * attack_facing,
-		current_attack_data.knockback.y
+		absf(resolved_attack.knockback.x) * attack_hit_direction,
+		resolved_attack.knockback.y
 	)
-	if not target.receive_attack(current_attack_data, knockback, source_actor):
+	if not target.receive_attack(resolved_attack, knockback, source_actor):
 		_already_hit_targets.erase(receiver_id)
 		return false
 
-	hit_landed.emit(target, current_attack_data, knockback)
+	hit_landed.emit(target, resolved_attack, knockback)
 	return true
 
 
@@ -145,15 +186,29 @@ func _configure_hitbox_geometry() -> void:
 
 	rectangle.size = geometry_data.hitbox_rect.size
 	var center := geometry_data.hitbox_rect.position + geometry_data.hitbox_rect.size * 0.5
-	center.x = absf(center.x) * attack_facing
+	var hit_direction := attack_hit_direction if current_attack_data != null else attack_facing
+	center.x = absf(center.x) * hit_direction
 	hitbox_shape.position = center
 
 
 func _resolve_current_overlaps() -> void:
-	for area: Area2D in hitbox.get_overlapping_areas():
-		var hurtbox := area as HurtboxComponent
+	var world := hitbox.get_world_2d()
+	if world == null:
+		return
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = hitbox_shape.shape
+	query.transform = hitbox_shape.global_transform
+	query.collision_mask = hitbox.collision_mask
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+	query.exclude = [hitbox.get_rid()]
+	var resolving_generation := _attack_generation
+	for result: Dictionary in world.direct_space_state.intersect_shape(query, 32):
+		var hurtbox := result.get(&"collider") as HurtboxComponent
 		if hurtbox != null:
 			resolve_hurtbox(hurtbox)
+			if _attack_generation != resolving_generation:
+				return
 
 
 func _on_hitbox_area_entered(area: Area2D) -> void:
@@ -162,10 +217,40 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		resolve_hurtbox(hurtbox)
 
 
-func _finish_attack(defer_collision_update: bool = false) -> void:
-	_set_phase(INACTIVE, defer_collision_update)
+func _finish_attack(
+	completed_naturally: bool,
+	defer_collision_update: bool = false
+) -> void:
+	if _is_finishing:
+		return
+	_is_finishing = true
+	_attack_generation += 1
+	var completed_attack := current_attack_data
+	var completed_facing := attack_facing
+	var completed_phase := current_phase
+	var should_reverse := (
+		completed_naturally
+		and completed_attack != null
+		and completed_attack.reverse_facing_on_finish
+	)
+
+	# Finalize all logical state before lifecycle signals. Their listeners may
+	# call cancel_attack(), but cannot observe or finish the old attack twice.
 	is_attacking = false
 	attack_frame = 0
 	_already_hit_targets.clear()
 	current_attack_data = null
-	attack_finished.emit()
+	current_phase = INACTIVE
+	_set_hitbox_active(false, defer_collision_update)
+	if should_reverse:
+		_desired_facing = -completed_facing
+		attack_facing = _desired_facing
+		attack_hit_direction = attack_facing
+		_configure_hitbox_geometry()
+
+	if completed_phase != INACTIVE:
+		attack_phase_changed.emit(completed_phase, INACTIVE)
+	if should_reverse:
+		facing_changed.emit(attack_facing)
+	attack_finished.emit(completed_attack, completed_naturally)
+	_is_finishing = false

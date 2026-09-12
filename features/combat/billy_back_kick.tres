@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
+
+[resource]
+script = ExtResource("1_attack_data")
+attack_name = &"billy_back_kick"
+animation_name = &"back_kick"
+startup_frames = 10
+active_frames = 6
+recovery_frames = 14
+damage = 20
+hitstun_frames = 22
+knockback = Vector2(120, 0)
+hitbox_rect = Rect2(10, -50, 32, 30)
+hit_direction_multiplier = -1
+reverse_facing_on_finish = true
+starts_jump = true
+jump_height_scale = 0.25
+allow_air_movement = true
+finishes_on_landing = true
+landing_hold_frame = 10
+animation_frame_starts = PackedInt32Array(0, 3, 7, 10, 16)

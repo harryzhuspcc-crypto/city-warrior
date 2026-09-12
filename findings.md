@@ -124,3 +124,59 @@
 - The completed punch uses `billy_punch.tres` as the sole timing and hitbox-geometry source; no stale total-duration property, Timer, or gameplay `await` remains.
 - Physical Area2D integration succeeds in headless physics: the active window detects an overlapping enemy-layer hurtbox once and reduces health by exactly 10.
 - The main scene can now be the bounded prototype-alley scaffold while `player.tscn` remains independently runnable and covered by its original smoke test.
+
+## Billy's four special moves
+
+- Preserved the four new clipboard references as `documents/double-dragon/references/elbow.png`, `head-attack.png`, `back-kick.png`, and `jump-kick.png`.
+- The references use an altered 16-color palette/matte, but their binary silhouettes match the source sheet exactly. Raw-mask matching located every pose without relying on approximate visual crops.
+- Exact trimmed source bounds: elbow `(435,357) 22×62`, `(465,356) 34×63`; head attack `(531,362) 24×57`, `(563,360) 32×59`.
+- Back-kick sequence uses repeated jump poses followed by unique rear-kick poses: `(16,435) 28×64`, `(52,460) 37×39`, `(436,440) 22×59`, `(466,437) 39×62`, `(513,451) 26×48`.
+- Jump-kick sequence is `(121,437) 24×62`, `(153,435) 28×64`, `(189,460) 37×39`, `(234,455) 44×44`, `(286,460) 37×39`.
+- Rear attacks need attack-facing and hit-facing to be distinct. `AttackData` should own a ±1 hit-direction multiplier; CombatComponent should latch facing and mirror geometry/knockback by the resulting hit direction.
+- The existing finite buffers can support grounded chords if press frames are tracked; double-tap detection additionally needs movement-edge event capture so physics polling does not count one physical press twice.
+- Head attack should use the tapped direction as its facing and include short data-driven forward travel; all other requested moves keep the current ground position behavior except normal airborne movement during jump kick.
+- Architecture audit caught command-order hazards. To support either key order within three ticks, grounded singles must wait for the chord window rather than immediately mutating jump/combat state.
+- Combat needs a natural-vs-canceled finish result before clearing its latched AttackData; otherwise back kick would reverse Billy on death or test cleanup.
+- Actor facing, hit direction, artwork's native direction, and travel direction are independent. AttackData will represent hit and artwork multipliers while CombatComponent latches actor/travel facing.
+- Attack movement must precede overlap resolution for the same authoritative attack frame; otherwise a head-attack target reached on the final active movement tick can be missed.
+- All special pose changes should be driven by explicit AttackData frame-start schedules and `AnimatedSprite2D.set_frame_and_progress()`, not free-running playback.
+- Implemented special recognition inside PlayerInputComponent: order-independent three-frame chords, mutually exclusive attack singles, a 12-frame same-direction tap sequence, and movement-event capture guards.
+- AttackData now owns rear-hit direction, native artwork direction, natural-completion reversal, jump launch/air-control flags, movement window/speed, and authoritative pose-start ticks.
+- Player physics now moves once before CombatComponent resolves the current active overlap, preserving the final moving active frame for head-attack collision.
+- A regression with a hurtbox reachable only on head-attack frame 9 proved Area2D's cached overlap list still lagged current-frame movement. Active attacks now use `PhysicsDirectSpaceState2D.intersect_shape()` at the hitbox's current global transform, while per-attack target deduplication remains unchanged.
+- Generated-frame montage visually confirms all 14 transparent 80×80 outputs preserve the supplied pose order with clean silhouettes and no neighboring-sheet fragments.
+- Strengthened regressions now cover both chord key orders, inclusive/exclusive window boundaries, single fallback, 12-frame double taps, event/poll deduplication, cancellation-safe back-kick facing, both rear-hit geometry directions, exact 20 px head travel, full jump trace equality, landing-tick classification, air control, front-target exclusion, and final-active physical contact.
+- Follow-up audit found airborne K+L was being consumed into a grounded-only back-kick chord before Player could see L. The airborne router now treats that chord as jump kick in either key order.
+- Newly activated aerial attacks now retain air movement on their activation tick, and final recovery completion selects locomotion before movement so MOVE cannot render with an extra zero-motion hitch.
+- Adding `-strip` to both clean-sheet and final-frame output removes ImageMagick timestamp chunks. Two isolated extraction runs now produce byte-identical SHA-256 manifests for all generated PNGs.
+- Final hardening made CombatComponent lifecycle signals re-entrancy-safe: logical state is finalized before emission, start aborts cleanly when startup listeners cancel, and finish listeners cannot double-finish or start inside the old transition.
+- Hit resolution latches AttackData before calling target code, so a target-side `hit_received` listener may cancel the source without turning the later `hit_landed` payload null.
+- One-shot action polling was removed in favor of `_unhandled_input`, preserving GUI consumption. Per-action held physical-input IDs ensure A+Left Arrow together are one semantic LEFT edge rather than a false double tap.
+- Final independent completion audit reports PASS with no high/medium blockers.
+
+## Aerial kick landing hold
+
+- The new references isolate pose index 3 from each five-pose sequence: jump kick's forward extension and back kick's rear extension.
+- Current fixed durations (jump kick 24 ticks, back kick 30 ticks) can finish before the approximately 50-tick 51 px jump arc, causing normal jump presentation to resume in midair.
+- The requested “kicking status” is treated as gameplay state as well as presentation: retain ATTACK/ACTIVE, the extension pose, and the deduplicated hitbox until JumpComponent reports grounded.
+- CombatComponent should receive current airborne eligibility from Player rather than referencing JumpComponent directly, preserving component reuse and explicit orchestration.
+- Red regression reproduced the issue during back-kick descent: the move had already entered recovery/finished instead of retaining ACTIVE.
+- `landing_hold_frame` equals the extension pose's schedule start (back kick frame 10; jump kick frame 8). Combat progression clamps there while airborne, repeatedly queries the active volume with target deduplication, and completes naturally when Player passes grounded state.
+- Player checks landing completion before attack movement, allowing CombatComponent to finish/reverse and normal locomotion to resume on the landing tick without an extra zero-motion frame.
+- Completion audit exposed two ordering hazards unique to a landing-held ACTIVE attack: a landing callback could introduce a target before the old active query, and a re-entrant callback could replace the attack while the stale tick continued.
+- Grounded landing completion now occurs before any ACTIVE query. Combat also snapshots an attack-generation token, so cancellation/replacement invalidates every remaining operation from the old tick even when the new attack uses the same resource.
+- Final independent audit reports PASS: both aerial kicks hold ATTACK/ACTIVE/pose 3 and physical hitbox through descent, deduplicate held contact, finish without a post-landing hit, and preserve cancellation-safe reversal.
+
+## Quarter-height back kick
+
+- Baseline regression measured the back kick at the full normal-jump apex of 51.00 px; the requested quarter height is 12.75 px.
+- Halving takeoff speed is only a continuous-physics approximation and produces 12.24 px under the project's semi-implicit 60 Hz integration, not an exact quarter.
+- `AttackData.jump_height_scale` now expresses the designer-facing ratio. JumpComponent deterministically solves the takeoff velocity against its actual fixed-step integrator, producing 12.75 px without changing the configured normal takeoff speed.
+- Back kick still reaches landing-hold frame 10 before descending, so its ATTACK/ACTIVE/hitbox/pose guarantees remain intact over the shorter arc.
+
+## Directional head-attack correction
+
+- The clarified reference identifies its first image as both startup and ending pose, while the second image is the attacking pose.
+- The extracted textures were already correct, but the resource schedule `[0, 5]` held attacking pose 2 throughout recovery and `animation_facing_multiplier = -1` incorrectly treated the supplied art as leftward.
+- SpriteFrames now intentionally contains three entries backed by two unique textures: pose 1, pose 2, pose 1. AttackData aligns them with startup frame 0, active frame 5, and recovery frame 10.
+- The supplied artwork is authored rightward: Right, Right displays it unflipped and moves/hits right; Left, Left mirrors it and moves/hits left. The latched attack direction becomes normal facing after recovery.

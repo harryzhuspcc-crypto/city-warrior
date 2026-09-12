@@ -19,14 +19,20 @@ func configure(stats: FighterStats) -> void:
 
 func move(direction: Vector2) -> void:
 	var normalized_direction := direction.limit_length(1.0)
-	body.velocity = Vector2(
+	_move_with_velocity(Vector2(
 		normalized_direction.x * _horizontal_speed,
 		normalized_direction.y * _depth_speed
-	)
-	body.move_and_slide()
+	))
+
+
+func move_at_speed(direction: Vector2, speed: float) -> void:
+	_move_with_velocity(direction.normalized() * maxf(speed, 0.0))
 
 
 func stop() -> void:
-	body.velocity = Vector2.ZERO
-	body.move_and_slide()
+	_move_with_velocity(Vector2.ZERO)
 
+
+func _move_with_velocity(next_velocity: Vector2) -> void:
+	body.velocity = next_velocity
+	body.move_and_slide()

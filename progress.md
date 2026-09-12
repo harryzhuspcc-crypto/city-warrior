@@ -94,3 +94,53 @@
 - Added an eight-frame jump buffer, blocked ground attacks while airborne, and made punch/kick queues mutually exclusive with latest-input priority. Both focused regressions are green.
 - Reordered landing/eligibility safely and added event-capture guards; final pre-landing jump buffering and real same-tick attack ordering regressions now pass.
 - Final sign-off rerun passes extraction, idempotent configuration, Godot import, all four smoke suites, physical kick overlap, and main-scene startup with zero diagnostics.
+
+## Four special-moves session
+
+- Loaded the required Godot composition, state, CharacterBody2D, resource, combat, animation, and input guidance.
+- Reviewed and persisted all four supplied move references.
+- Extracted each reference pose independently and matched its binary silhouette to exact coordinates in `billy-lee.png`.
+- Defined grounded chord priority, airborne jump-kick behavior, 12-frame same-direction double-tap recognition, rear-facing hit geometry, back-kick facing reversal, and an unchanged jump-height contract.
+- Started Phase 1 regression work.
+- Captured the expected red baseline: back kick no longer remained ACTIVE during descent.
+- Added `finishes_on_landing` and `landing_hold_frame` AttackData fields to both aerial kicks.
+- Updated CombatComponent to hold extension frame/ACTIVE hitbox while airborne and finish naturally on landing; Player supplies JumpComponent's current airborne state.
+- Strengthened special-move regressions verify descent state, active hitbox, held pose index 3, no early back-kick reversal, exact landing completion, and the unchanged jump trace. All five suites pass.
+- Added held-contact deduplication, no-post-landing-hit, death-cancellation, startup replacement, and stale-tick replacement regressions.
+- Hardened CombatComponent with attack-generation identity and grounded-completion-before-overlap ordering; independent re-audit reports PASS.
+- Final sign-off passes configuration, Godot import, all five smoke suites, main-scene startup, diagnostic/debug scans, and `git diff --check`.
+
+## Quarter-height back-kick session
+
+- Captured the red baseline: back kick reached 51.00 px instead of the requested 12.75 px.
+- Added data-driven `jump_height_scale = 0.25` to back kick and discrete-apex takeoff solving to JumpComponent.
+- Focused special-move regression now passes the exact 12.75 px apex while retaining descent hold, air control, landing completion, and reversal checks.
+- Independent audit reports PASS; final configuration, import, five-suite, main-scene, diagnostics, and diff validation all pass.
+
+## Directional head-attack correction session
+
+- Reviewed and preserved the clarified directional reference as `head-attack-directional.png`.
+- Captured the red baseline: the animation had only two entries instead of pose 1 → pose 2 → pose 1.
+- Reused the first texture as SpriteFrames pose 3, scheduled it at recovery frame 10, and corrected source-art orientation to rightward.
+- Focused regressions now pass complete left/right pose timing, mirroring, exact directional travel, and final facing.
+- Independent audit additionally verified bidirectional physical hits/knockback and reports PASS.
+- Final configuration, Godot import, all five smoke suites, main-scene startup, diagnostics, and `git diff --check` pass.
+- Captured the expected red baseline: the special-moves smoke test reports missing `elbow_attack_data`.
+- Completed an independent architecture/test audit and tightened command windows, landing classification, movement-before-hit order, cancellation-safe reversal, and frame-driven pose contracts.
+- Implemented the generalized attack metadata, cancellation-aware CombatComponent finish payload, rear hit direction, movement API, chord/double-tap recognition, and reordered player physics orchestration.
+- Generated and imported 14 exact, feet-aligned special-move frames; added four SpriteFrames animations and four AttackData resources.
+- The new special-moves suite passes its initial behavior/physical overlap checks; legacy smoke waits are being updated for the deliberate chord window.
+- Updated all legacy smoke expectations for the three-frame grounded chord-resolution delay; all five suites pass.
+- Added full pose-schedule, command-boundary, facing/cancellation, movement-distance, jump-trace, and front-vs-rear physical regressions.
+- Fixed final-active moving hit detection with a current-transform direct-space shape query; the strengthened special-moves suite and all legacy suites pass.
+- Addressed follow-up audit findings: airborne K+L now resolves to jump kick, activation preserves air control, recovery completion has no locomotion hitch, and extraction is byte-idempotent.
+- Re-ran all five diagnostic-aware suites after the fixes; all pass.
+- Hardened input isolation, semantic direction edges, facing latching, frame-zero head movement, and re-entrant combat lifecycle/payload behavior from two additional independent audits.
+- Final completion audit reports PASS.
+- Final sign-off: two byte-identical extraction runs, idempotent configuration, Godot import, all five smoke suites, main-scene startup, diagnostic scan, debug-tag scan, and `git diff --check` all pass.
+
+## Aerial kick landing-hold session
+
+- Reviewed the two new single-pose references with native image input; they select the extended kick pose (index 3) for jump kick and back kick.
+- Scoped completion to retaining attack state, ACTIVE hitbox, and pose until landing, with back-kick reversal delayed to that natural completion.
+- Started Phase 1 regression work.

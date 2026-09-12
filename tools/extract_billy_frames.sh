@@ -26,6 +26,10 @@ mkdir -p \
   "$OUTPUT_ROOT/jump" \
   "$OUTPUT_ROOT/punch" \
   "$OUTPUT_ROOT/kick" \
+  "$OUTPUT_ROOT/elbow" \
+  "$OUTPUT_ROOT/head_attack" \
+  "$OUTPUT_ROOT/back_kick" \
+  "$OUTPUT_ROOT/jump_kick" \
   "$OUTPUT_ROOT/hurt" \
   "$OUTPUT_ROOT/knockdown" \
   "$OUTPUT_ROOT/death"
@@ -36,7 +40,7 @@ rm -rf "$OUTPUT_ROOT/walk" "$OUTPUT_ROOT/walk_side"
 
 # The original sheet is RGB with a flat matte. Preserve the pixels exactly and
 # remove only the known matte color; fuzzy removal damages palette colors.
-magick "$SOURCE" -alpha on -transparent "$MATTE" "$CLEAN_SHEET"
+magick "$SOURCE" -alpha on -transparent "$MATTE" -strip "$CLEAN_SHEET"
 
 extract_frame() {
   local relative_path="$1"
@@ -82,6 +86,7 @@ extract_frame() {
 
   magick -size 80x80 canvas:none \
     "$trimmed_pose" -geometry "$destination_geometry" -composite \
+    -strip \
     "$destination"
   rm -f "$trimmed_pose"
 }
@@ -110,6 +115,24 @@ extract_frame "punch/punch_02.png" "45x72+103+270"
 
 extract_frame "kick/kick_00.png" "34x72+12+350"
 extract_frame "kick/kick_01.png" "45x72+47+350"
+
+extract_frame "elbow/elbow_00.png" "22x62+435+357"
+extract_frame "elbow/elbow_01.png" "34x63+465+356"
+
+extract_frame "head_attack/head_attack_00.png" "24x57+531+362"
+extract_frame "head_attack/head_attack_01.png" "32x59+563+360"
+
+extract_frame "back_kick/back_kick_00.png" "28x64+16+435"
+extract_frame "back_kick/back_kick_01.png" "37x39+52+460"
+extract_frame "back_kick/back_kick_02.png" "22x59+436+440"
+extract_frame "back_kick/back_kick_03.png" "39x62+466+437"
+extract_frame "back_kick/back_kick_04.png" "26x48+513+451"
+
+extract_frame "jump_kick/jump_kick_00.png" "24x62+121+437"
+extract_frame "jump_kick/jump_kick_01.png" "28x64+153+435"
+extract_frame "jump_kick/jump_kick_02.png" "37x39+189+460"
+extract_frame "jump_kick/jump_kick_03.png" "44x44+234+455"
+extract_frame "jump_kick/jump_kick_04.png" "37x39+286+460"
 
 extract_frame "hurt/hurt_00.png" "58x75+5+920"
 extract_frame "hurt/hurt_01.png" "55x75+66+920"

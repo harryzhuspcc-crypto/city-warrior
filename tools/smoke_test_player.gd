@@ -145,10 +145,9 @@ func _run() -> void:
 		_fail("Player did not move right through MovementComponent")
 		return
 
-	Input.action_press(&"attack")
-	for _frame: int in range(2):
+	player.input_component.queue_attack()
+	for _frame: int in range(player.input_component.chord_window_frames + 2):
 		await physics_frame
-	Input.action_release(&"attack")
 
 	if not player.combat_component.is_attacking:
 		_fail("Player did not enter the attack through InputComponent")
@@ -167,10 +166,9 @@ func _run() -> void:
 		_fail("Player state machine did not return to IDLE")
 		return
 
-	Input.action_press(&"kick")
-	for _frame: int in range(2):
+	player.input_component.queue_kick()
+	for _frame: int in range(player.input_component.chord_window_frames + 2):
 		await physics_frame
-	Input.action_release(&"kick")
 	if not player.combat_component.is_attacking:
 		_fail("L did not start the kick through InputComponent")
 		return
@@ -195,10 +193,9 @@ func _run() -> void:
 	if player.visuals.animated_sprite.frame != 1:
 		_fail("Active kick did not use the high-extension pose")
 		return
-	Input.action_press(&"jump")
-	for _frame: int in range(2):
+	player.input_component.queue_jump()
+	for _frame: int in range(player.input_component.chord_window_frames + 2):
 		await physics_frame
-	Input.action_release(&"jump")
 	var kick_total_frames: int = player.combat_component.current_attack_data.total_frames()
 	for _frame: int in range(kick_total_frames + 1):
 		await physics_frame
@@ -209,20 +206,22 @@ func _run() -> void:
 		_fail("Jump pressed early during kick must not latch through the full attack")
 		return
 
-	Input.action_press(&"jump")
-	for _frame: int in range(2):
+	player.input_component.queue_jump()
+	for _frame: int in range(player.input_component.chord_window_frames + 2):
 		await physics_frame
-	Input.action_release(&"jump")
 	if not player.jump_component.is_airborne:
 		_fail("Airborne attack regression setup did not jump")
 		return
-	Input.action_press(&"kick")
+	player.input_component.queue_kick()
 	for _frame: int in range(2):
 		await physics_frame
-	Input.action_release(&"kick")
-	if player.combat_component.is_attacking or player.combat_component.is_hitbox_active:
-		_fail("Ground kick must not run invisibly while Billy is airborne")
+	if player.combat_component.current_attack_data != player.jump_kick_attack_data:
+		_fail("Kick pressed while airborne must start jump kick")
 		return
+	if player.visuals.animated_sprite.animation != &"jump_kick":
+		_fail("Jump kick must override the normal jump presentation")
+		return
+	player.combat_component.cancel_attack()
 	player.jump_component.land_immediately()
 	player.input_component.clear_buffered_actions()
 

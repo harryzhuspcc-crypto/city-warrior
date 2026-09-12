@@ -6,7 +6,6 @@ const IDLE_ANIMATION: StringName = &"idle"
 const WALK_UP_ANIMATION: StringName = &"walk_up"
 const WALK_DOWN_ANIMATION: StringName = &"walk_down"
 const PUNCH_ANIMATION: StringName = &"punch"
-const KICK_ANIMATION: StringName = &"kick"
 
 @export var animated_sprite: AnimatedSprite2D
 
@@ -25,12 +24,19 @@ func sync(
 	jump_velocity: float = 0.0,
 	attack_animation: StringName = PUNCH_ANIMATION,
 	attack_frame: int = 0,
-	attack_startup_frames: int = 0
+	attack_frame_starts: PackedInt32Array = PackedInt32Array([0]),
+	attack_animation_facing_multiplier: int = 1
 ) -> void:
 	if not is_zero_approx(movement_direction.x):
 		_last_facing = signf(movement_direction.x)
-	animated_sprite.flip_h = _last_facing < 0.0
+	var display_facing := _last_facing
+	if state == PlayerStateMachine.ATTACK:
+		display_facing *= float(attack_animation_facing_multiplier)
+	animated_sprite.flip_h = display_facing < 0.0
 
+	if state == PlayerStateMachine.ATTACK:
+		_sync_attack_pose(attack_animation, attack_frame, attack_frame_starts)
+		return
 	if is_airborne:
 		if animated_sprite.animation != JUMP_ANIMATION:
 			animated_sprite.play(JUMP_ANIMATION)
@@ -38,10 +44,6 @@ func sync(
 		var jump_frame: int = 0 if jump_velocity >= 0.0 else 1
 		animated_sprite.set_frame_and_progress(jump_frame, 0.0)
 		return
-	if state == PlayerStateMachine.ATTACK and attack_animation == KICK_ANIMATION:
-		_sync_kick_pose(attack_frame, attack_startup_frames)
-		return
-
 	if state == PlayerStateMachine.IDLE and movement_direction.is_zero_approx():
 		_hold_last_locomotion_pose()
 		return
@@ -71,12 +73,31 @@ func _hold_last_locomotion_pose() -> void:
 	animated_sprite.pause()
 
 
-func _sync_kick_pose(attack_frame: int, startup_frames: int) -> void:
-	if animated_sprite.animation != KICK_ANIMATION:
-		animated_sprite.play(KICK_ANIMATION)
+func set_facing(horizontal_direction: float) -> void:
+	if is_zero_approx(horizontal_direction):
+		return
+	_last_facing = signf(horizontal_direction)
+	animated_sprite.flip_h = _last_facing < 0.0
+
+
+func _sync_attack_pose(
+	animation_name: StringName,
+	attack_frame: int,
+	frame_starts: PackedInt32Array
+) -> void:
+	if animated_sprite.animation != animation_name:
+		animated_sprite.play(animation_name)
 	animated_sprite.pause()
-	var kick_frame: int = 0 if attack_frame < startup_frames else 1
-	animated_sprite.set_frame_and_progress(kick_frame, 0.0)
+	var pose_index: int = 0
+	for frame_index: int in range(frame_starts.size()):
+		if attack_frame < frame_starts[frame_index]:
+			break
+		pose_index = frame_index
+	pose_index = mini(
+		pose_index,
+		animated_sprite.sprite_frames.get_frame_count(animation_name) - 1
+	)
+	animated_sprite.set_frame_and_progress(pose_index, 0.0)
 
 
 func _animation_for_state(

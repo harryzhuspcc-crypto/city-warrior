@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=25 format=3]
+[gd_resource type="SpriteFrames" load_steps=43 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/idle/idle_00.png" id="1_idle_0"]
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/idle/idle_01.png" id="2_idle_1"]
@@ -24,15 +24,74 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/jump/jump_01.png" id="26_jump_1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/kick/kick_00.png" id="27_kick_0"]
 [ext_resource type="Texture2D" path="res://assets/sprites/billy/kick/kick_01.png" id="28_kick_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/elbow/elbow_00.png" id="29_elbow_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/elbow/elbow_01.png" id="30_elbow_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/head_attack/head_attack_00.png" id="31_head_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/head_attack/head_attack_01.png" id="32_head_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_00.png" id="33_back_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_01.png" id="34_back_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_02.png" id="35_back_2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_03.png" id="36_back_3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_04.png" id="37_back_4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_00.png" id="38_jump_kick_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_01.png" id="39_jump_kick_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_02.png" id="40_jump_kick_2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_03.png" id="41_jump_kick_3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_04.png" id="42_jump_kick_4"]
 
 [resource]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("33_back_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_back_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_back_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_back_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("37_back_4")
+}],
+"loop": false,
+"name": &"back_kick",
+"speed": 1.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("16_death_0")
 }],
 "loop": false,
 "name": &"death",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("29_elbow_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_elbow_1")
+}],
+"loop": false,
+"name": &"elbow",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("31_head_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_head_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_head_0")
+}],
+"loop": false,
+"name": &"head_attack",
 "speed": 1.0
 }, {
 "frames": [{
@@ -67,6 +126,26 @@ animations = [{
 "loop": false,
 "name": &"jump",
 "speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("38_jump_kick_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_jump_kick_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_jump_kick_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("41_jump_kick_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("42_jump_kick_4")
+}],
+"loop": false,
+"name": &"jump_kick",
+"speed": 1.0
 }, {
 "frames": [{
 "duration": 1.0,

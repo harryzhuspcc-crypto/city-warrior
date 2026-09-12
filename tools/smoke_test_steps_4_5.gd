@@ -228,6 +228,12 @@ func _test_attack_buffer() -> String:
 	if input.consume_kick() or not input.consume_attack():
 		return "Physics polling overwrote the latest real attack-event order"
 	input.end_physics_tick()
+	input.clear_buffered_actions()
+	Input.action_press(&"kick")
+	input.physics_tick()
+	Input.action_release(&"kick")
+	if input.consume_kick():
+		return "Physics polling bypassed _unhandled_input gameplay isolation"
 	input.free()
 	return ""
 
@@ -251,9 +257,9 @@ func _test_buffered_player_attacks(player: Player) -> String:
 	while combat.attack_frame < combat.attack_data.total_frames() - 2:
 		player._physics_process(1.0 / 60.0)
 	input.queue_attack()
-	player._physics_process(1.0 / 60.0)
-	player._physics_process(1.0 / 60.0)
-	if not combat.is_attacking or combat.attack_frame != 0:
+	for _frame: int in range(input.chord_window_frames + 1):
+		player._physics_process(1.0 / 60.0)
+	if not combat.is_attacking or combat.attack_frame != 1:
 		return "Late-recovery buffered punch did not chain on the first eligible tick"
 
 	combat.cancel_attack()
@@ -263,12 +269,12 @@ func _test_buffered_player_attacks(player: Player) -> String:
 	while combat.attack_frame < combat.attack_data.total_frames() - 2:
 		player._physics_process(1.0 / 60.0)
 	input.queue_kick()
-	player._physics_process(1.0 / 60.0)
-	player._physics_process(1.0 / 60.0)
+	for _frame: int in range(input.chord_window_frames + 1):
+		player._physics_process(1.0 / 60.0)
 	if not combat.is_attacking or combat.current_attack_data != player.kick_attack_data:
 		return "Late-recovery buffered kick did not chain from punch"
-	if combat.attack_frame != 0:
-		return "Buffered kick did not begin at frame zero"
+	if combat.attack_frame != 1:
+		return "Buffered kick did not process frame zero on its eligible tick"
 
 	combat.cancel_attack()
 	input.clear_buffered_actions()

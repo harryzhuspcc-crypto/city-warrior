@@ -307,7 +307,7 @@ Run `player.tscn` and the enemy scene independently with F6. Each should functio
 After the vertical slice feels good:
 
 1. Three-hit punch combo
-2. Kick and jump kick
+2. Basic kick and Billy's standalone special moves
 3. Grabbing and throws
 4. Weapons from `objects.png`
 5. More enemy archetypes
@@ -323,6 +323,24 @@ Reference images are stored under `documents/double-dragon/references/`.
 
 - Implemented: the L-bound basic two-pose kick shown in `basic-kick.png` uses
   chamber and high side-kick extension poses.
+- Implemented: grounded J+K uses the two-pose rear elbow in `elbow.png` and
+  damages only behind Billy.
+- Implemented: two rapid presses of the same horizontal direction use the
+  directional head attack in `head-attack-directional.png`: pose 1 during
+  startup, pose 2 while attacking, then pose 1 again during recovery. Right,
+  Right uses the authored rightward art and ends facing right; Left, Left uses
+  the mirrored counterpart and ends facing left.
+- Implemented: grounded L+K launches the five-pose rear attack in
+  `back-kick.png`; it damages behind Billy and reverses his facing only after
+  natural completion at landing. While airborne it holds the extended rear
+  kick shown in `back-kick-hold.png` with its deduplicated hitbox active. Its
+  low hop reaches exactly 12.75 px, one quarter of the normal 51 px jump.
+- Implemented: L while already airborne uses the five-pose jump kick in
+  `jump-kick.png`, preserving the normal 51 px jump arc and belt-plane air
+  movement. It holds the forward extension shown in `jump-kick-hold.png` and
+  remains active until landing.
+- Grounded J/K/L singles wait through a three-physics-frame chord window.
+  Same-direction double taps use an inclusive 12-physics-frame window.
 - Implement the following combos only after Williams and the enemy
   fighting/damage feedback loop exist.
 - Add the three-hit punch sequence shown in `three-hit-punch.png`. The first

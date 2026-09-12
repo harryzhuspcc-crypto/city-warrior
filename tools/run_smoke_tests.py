@@ -20,6 +20,7 @@ TESTS = (
     "tools/smoke_test_step_4.gd",
     "tools/smoke_test_steps_4_5.gd",
     "tools/smoke_test_combat_overlap.gd",
+    "tools/smoke_test_special_moves.gd",
 )
 DIAGNOSTIC_MARKERS = (
     "ERROR:",

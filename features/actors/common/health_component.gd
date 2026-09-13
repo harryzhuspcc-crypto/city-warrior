@@ -36,3 +36,7 @@ func restore_full_health() -> void:
 func is_dead() -> bool:
 	return current_health <= 0
 
+
+func maximum_health() -> int:
+	return _maximum_health
+

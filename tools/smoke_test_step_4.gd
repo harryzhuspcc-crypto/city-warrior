@@ -1,8 +1,11 @@
 extends SceneTree
 
+## The one cycle that does not pivot on its feet; see _test_feet_pivots.
+const CLIMB_ANIMATION: StringName = &"climb"
 const PROTOTYPE_ALLEY_SCENE: PackedScene = preload(
 	"res://levels/prototype_alley/prototype_alley.tscn"
 )
+const AudioSettle = preload("res://tools/lib/audio_settle.gd")
 
 
 func _initialize() -> void:
@@ -22,6 +25,13 @@ func _run() -> void:
 	if player.get_parent() != actors:
 		_fail("Player is not a direct child of Actors")
 		return
+	# The remaining checks isolate Billy's movement contract, so the encounter
+	# must not spawn enemies that walk over and interrupt them.
+	alley.encounter_controller.enabled = false
+	for actor: Node in actors.get_children():
+		if actor is Williams:
+			_fail("The encounter spawns enemies; none may be pre-placed")
+			return
 	if player.collision_mask & 1 == 0:
 		_fail("Player does not scan world collision layer 1")
 		return
@@ -135,13 +145,16 @@ func _run() -> void:
 	player.jump_component.land_immediately()
 	player.input_component.clear_buffered_actions()
 
+	# Left and right stop on the stage's left edge and the camera's right
+	# screen edge (the camera does not advance between synchronous moves);
+	# top and bottom stop on the sidewalk line and the road's last row.
 	for test_case: Array in [
-		[Vector2.LEFT, Vector2(15.0, 150.0), &"left"],
-		[Vector2.RIGHT, Vector2(369.0, 150.0), &"right"],
-		[Vector2.UP, Vector2(192.0, 108.0), &"top"],
-		[Vector2.DOWN, Vector2(192.0, 200.0), &"bottom"],
+		[Vector2.LEFT, Vector2(7.0, 188.0), &"left"],
+		[Vector2.RIGHT, Vector2(377.0, 188.0), &"right"],
+		[Vector2.UP, Vector2(192.0, 160.0), &"top"],
+		[Vector2.DOWN, Vector2(192.0, 216.0), &"bottom"],
 	]:
-		player.global_position = Vector2(192.0, 150.0)
+		player.global_position = Vector2(192.0, 188.0)
 		for _frame: int in range(300):
 			player.movement_component.move(test_case[0] as Vector2)
 		var expected := test_case[1] as Vector2
@@ -152,6 +165,9 @@ func _run() -> void:
 			)
 			return
 
+	# The level has music in it, so it is put away rather than left
+	# standing at exit.
+	await AudioSettle.free_level(self, alley)
 	print("STEP_4_SMOKE_TEST_PASS")
 	quit()
 
@@ -159,6 +175,10 @@ func _run() -> void:
 func _test_feet_pivots(player: Player) -> String:
 	var frames := player.visuals.animated_sprite.sprite_frames
 	for animation_name: StringName in frames.get_animation_names():
+		# The climb cycle plants each pose's foot on a different rung, so its
+		# floor contact slides sideways by design. It hangs from the head
+		# instead, which smoke_test_ladder.gd checks.
+		var pivots_on_feet := animation_name != CLIMB_ANIMATION
 		for frame_index: int in range(frames.get_frame_count(animation_name)):
 			var texture := frames.get_frame_texture(animation_name, frame_index)
 			var image := texture.get_image()
@@ -173,6 +193,9 @@ func _test_feet_pivots(player: Player) -> String:
 						animation_name,
 						frame_index,
 					]
+
+			if not pivots_on_feet:
+				continue
 
 			var minimum_x: int = 80
 			var maximum_x: int = -1

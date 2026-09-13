@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
+
+[resource]
+script = ExtResource("1_attack_data")
+attack_name = &"billy_punch_cross"
+animation_name = &"punch_cross"
+startup_frames = 5
+active_frames = 3
+recovery_frames = 10
+damage = 10
+hitstun_frames = 14
+knockback = Vector2(80, 0)
+hitbox_rect = Rect2(11, -37, 18, 18)
+movement_speed = 120.0
+movement_start_frame = 0
+movement_end_frame = 5
+animation_frame_starts = PackedInt32Array(0, 5, 8)

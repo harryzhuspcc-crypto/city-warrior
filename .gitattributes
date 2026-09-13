@@ -1,2 +1,6 @@
 # Normalize EOL for all files that Git considers text files.
 * text=auto eol=lf
+
+# Python indents with spaces by convention, so the project's tab rule cannot
+# apply to it; every other file keeps indent-with-non-tab.
+*.py whitespace=-indent-with-non-tab

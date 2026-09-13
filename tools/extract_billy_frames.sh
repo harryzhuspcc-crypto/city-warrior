@@ -25,14 +25,18 @@ mkdir -p \
   "$OUTPUT_ROOT/walk_down" \
   "$OUTPUT_ROOT/jump" \
   "$OUTPUT_ROOT/punch" \
+  "$OUTPUT_ROOT/punch_cross" \
+  "$OUTPUT_ROOT/uppercut" \
   "$OUTPUT_ROOT/kick" \
+  "$OUTPUT_ROOT/turn_kick" \
   "$OUTPUT_ROOT/elbow" \
   "$OUTPUT_ROOT/head_attack" \
   "$OUTPUT_ROOT/back_kick" \
   "$OUTPUT_ROOT/jump_kick" \
   "$OUTPUT_ROOT/hurt" \
   "$OUTPUT_ROOT/knockdown" \
-  "$OUTPUT_ROOT/death"
+  "$OUTPUT_ROOT/death" \
+  "$OUTPUT_ROOT/climb"
 
 # Remove superseded walk directories so stale generated frames cannot be
 # accidentally reintroduced in SpriteFrames.
@@ -42,54 +46,8 @@ rm -rf "$OUTPUT_ROOT/walk" "$OUTPUT_ROOT/walk_side"
 # remove only the known matte color; fuzzy removal damages palette colors.
 magick "$SOURCE" -alpha on -transparent "$MATTE" -strip "$CLEAN_SHEET"
 
-extract_frame() {
-  local relative_path="$1"
-  local crop_rect="$2"
-  local destination="$OUTPUT_ROOT/$relative_path"
-  local trimmed_pose
-  trimmed_pose="$(mktemp -t billy-frame).png"
-
-  magick "$CLEAN_SHEET" \
-    -crop "$crop_rect" +repage \
-    -trim +repage \
-    "$trimmed_pose"
-
-  local pose_width
-  local pose_height
-  read -r pose_width pose_height < <(
-    magick identify -format '%w %h\n' "$trimmed_pose"
-  )
-
-  # Use the lowest eight opaque rows as the feet/lower-leg band. Four rows can
-  # see only one planted boot in wide stances; eight captures both feet while
-  # staying below the torso. Align its midpoint to x=40.
-  local foot_band_height=8
-  if (( pose_height < foot_band_height )); then
-    foot_band_height=$pose_height
-  fi
-  local foot_band_y=$((pose_height - foot_band_height))
-  local foot_width
-  local foot_x
-  read -r foot_width foot_x < <(
-    magick "$trimmed_pose" \
-      -alpha extract \
-      -crop "${pose_width}x${foot_band_height}+0+${foot_band_y}" +repage \
-      -trim \
-      -format '%w %X\n' \
-      info:
-  )
-
-  local destination_x=$(((80 - (2 * foot_x) - foot_width) / 2))
-  local destination_y=$((80 - pose_height))
-  local destination_geometry
-  printf -v destination_geometry '%+d%+d' "$destination_x" "$destination_y"
-
-  magick -size 80x80 canvas:none \
-    "$trimmed_pose" -geometry "$destination_geometry" -composite \
-    -strip \
-    "$destination"
-  rm -f "$trimmed_pose"
-}
+# shellcheck source=lib/frame_extraction.sh
+source "$PROJECT_ROOT/tools/lib/frame_extraction.sh"
 
 # Coordinates refer to the original 611×1341 source sheet. Keep this list as
 # the reproducible slicing manifest while the prototype animation set evolves.
@@ -113,14 +71,47 @@ extract_frame "punch/punch_00.png" "42x72+10+270"
 extract_frame "punch/punch_01.png" "56x72+50+270"
 extract_frame "punch/punch_02.png" "45x72+103+270"
 
+# Punch chain, step two. The sheet's punch band authors the same punch twice
+# with alternating arms - poses at x 16/53/107 are pixel-identical to those at
+# x 315/352/406 - so the chain's second hit is the other arm, at x 166/201/255.
+extract_frame "punch_cross/punch_cross_00.png" "27x60+166+280"
+extract_frame "punch_cross/punch_cross_01.png" "46x59+201+281"
+extract_frame "punch_cross/punch_cross_02.png" "28x58+255+282"
+
+# Punch chain finisher: the rising uppercut of three-hit-punch.png, whose four
+# poses are the band's last group. Pose 0 is pixel-identical to punch_02; it is
+# sliced again here so the finisher's animation stands on its own.
+extract_frame "uppercut/uppercut_00.png" "27x59+406+281"
+extract_frame "uppercut/uppercut_01.png" "25x57+441+283"
+extract_frame "uppercut/uppercut_02.png" "35x60+474+280"
+extract_frame "uppercut/uppercut_03.png" "30x71+517+269"
+
 extract_frame "kick/kick_00.png" "34x72+12+350"
 extract_frame "kick/kick_01.png" "45x72+47+350"
+
+# Kick chain finisher: the five-pose turning kick of three-hit-kick.png. The
+# last two poses are the spin through, not a turn to face the other way.
+extract_frame "turn_kick/turn_kick_00.png" "28x60+120+359"
+extract_frame "turn_kick/turn_kick_01.png" "27x60+156+359"
+extract_frame "turn_kick/turn_kick_02.png" "44x57+191+362"
+extract_frame "turn_kick/turn_kick_03.png" "32x59+243+360"
+extract_frame "turn_kick/turn_kick_04.png" "28x59+283+360"
 
 extract_frame "elbow/elbow_00.png" "22x62+435+357"
 extract_frame "elbow/elbow_01.png" "34x63+465+356"
 
 extract_frame "head_attack/head_attack_00.png" "24x57+531+362"
 extract_frame "head_attack/head_attack_01.png" "32x59+563+360"
+
+# Ladder climb cycle: the five-pose rear view marked REPEAT on the sheet, band
+# y 174-235. Every pose plants a foot on the band's bottom row, so the shared
+# floor and the head centroid (x 23/55/89/118/149) keep the cycle steady; the
+# per-pose foot band would swing the body with the lifted leg.
+extract_anchored_frame "climb/climb_00.png" "22x62+16+174" 23
+extract_anchored_frame "climb/climb_01.png" "24x62+46+174" 55
+extract_anchored_frame "climb/climb_02.png" "24x62+78+174" 89
+extract_anchored_frame "climb/climb_03.png" "21x62+110+174" 118
+extract_anchored_frame "climb/climb_04.png" "22x62+139+174" 149
 
 extract_frame "back_kick/back_kick_00.png" "28x64+16+435"
 extract_frame "back_kick/back_kick_01.png" "37x39+52+460"

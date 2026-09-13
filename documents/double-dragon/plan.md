@@ -233,6 +233,8 @@ Suggested collision layers:
 | 5 | Player hitboxes |
 | 6 | Enemy hitboxes |
 | 7 | Pickups |
+| 8 | Screen edges (only the player collides) |
+| 9 | Ladders and other passive interactables |
 
 Player hitboxes scan only enemy hurtboxes, and vice versa.
 
@@ -255,6 +257,36 @@ Keep the first AI simple:
 5. Back away occasionally.
 
 Do not add pathfinding yet. Direct steering with collision avoidance is sufficient for one alley.
+
+### Implemented Williams loop
+
+- Implemented: `features/actors/enemies/williams/williams.tscn` reuses the
+  shared health, movement, combat, hurtbox, and hit-reaction components. Its
+  frames come from `tools/extract_williams_frames.sh`, which shares the
+  feet-pivot library in `tools/lib/frame_extraction.sh` with Billy.
+- Implemented: `EnemyAIComponent` is a sense/decide worker that mirrors the
+  player input component. It waits a reaction delay, approaches horizontally,
+  sidesteps out of `body_clearance_x` before aligning depth (a pure vertical
+  push wedges against the target's body), stops at `attack_range_x`, requests
+  an attack once the cooldown that restarts on punch completion expires, and
+  retreats for `retreat_frames` with `retreat_probability` after a completed
+  punch. A retreat that hits a wall ends early. Assigning a target restarts
+  the reaction delay.
+- Implemented: `EnemyStateMachine` uses IDLE, APPROACH, RETREAT, ATTACK,
+  HITSTUN, KNOCKDOWN, and DEAD. With `acquire_player_target` on, Williams
+  keeps looking for the first node in the `player` group until one exists,
+  idles without one, and idles again once the target reports `is_dead()`.
+- Implemented: the shared `HitReactionComponent` resolves every confirmed
+  hit for both actors. Hitstun lasts `AttackData.hitstun_frames` with a
+  decaying knockback slide; knockdown happens on a lethal hit, an attack with
+  `knocks_down`, a hit while airborne, or the `hits_before_knockdown`th
+  consecutive hit, lasts `FighterStats.knockdown_frames`, and grants
+  invulnerability until the actor gets up. Death holds the fall then the
+  prone pose; a dead Williams stops blocking, lingers, emits `defeated`, and
+  frees itself.
+- Implemented: hurt, knockdown, and death poses are scheduled from
+  `FighterStats` pose-start arrays with the same frame-driven presentation
+  the attacks use.
 
 ## 7. Build the prototype level
 
@@ -284,6 +316,34 @@ The encounter controller should:
 3. Detect when all enemies have died.
 4. Unlock the camera.
 5. Finish the prototype when the player reaches the exit.
+
+### Implemented prototype level
+
+- Implemented: `tools/extract_stage_section.sh` crops the first street section
+  (1232×216, sheet rows 264–480) into `assets/stages/new_york_street.png`.
+  The road's last row sits on the viewport bottom, so the walkable strip runs
+  from the sidewalk line (world y 152) to the road bottom (y 216); layer-1
+  boundaries sit exactly on the art edges.
+- Implemented: `BeltScrollCamera` follows Billy along x inside the camera
+  limits, stays on the single 216 px band, never scrolls back toward the
+  start, and locks/unlocks for encounters. Every move is paced at
+  `catch_up_speed` (an unlock pans back to Billy instead of snapping), a
+  lock never pans backwards or pushes Billy out of view, and a target
+  outside the view is cut to at once. Two `StaticBody2D` screen edges are
+  its children on collision layer 8; only Billy masks that layer, so he
+  cannot leave the view while enemies walk in from off screen.
+- Implemented: `EncounterController` activates when Billy reaches `lock_x`
+  (640, so the camera is already there and no pan is needed), locks the
+  camera, spawns three Williams round-robin from off-screen markers every 45
+  frames with `set_target(player)`, counts each enemy down once when it
+  reports `defeated` or otherwise leaves the tree, then unlocks the camera
+  and emits `encounter_cleared`. Reinforcements stop once Billy is dead, and
+  a disabled controller does not gate the exit.
+- Implemented: `Hud` is a CanvasLayer with Billy's health bar and a message
+  label. The level feeds it through methods (`health_changed` → `set_health`).
+  Reaching the exit marker (x 1192) after the clear shows STAGE CLEAR; Billy's
+  death shows GAME OVER after a 90-frame linger. The attack action then
+  requests a restart, which reloads the level when it is the running scene.
 
 ## 8. First playable milestone
 
@@ -341,15 +401,60 @@ Reference images are stored under `documents/double-dragon/references/`.
   remains active until landing.
 - Grounded J/K/L singles wait through a three-physics-frame chord window.
   Same-direction double taps use an inclusive 12-physics-frame window.
-- Implement the following combos only after Williams and the enemy
-  fighting/damage feedback loop exist.
-- Add the three-hit punch sequence shown in `three-hit-punch.png`. The first
-  two connected punches advance the chain; only the third connected input uses
-  the rising finisher. Whiffing must not advance the combo counter.
-- Add the three-hit kick sequence shown in `three-hit-kick.png`. The first two
-  connected kicks advance the chain; only the third connected input uses the
-  turning/back-kick finisher. Whiffing must not advance the combo counter.
-- Combo progression must be driven by confirmed enemy hits, not merely by
-  button presses or animation completion.
+- Implemented: the three-hit punch sequence of `three-hit-punch.png`. J opens
+  with Billy's basic punch, a connected punch earns the cross (the sheet's
+  other-arm punch), and a connected cross earns the rising uppercut the
+  reference shows. The uppercut knocks its target down.
+- Implemented: the three-hit kick sequence of `three-hit-kick.png`. The sheet
+  authors one basic kick, so L opens twice with it; the third connected kick is
+  the five-pose turning finisher, which also knocks down. Its rear poses are a
+  spin through, not a turn to face the other way, so Billy keeps his facing.
+- Implemented: progression is driven by confirmed hits. `AttackChainComponent`
+  advances a chain only when its own step both ran to the end and connected, so
+  a whiff, an interruption, a different move, or waiting out
+  `FighterStats.chain_window_frames` all send the next press back to the
+  opener. Combat itself knows nothing about chains: it reports its hits and its
+  finishes, and the chain component decides what they mean.
+- Implemented: every step after an opener carries a short forward lunge
+  (`AttackData.movement_speed` over its startup). A landed hit knocks the
+  target back about 10 px for a punch and 16 px for a kick, so a chain whose
+  later steps stood still could never reach the enemy its own opener pushed
+  away.
+
+### Ladder climbing
+
+- Implemented: Billy climbs the left ladder of the SCOOP MOTO building shown
+  in `ladder-location.png` with the five-pose repeating rear-view cycle in
+  `ladder-climb.png`. Those poses plant their feet on different rungs, so they
+  hang from the head's column instead of the shared feet pivot every other
+  Billy pose uses. Up at the ladder's base grabs it and snaps Billy onto
+  its x; up and down climb at `FighterStats.climb_speed` with one pose per
+  `climb_pose_pixels`; the top rung clamps the climb; reaching the base with
+  down held, or sideways input at the base, steps off. The body stays on the
+  ground plane while the `Visuals` node rises, exactly like the jump.
+- Implemented: the top rung is the SCOOP building's stone cornice. Billy steps
+  onto it, walks it with idle and walk poses, and climbs down the building's
+  second ladder to the street; down over either ladder puts him back on its
+  rungs. A ledge is a `ClimbPlatform`: a height above the ground plane plus
+  the span of stage x its surface covers, so the belt keeps one ground plane
+  and only the visuals rise. Its ends stop Billy rather than drop him.
+- Implemented: while on the ladder Billy cannot be hit and drops attack,
+  kick, and jump presses instead of buffering them. Because that
+  invulnerability is untimed and the ladder stands inside the encounter's
+  locked arena, the level closes every ladder while the encounter runs and
+  opens them again when it is cleared.
+- Ladders are `Ladder` areas on collision layer 9 that the player's
+  `ClimbComponent` queries; the prototype alley places both of the SCOOP
+  building's, at x 522 and x 778, each centred on the rails the art draws
+  (513.5/529.5 and 769.5/785.5). Both lead to the one `ScoopLedge`, whose
+  surface is the cornice's top row at world y 25, so each climbs 135 px.
+- The band is no longer fixed. The stage slice reaches 56 px above the world
+  origin (`1232x272+0+208`, drawn at y −56), and the camera raises its band by
+  Billy's own elevation until `limit_top` stops it, so the climb reads as a
+  vertical scroll and his whole sprite stays on screen at the top. A jump
+  deliberately does not move the band.
+- The encounter's trigger waits for a player on the ground plane, so crossing
+  x 640 along the ledge does not start a fight that would only drop Billy off
+  it.
 
 Avoid implementing inventory, online multiplayer, elaborate AnimationTrees, or boss systems before the first encounter is enjoyable.

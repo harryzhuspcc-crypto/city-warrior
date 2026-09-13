@@ -9,3 +9,6 @@ horizontal_speed = 90.0
 depth_speed = 60.0
 jump_takeoff_speed = 252.4
 jump_gravity = 600.0
+climb_speed = 48.0
+climb_pose_pixels = 8.0
+chain_window_frames = 24

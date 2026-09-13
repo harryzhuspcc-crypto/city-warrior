@@ -1,0 +1,37 @@
+
+URL: https://sounds.spriters-resource.com/arcade/doubledragon/asset/412270/?utm_source=chatgpt.com
+
+ sfx 01: arcade credit
+ sfx 02: 1UP
+ sfx 03: elevator 1
+ sfx 04: elevator 2
+ sfx 05: Elevator door open
+ sfx 06: Signal
+ sfx 07: unused
+ sfx 08: punch hit
+ sfx 09: kick hit
+ sfx 10: fall to the ground
+ sfx 11: bomb
+ sfx 12: barrel rolling
+ sfx 13: unused
+ sfx 14: unused
+ sfx 15: final stage spear thurst
+ sfx 16: unused
+ sfx 17: final stage wall brick thurst
+ sfx 18: fall into the river
+ sfx 19: whip
+ sfx 20: hit with baseball bat
+ sfx 21: throw a knife
+ sfx 22: kick down a flying knife
+ sfx 23: footstep sound
+ sfx 24: bomb 2
+ sfx 25: garage door open 1
+ sfx 26: garage door open 2
+ sfx 27: willy machine gun firing
+ sfx 28: unused
+ voice 01: Billy/Jimmy Elbow, or back kick
+ voice 02: Male enemy dies
+ voice 03: Linda dies
+ voice 04: Player dies
+ voice 05: Abobo throws
+ voice 06: Maria being hit on stomach

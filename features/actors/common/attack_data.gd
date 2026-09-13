@@ -10,6 +10,7 @@ extends Resource
 @export_range(0, 120, 1) var hitstun_frames: int = 14
 @export var knockback: Vector2 = Vector2(80.0, 0.0)
 @export var hitbox_rect: Rect2 = Rect2(11.0, -37.0, 18.0, 18.0)
+@export var knocks_down: bool = false
 @export_range(-1, 1, 2) var hit_direction_multiplier: int = 1
 @export_range(-1, 1, 2) var animation_facing_multiplier: int = 1
 @export var reverse_facing_on_finish: bool = false

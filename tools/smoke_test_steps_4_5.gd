@@ -3,6 +3,7 @@ extends SceneTree
 const PROTOTYPE_ALLEY_SCENE: PackedScene = preload(
 	"res://levels/prototype_alley/prototype_alley.tscn"
 )
+const AudioSettle = preload("res://tools/lib/audio_settle.gd")
 
 
 func _initialize() -> void:
@@ -18,6 +19,10 @@ func _run() -> void:
 	if not error.is_empty():
 		_fail(error)
 		return
+
+	# Detailed player checks drive physics manually; the encounter must not
+	# spawn enemies that approach and interrupt them.
+	(alley as PrototypeAlley).encounter_controller.enabled = false
 
 	var player := alley.get_node("Actors/Player") as Player
 	player.set_physics_process(false)
@@ -43,6 +48,9 @@ func _run() -> void:
 		_fail(error)
 		return
 
+	# The level has music in it, so it is put away rather than left
+	# standing at exit.
+	await AudioSettle.free_level(self, alley)
 	print("STEPS_4_5_SMOKE_TEST_PASS")
 	quit()
 

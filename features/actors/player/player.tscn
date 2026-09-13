@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://features/actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://features/actors/player/billy_stats.tres" id="2_stats"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://features/actors/player/player_input.gd" id="8_input"]
 [ext_resource type="Script" path="res://features/actors/player/player_state_machine.gd" id="9_state"]
 [ext_resource type="Script" path="res://features/actors/common/jump_component.gd" id="10_jump"]
+[ext_resource type="Script" path="res://features/actors/common/climb_component.gd" id="11_climb"]
 [ext_resource type="Script" path="res://features/actors/common/hurtbox_component.gd" id="11_hurtbox"]
 [ext_resource type="Resource" path="res://features/combat/billy_punch.tres" id="12_punch"]
 [ext_resource type="Resource" path="res://features/combat/billy_kick.tres" id="13_kick"]
@@ -17,6 +18,11 @@
 [ext_resource type="Resource" path="res://features/combat/billy_head_attack.tres" id="15_head"]
 [ext_resource type="Resource" path="res://features/combat/billy_back_kick.tres" id="16_back_kick"]
 [ext_resource type="Resource" path="res://features/combat/billy_jump_kick.tres" id="17_jump_kick"]
+[ext_resource type="Script" path="res://features/actors/common/hit_reaction_component.gd" id="18_reaction"]
+[ext_resource type="Script" path="res://features/actors/common/attack_chain_component.gd" id="19_chain"]
+[ext_resource type="Resource" path="res://features/combat/billy_punch_cross.tres" id="20_cross"]
+[ext_resource type="Resource" path="res://features/combat/billy_uppercut.tres" id="21_uppercut"]
+[ext_resource type="Resource" path="res://features/combat/billy_turn_kick.tres" id="22_turn_kick"]
 
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
@@ -27,15 +33,18 @@ size = Vector2(18, 44)
 [sub_resource type="RectangleShape2D" id="HitboxShape"]
 size = Vector2(18, 18)
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "jump_component", "combat_component", "input_component", "state_machine", "visuals")]
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "jump_component", "combat_component", "hurtbox", "hit_reaction_component", "climb_component", "attack_chain_component", "input_component", "state_machine", "visuals")]
 texture_filter = 1
 position = Vector2(192, 150)
 motion_mode = 1
 collision_layer = 2
-collision_mask = 3
+collision_mask = 131
 script = ExtResource("1_player")
 fighter_stats = ExtResource("2_stats")
 kick_attack_data = ExtResource("13_kick")
+punch_cross_attack_data = ExtResource("20_cross")
+uppercut_attack_data = ExtResource("21_uppercut")
+turn_kick_attack_data = ExtResource("22_turn_kick")
 elbow_attack_data = ExtResource("14_elbow")
 head_attack_data = ExtResource("15_head")
 back_kick_attack_data = ExtResource("16_back_kick")
@@ -44,6 +53,10 @@ health_component = NodePath("HealthComponent")
 movement_component = NodePath("MovementComponent")
 jump_component = NodePath("JumpComponent")
 combat_component = NodePath("CombatComponent")
+hurtbox = NodePath("Hurtbox")
+hit_reaction_component = NodePath("HitReactionComponent")
+climb_component = NodePath("ClimbComponent")
+attack_chain_component = NodePath("AttackChainComponent")
 input_component = NodePath("InputComponent")
 state_machine = NodePath("StateMachine")
 visuals = NodePath("Visuals")
@@ -104,6 +117,20 @@ attack_data = ExtResource("12_punch")
 hitbox = NodePath("../AttackOrigin/Hitbox")
 hitbox_shape = NodePath("../AttackOrigin/Hitbox/CollisionShape2D")
 source_actor = NodePath("..")
+
+[node name="HitReactionComponent" type="Node" parent="." node_paths=PackedStringArray("movement_component", "hurtbox")]
+script = ExtResource("18_reaction")
+movement_component = NodePath("../MovementComponent")
+hurtbox = NodePath("../Hurtbox")
+
+[node name="ClimbComponent" type="Node" parent="." node_paths=PackedStringArray("body", "visual_target", "hurtbox")]
+script = ExtResource("11_climb")
+body = NodePath("..")
+visual_target = NodePath("../Visuals")
+hurtbox = NodePath("../Hurtbox")
+
+[node name="AttackChainComponent" type="Node" parent="."]
+script = ExtResource("19_chain")
 
 [node name="InputComponent" type="Node" parent="."]
 script = ExtResource("8_input")

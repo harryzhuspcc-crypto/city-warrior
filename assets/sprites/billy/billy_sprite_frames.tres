@@ -1,43 +1,60 @@
-[gd_resource type="SpriteFrames" load_steps=43 format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://c31fkfuw0lee8"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/idle/idle_00.png" id="1_idle_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/idle/idle_01.png" id="2_idle_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/punch/punch_00.png" id="7_punch_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/punch/punch_01.png" id="8_punch_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/punch/punch_02.png" id="9_punch_2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/hurt/hurt_00.png" id="10_hurt_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/hurt/hurt_01.png" id="11_hurt_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/knockdown/knockdown_00.png" id="12_knockdown_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/knockdown/knockdown_01.png" id="13_knockdown_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/knockdown/knockdown_02.png" id="14_knockdown_2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/knockdown/knockdown_03.png" id="15_knockdown_3"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/death/death_00.png" id="16_death_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_up/walk_up_00.png" id="17_walk_up_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_up/walk_up_01.png" id="18_walk_up_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_up/walk_up_02.png" id="19_walk_up_2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_up/walk_up_03.png" id="20_walk_up_3"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_00.png" id="21_walk_down_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_01.png" id="22_walk_down_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_02.png" id="23_walk_down_2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/walk_down/walk_down_03.png" id="24_walk_down_3"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump/jump_00.png" id="25_jump_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump/jump_01.png" id="26_jump_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/kick/kick_00.png" id="27_kick_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/kick/kick_01.png" id="28_kick_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/elbow/elbow_00.png" id="29_elbow_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/elbow/elbow_01.png" id="30_elbow_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/head_attack/head_attack_00.png" id="31_head_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/head_attack/head_attack_01.png" id="32_head_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_00.png" id="33_back_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_01.png" id="34_back_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_02.png" id="35_back_2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_03.png" id="36_back_3"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/back_kick/back_kick_04.png" id="37_back_4"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_00.png" id="38_jump_kick_0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_01.png" id="39_jump_kick_1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_02.png" id="40_jump_kick_2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_03.png" id="41_jump_kick_3"]
-[ext_resource type="Texture2D" path="res://assets/sprites/billy/jump_kick/jump_kick_04.png" id="42_jump_kick_4"]
+[ext_resource type="Texture2D" uid="uid://b7xsjrj6n53qd" path="res://assets/sprites/billy/idle/idle_00.png" id="1_idle_0"]
+[ext_resource type="Texture2D" uid="uid://om3855t478s1" path="res://assets/sprites/billy/idle/idle_01.png" id="2_idle_1"]
+[ext_resource type="Texture2D" uid="uid://d3q7fq16a15le" path="res://assets/sprites/billy/punch/punch_00.png" id="7_punch_0"]
+[ext_resource type="Texture2D" uid="uid://de8nio738ibhk" path="res://assets/sprites/billy/punch/punch_01.png" id="8_punch_1"]
+[ext_resource type="Texture2D" uid="uid://bpd4r84xcff31" path="res://assets/sprites/billy/punch/punch_02.png" id="9_punch_2"]
+[ext_resource type="Texture2D" uid="uid://der0xfay7nxy1" path="res://assets/sprites/billy/hurt/hurt_00.png" id="10_hurt_0"]
+[ext_resource type="Texture2D" uid="uid://bs3osjkyd8qjo" path="res://assets/sprites/billy/hurt/hurt_01.png" id="11_hurt_1"]
+[ext_resource type="Texture2D" uid="uid://cmcd7w5wgrfbb" path="res://assets/sprites/billy/knockdown/knockdown_00.png" id="12_knockdown_0"]
+[ext_resource type="Texture2D" uid="uid://c4574npimxotn" path="res://assets/sprites/billy/knockdown/knockdown_01.png" id="13_knockdown_1"]
+[ext_resource type="Texture2D" uid="uid://cjc03nborye8i" path="res://assets/sprites/billy/knockdown/knockdown_02.png" id="14_knockdown_2"]
+[ext_resource type="Texture2D" uid="uid://cx66aag2iin8r" path="res://assets/sprites/billy/knockdown/knockdown_03.png" id="15_knockdown_3"]
+[ext_resource type="Texture2D" uid="uid://b8axsacyvvh2g" path="res://assets/sprites/billy/death/death_00.png" id="16_death_0"]
+[ext_resource type="Texture2D" uid="uid://dbwgg7rrg3ymx" path="res://assets/sprites/billy/walk_up/walk_up_00.png" id="17_walk_up_0"]
+[ext_resource type="Texture2D" uid="uid://bgjgbydal2rih" path="res://assets/sprites/billy/walk_up/walk_up_01.png" id="18_walk_up_1"]
+[ext_resource type="Texture2D" uid="uid://c8061af65brxs" path="res://assets/sprites/billy/walk_up/walk_up_02.png" id="19_walk_up_2"]
+[ext_resource type="Texture2D" uid="uid://b02xdgyi4pyw6" path="res://assets/sprites/billy/walk_up/walk_up_03.png" id="20_walk_up_3"]
+[ext_resource type="Texture2D" uid="uid://5xrifle8y6oh" path="res://assets/sprites/billy/walk_down/walk_down_00.png" id="21_walk_down_0"]
+[ext_resource type="Texture2D" uid="uid://8x3hpv6u3ibp" path="res://assets/sprites/billy/walk_down/walk_down_01.png" id="22_walk_down_1"]
+[ext_resource type="Texture2D" uid="uid://kb6k1y8my5fi" path="res://assets/sprites/billy/walk_down/walk_down_02.png" id="23_walk_down_2"]
+[ext_resource type="Texture2D" uid="uid://b8b2gndh7pt2u" path="res://assets/sprites/billy/walk_down/walk_down_03.png" id="24_walk_down_3"]
+[ext_resource type="Texture2D" uid="uid://dfkgk1ecf4kfc" path="res://assets/sprites/billy/jump/jump_00.png" id="25_jump_0"]
+[ext_resource type="Texture2D" uid="uid://dwrel6e54yjre" path="res://assets/sprites/billy/jump/jump_01.png" id="26_jump_1"]
+[ext_resource type="Texture2D" uid="uid://hqo4fk0rkbiq" path="res://assets/sprites/billy/kick/kick_00.png" id="27_kick_0"]
+[ext_resource type="Texture2D" uid="uid://61a6524ahqa4" path="res://assets/sprites/billy/kick/kick_01.png" id="28_kick_1"]
+[ext_resource type="Texture2D" uid="uid://bj6p41jhhij01" path="res://assets/sprites/billy/elbow/elbow_00.png" id="29_elbow_0"]
+[ext_resource type="Texture2D" uid="uid://d0h4aafiu2fh4" path="res://assets/sprites/billy/elbow/elbow_01.png" id="30_elbow_1"]
+[ext_resource type="Texture2D" uid="uid://bbgbrv3q04axk" path="res://assets/sprites/billy/head_attack/head_attack_00.png" id="31_head_0"]
+[ext_resource type="Texture2D" uid="uid://dd8a5thdet87k" path="res://assets/sprites/billy/head_attack/head_attack_01.png" id="32_head_1"]
+[ext_resource type="Texture2D" uid="uid://si3sp8s1ypnu" path="res://assets/sprites/billy/back_kick/back_kick_00.png" id="33_back_0"]
+[ext_resource type="Texture2D" uid="uid://1oody8khv3g5" path="res://assets/sprites/billy/back_kick/back_kick_01.png" id="34_back_1"]
+[ext_resource type="Texture2D" uid="uid://cv3sv7g40ek1d" path="res://assets/sprites/billy/back_kick/back_kick_02.png" id="35_back_2"]
+[ext_resource type="Texture2D" uid="uid://bosmxkad8ulxc" path="res://assets/sprites/billy/back_kick/back_kick_03.png" id="36_back_3"]
+[ext_resource type="Texture2D" uid="uid://bmfmiufa7ec8j" path="res://assets/sprites/billy/back_kick/back_kick_04.png" id="37_back_4"]
+[ext_resource type="Texture2D" uid="uid://duoshf2x2epcj" path="res://assets/sprites/billy/jump_kick/jump_kick_00.png" id="38_jump_kick_0"]
+[ext_resource type="Texture2D" uid="uid://21dv6iuq2mo5" path="res://assets/sprites/billy/jump_kick/jump_kick_01.png" id="39_jump_kick_1"]
+[ext_resource type="Texture2D" uid="uid://d67l6jrl544w" path="res://assets/sprites/billy/jump_kick/jump_kick_02.png" id="40_jump_kick_2"]
+[ext_resource type="Texture2D" uid="uid://s1skd8upcsqv" path="res://assets/sprites/billy/jump_kick/jump_kick_03.png" id="41_jump_kick_3"]
+[ext_resource type="Texture2D" uid="uid://cgotecac40o8o" path="res://assets/sprites/billy/jump_kick/jump_kick_04.png" id="42_jump_kick_4"]
+[ext_resource type="Texture2D" uid="uid://3emp8640y5n2" path="res://assets/sprites/billy/climb/climb_00.png" id="climb_0"]
+[ext_resource type="Texture2D" uid="uid://ovplnhkk8y05" path="res://assets/sprites/billy/climb/climb_01.png" id="climb_1"]
+[ext_resource type="Texture2D" uid="uid://bkk4c2qog5mwp" path="res://assets/sprites/billy/climb/climb_02.png" id="climb_2"]
+[ext_resource type="Texture2D" uid="uid://csqp42kc3ay5y" path="res://assets/sprites/billy/climb/climb_03.png" id="climb_3"]
+[ext_resource type="Texture2D" uid="uid://btumglgx4j2ks" path="res://assets/sprites/billy/climb/climb_04.png" id="climb_4"]
+[ext_resource type="Texture2D" uid="uid://22n1oh5ioma8" path="res://assets/sprites/billy/punch_cross/punch_cross_00.png" id="punch_cross_0"]
+[ext_resource type="Texture2D" uid="uid://dtiqrprxc1kuk" path="res://assets/sprites/billy/punch_cross/punch_cross_01.png" id="punch_cross_1"]
+[ext_resource type="Texture2D" uid="uid://cxmx6p07q84wo" path="res://assets/sprites/billy/punch_cross/punch_cross_02.png" id="punch_cross_2"]
+[ext_resource type="Texture2D" uid="uid://cq0jyu8wnmtto" path="res://assets/sprites/billy/uppercut/uppercut_00.png" id="uppercut_0"]
+[ext_resource type="Texture2D" uid="uid://hexrc8rg0pn8" path="res://assets/sprites/billy/uppercut/uppercut_01.png" id="uppercut_1"]
+[ext_resource type="Texture2D" uid="uid://dmskhpuuktiem" path="res://assets/sprites/billy/uppercut/uppercut_02.png" id="uppercut_2"]
+[ext_resource type="Texture2D" uid="uid://dsgkl732mymhm" path="res://assets/sprites/billy/uppercut/uppercut_03.png" id="uppercut_3"]
+[ext_resource type="Texture2D" uid="uid://2iny5v6jiw3p" path="res://assets/sprites/billy/turn_kick/turn_kick_00.png" id="turn_kick_0"]
+[ext_resource type="Texture2D" uid="uid://cnqpjahees7f1" path="res://assets/sprites/billy/turn_kick/turn_kick_01.png" id="turn_kick_1"]
+[ext_resource type="Texture2D" uid="uid://c7mft3nsqkp0t" path="res://assets/sprites/billy/turn_kick/turn_kick_02.png" id="turn_kick_2"]
+[ext_resource type="Texture2D" uid="uid://bfyjwwcilh6al" path="res://assets/sprites/billy/turn_kick/turn_kick_03.png" id="turn_kick_3"]
+[ext_resource type="Texture2D" uid="uid://tfp5x2ftsj6g" path="res://assets/sprites/billy/turn_kick/turn_kick_04.png" id="turn_kick_4"]
 
 [resource]
 animations = [{
@@ -57,15 +74,41 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("37_back_4")
 }],
-"loop": false,
+"loop": 0,
 "name": &"back_kick",
 "speed": 1.0
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": ExtResource("climb_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("climb_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("climb_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("climb_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("climb_4")
+}],
+"loop": 1,
+"name": &"climb",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("12_knockdown_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_knockdown_1")
+}, {
+"duration": 1.0,
 "texture": ExtResource("16_death_0")
 }],
-"loop": false,
+"loop": 0,
 "name": &"death",
 "speed": 1.0
 }, {
@@ -76,7 +119,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("30_elbow_1")
 }],
-"loop": false,
+"loop": 0,
 "name": &"elbow",
 "speed": 1.0
 }, {
@@ -90,7 +133,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("31_head_0")
 }],
-"loop": false,
+"loop": 0,
 "name": &"head_attack",
 "speed": 1.0
 }, {
@@ -101,7 +144,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("11_hurt_1")
 }],
-"loop": false,
+"loop": 0,
 "name": &"hurt",
 "speed": 8.0
 }, {
@@ -112,7 +155,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("2_idle_1")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle",
 "speed": 2.0
 }, {
@@ -123,7 +166,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("26_jump_1")
 }],
-"loop": false,
+"loop": 0,
 "name": &"jump",
 "speed": 6.0
 }, {
@@ -143,7 +186,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("42_jump_kick_4")
 }],
-"loop": false,
+"loop": 0,
 "name": &"jump_kick",
 "speed": 1.0
 }, {
@@ -154,7 +197,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("28_kick_1")
 }],
-"loop": false,
+"loop": 0,
 "name": &"kick",
 "speed": 6.0
 }, {
@@ -171,7 +214,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("15_knockdown_3")
 }],
-"loop": false,
+"loop": 0,
 "name": &"knockdown",
 "speed": 6.0
 }, {
@@ -185,8 +228,59 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("9_punch_2")
 }],
-"loop": false,
+"loop": 0,
 "name": &"punch",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("punch_cross_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("punch_cross_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("punch_cross_2")
+}],
+"loop": 0,
+"name": &"punch_cross",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("turn_kick_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("turn_kick_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("turn_kick_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("turn_kick_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("turn_kick_4")
+}],
+"loop": 0,
+"name": &"turn_kick",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("uppercut_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("uppercut_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("uppercut_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("uppercut_3")
+}],
+"loop": 0,
+"name": &"uppercut",
 "speed": 10.0
 }, {
 "frames": [{
@@ -202,7 +296,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("24_walk_down_3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_down",
 "speed": 8.0
 }, {
@@ -219,7 +313,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("20_walk_up_3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_up",
 "speed": 8.0
 }]

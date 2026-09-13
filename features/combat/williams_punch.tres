@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
+
+[resource]
+script = ExtResource("1_attack_data")
+attack_name = &"williams_punch"
+animation_name = &"punch"
+startup_frames = 12
+active_frames = 4
+recovery_frames = 16
+damage = 8
+hitstun_frames = 16
+knockback = Vector2(70, 0)
+hitbox_rect = Rect2(12, -40, 22, 18)
+animation_frame_starts = PackedInt32Array(0, 12, 16)

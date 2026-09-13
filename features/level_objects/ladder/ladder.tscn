@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/level_objects/ladder/ladder.gd" id="1_ladder"]
+
+[sub_resource type="RectangleShape2D" id="GrabZoneShape"]
+size = Vector2(16, 20)
+
+[node name="Ladder" type="Area2D"]
+collision_layer = 256
+collision_mask = 0
+monitoring = false
+script = ExtResource("1_ladder")
+
+[node name="GrabZone" type="CollisionShape2D" parent="."]
+position = Vector2(0, 2)
+shape = SubResource("GrabZoneShape")

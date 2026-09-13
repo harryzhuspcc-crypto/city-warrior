@@ -6,6 +6,7 @@ const IDLE_ANIMATION: StringName = &"idle"
 const WALK_UP_ANIMATION: StringName = &"walk_up"
 const WALK_DOWN_ANIMATION: StringName = &"walk_down"
 const PUNCH_ANIMATION: StringName = &"punch"
+const CLIMB_ANIMATION: StringName = &"climb"
 
 @export var animated_sprite: AnimatedSprite2D
 
@@ -25,7 +26,10 @@ func sync(
 	attack_animation: StringName = PUNCH_ANIMATION,
 	attack_frame: int = 0,
 	attack_frame_starts: PackedInt32Array = PackedInt32Array([0]),
-	attack_animation_facing_multiplier: int = 1
+	attack_animation_facing_multiplier: int = 1,
+	reaction_frame: int = 0,
+	reaction_frame_starts: PackedInt32Array = PackedInt32Array([0]),
+	climb_pose: int = 0
 ) -> void:
 	if not is_zero_approx(movement_direction.x):
 		_last_facing = signf(movement_direction.x)
@@ -35,7 +39,27 @@ func sync(
 	animated_sprite.flip_h = display_facing < 0.0
 
 	if state == PlayerStateMachine.ATTACK:
-		_sync_attack_pose(attack_animation, attack_frame, attack_frame_starts)
+		_sync_scheduled_pose(attack_animation, attack_frame, attack_frame_starts)
+		return
+	if (
+		state == PlayerStateMachine.HITSTUN
+		or state == PlayerStateMachine.KNOCKDOWN
+		or state == PlayerStateMachine.DEAD
+	):
+		_sync_scheduled_pose(
+			_animation_for_state(state, movement_direction, attack_animation),
+			reaction_frame,
+			reaction_frame_starts
+		)
+		return
+	if state == PlayerStateMachine.CLIMB:
+		# Rear view on the rungs: no facing, pose chosen by climbed distance.
+		if animated_sprite.animation != CLIMB_ANIMATION:
+			animated_sprite.play(CLIMB_ANIMATION)
+		animated_sprite.pause()
+		animated_sprite.flip_h = false
+		var pose_count := animated_sprite.sprite_frames.get_frame_count(CLIMB_ANIMATION)
+		animated_sprite.set_frame_and_progress(clampi(climb_pose, 0, maxi(pose_count - 1, 0)), 0.0)
 		return
 	if is_airborne:
 		if animated_sprite.animation != JUMP_ANIMATION:
@@ -61,6 +85,11 @@ func sync(
 		animated_sprite.set_frame_and_progress(0, 0.0)
 
 
+## Number of poses in the climb cycle, read from the artwork itself.
+func climb_pose_count() -> int:
+	return animated_sprite.sprite_frames.get_frame_count(CLIMB_ANIMATION)
+
+
 func _hold_last_locomotion_pose() -> void:
 	if _last_locomotion_animation == IDLE_ANIMATION:
 		if animated_sprite.animation != IDLE_ANIMATION or not animated_sprite.is_playing():
@@ -80,22 +109,18 @@ func set_facing(horizontal_direction: float) -> void:
 	animated_sprite.flip_h = _last_facing < 0.0
 
 
-func _sync_attack_pose(
+func _sync_scheduled_pose(
 	animation_name: StringName,
-	attack_frame: int,
+	frame: int,
 	frame_starts: PackedInt32Array
 ) -> void:
 	if animated_sprite.animation != animation_name:
 		animated_sprite.play(animation_name)
 	animated_sprite.pause()
-	var pose_index: int = 0
-	for frame_index: int in range(frame_starts.size()):
-		if attack_frame < frame_starts[frame_index]:
-			break
-		pose_index = frame_index
-	pose_index = mini(
-		pose_index,
-		animated_sprite.sprite_frames.get_frame_count(animation_name) - 1
+	var pose_index := PoseSchedule.pose_index(
+		frame,
+		frame_starts,
+		animated_sprite.sprite_frames.get_frame_count(animation_name)
 	)
 	animated_sprite.set_frame_and_progress(pose_index, 0.0)
 
@@ -115,6 +140,8 @@ func _animation_for_state(
 		return &"knockdown"
 	if state == PlayerStateMachine.DEAD:
 		return &"death"
+	if state == PlayerStateMachine.CLIMB:
+		return CLIMB_ANIMATION
 	return IDLE_ANIMATION
 
 

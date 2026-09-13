@@ -66,6 +66,10 @@
 [ext_resource type="Texture2D" uid="uid://dmskhpuuktiem" path="res://assets/sprites/billy/uppercut/uppercut_02.png" id="uppercut_2"]
 [ext_resource type="Texture2D" uid="uid://dsgkl732mymhm" path="res://assets/sprites/billy/uppercut/uppercut_03.png" id="uppercut_3"]
 
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/being_thrown/being_thrown_00.png" id="being_thrown_0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/being_thrown/being_thrown_01.png" id="being_thrown_1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/billy/being_thrown/being_thrown_02.png" id="being_thrown_2"]
+
 [resource]
 animations = [{
 "frames": [{
@@ -371,4 +375,9 @@ animations = [{
 "loop": 1,
 "name": &"walk_up",
 "speed": 8.0
+}, {
+"frames": [{"duration": 1.2, "texture": ExtResource("being_thrown_0")}, {"duration": 1.6, "texture": ExtResource("being_thrown_1")}, {"duration": 2.4, "texture": ExtResource("being_thrown_2")}],
+"loop": false,
+"name": &"being_thrown",
+"speed": 10.0
 }]

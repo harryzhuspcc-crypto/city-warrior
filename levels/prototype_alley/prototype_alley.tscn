@@ -13,6 +13,9 @@
 [ext_resource type="AudioStream" uid="uid://dwglc43xn6e4e" path="res://assets/audio/bgm/02_slums.mp3" id="11_slums"]
 [ext_resource type="AudioStream" uid="uid://ct0ga3qwe8lhv" path="res://assets/audio/bgm/04_mission_complete.mp3" id="12_mission_complete"]
 
+[ext_resource type="PackedScene" path="res://features/actors/enemies/abobo/abobo.tscn" id="13_abobo"]
+[ext_resource type="AudioStream" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="14_boss_music"]
+
 [sub_resource type="RectangleShape2D" id="HorizontalBoundaryShape"]
 size = Vector2(1264, 16)
 
@@ -22,7 +25,7 @@ size = Vector2(16, 232)
 [sub_resource type="RectangleShape2D" id="ScreenEdgeShape"]
 size = Vector2(16, 232)
 
-[node name="PrototypeAlley" type="Node2D" unique_id=712498877 node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "stage_clear_music")]
+[node name="PrototypeAlley" type="Node2D" unique_id=712498877 node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "boss_encounter", "stage_clear_music")]
 script = ExtResource("1_alley")
 actors = NodePath("Actors")
 player = NodePath("Actors/Player")
@@ -33,6 +36,8 @@ hud = NodePath("HUD")
 exit = NodePath("Exit")
 ladders = NodePath("Ladders")
 music = NodePath("Music")
+boss_encounter = NodePath("Encounters/BossEncounter")
+boss_music = ExtResource("14_boss_music")
 stage_clear_music = NodePath("StageClearMusic")
 
 [node name="Background" type="Sprite2D" parent="." unique_id=2116658790]
@@ -136,6 +141,7 @@ position = Vector2(880, 168)
 [node name="EndingEncounter" type="Node2D" parent="Encounters" unique_id=2047747575 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("5_encounter")
 enemy_scene = ExtResource("4_williams")
+enemy_count = 3
 actors = NodePath("../../Actors")
 player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
@@ -153,6 +159,22 @@ position = Vector2(800, 176)
 
 [node name="EndingUpperLeft" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints" unique_id=550651391]
 position = Vector2(780, 168)
+
+[node name="BossEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+script = ExtResource("5_encounter")
+enemy_scene = ExtResource("13_abobo")
+enemy_count = 1
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+prerequisite = NodePath("../EndingEncounter")
+lock_x = 1120.0
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter"]
+
+[node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints"]
+position = Vector2(928, 184)
 
 [node name="Exit" type="Marker2D" parent="." unique_id=25816701]
 position = Vector2(1192, 184)

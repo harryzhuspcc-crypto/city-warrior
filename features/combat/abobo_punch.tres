@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack"]
+
+[resource]
+script = ExtResource("1_attack")
+attack_name = &"abobo_punch"
+animation_name = &"punch"
+impact_sound = 1
+startup_frames = 16
+active_frames = 5
+recovery_frames = 24
+damage = 12
+hitstun_frames = 20
+knockback = Vector2(95, 0)
+hitbox_rect = Rect2(12, -48, 30, 24)
+animation_frame_starts = PackedInt32Array(0, 16, 21)

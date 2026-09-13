@@ -7,6 +7,8 @@ const AudioSettle = preload("res://tools/lib/audio_settle.gd")
 const VIEW_WIDTH: float = 384.0
 const VIEW_HEIGHT: float = 216.0
 const SCREEN_EDGE_LAYER: int = 128
+const STAGE_TRACK: String = "res://assets/audio/bgm/02_slums.mp3"
+const BOSS_TRACK: String = "res://assets/audio/bgm/03_abobo_entrance.mp3"
 
 
 func _initialize() -> void:
@@ -42,16 +44,15 @@ func _run() -> void:
 			alley.free()
 		await physics_frame
 
-	var multi_alley := PROTOTYPE_ALLEY_SCENE.instantiate() as PrototypeAlley
-	root.add_child(multi_alley)
-	await physics_frame
-	var multi_error := await _test_multiple_encounters(multi_alley)
-	if not multi_error.is_empty():
-		_fail(multi_error)
-		return
-	root.remove_child(multi_alley)
-	multi_alley.free()
-	await physics_frame
+	for slice: Callable in [_test_multiple_encounters, _test_walkable_sequence, _test_dead_player_cannot_activate_boss]:
+		var multi_alley := PROTOTYPE_ALLEY_SCENE.instantiate() as PrototypeAlley
+		root.add_child(multi_alley)
+		await physics_frame
+		var multi_error: String = await slice.call(multi_alley)
+		await AudioSettle.free_level(self, multi_alley)
+		if not multi_error.is_empty():
+			_fail(multi_error)
+			return
 
 	# A level carries music, and the audio server needs a moment with it.
 	await AudioSettle.settle(self)
@@ -89,22 +90,27 @@ func _test_level_contract(alley: PrototypeAlley) -> String:
 	if alley.encounter_controller == null:
 		return "PrototypeAlley must export its EncounterController"
 	var encounters := alley.encounter_controllers()
-	if encounters.size() != 3:
-		return "PrototypeAlley must contain opening, middle, and ending encounters"
+	if encounters.size() != 4:
+		return "PrototypeAlley must contain opening, middle, ending, and boss encounters"
 	if (
 		encounters[0].name != &"OpeningEncounter"
 		or encounters[1] != alley.encounter_controller
 		or encounters[2].name != &"EndingEncounter"
+		or encounters[3].name != &"BossEncounter"
+		or encounters[3] != alley.boss_encounter
 	):
-		return "The three encounters must be ordered opening, middle, ending"
+		return "The four encounters must be ordered opening, middle, ending, boss"
 	if (
 		encounters[1].prerequisite != encounters[0]
 		or encounters[2].prerequisite != encounters[1]
+		or encounters[3].prerequisite != encounters[2]
 	):
 		return "Encounter prerequisites must form one sequential chain"
 	if not (
 		encounters[0].lock_x < encounters[1].lock_x
 		and encounters[1].lock_x < encounters[2].lock_x
+		and encounters[2].lock_x < encounters[3].lock_x
+		and encounters[3].lock_x < alley.exit.global_position.x
 	):
 		return "Encounter trigger positions must progress across the stage"
 	var encounter := alley.encounter_controller
@@ -160,74 +166,148 @@ func _test_level_contract(alley: PrototypeAlley) -> String:
 
 
 ## Existing focused slices exercise the established middle arena. The opening
-## and ending arenas are disabled there so teleports cannot activate unrelated
+## ending, and boss arenas are disabled there so teleports cannot activate unrelated
 ## fights; the sequence gets its own end-to-end slice below.
 func _isolate_middle_encounter(alley: PrototypeAlley) -> void:
 	for encounter: EncounterController in alley.encounter_controllers():
 		encounter.enabled = encounter == alley.encounter_controller
 
 
-## The real stage runs three arenas in order. Reaching a later trigger cannot
-## bypass its prerequisite, every clear hands control to the next encounter,
-## and the exit remains gated until the ending fight is gone.
+## Exercise the real prerequisite chain, including an early exit visit during
+## every fight. Only boss activation changes BGM; only all clears + exit win.
 func _test_multiple_encounters(alley: PrototypeAlley) -> String:
 	var encounters := alley.encounter_controllers()
-	if encounters.size() != 3:
-		return "Multi-encounter flow requires exactly three arenas"
+	if encounters.size() != 4:
+		return "Multi-encounter flow requires exactly four arenas"
+	var starts: Array[StringName] = []
+	var clears: Array[StringName] = []
+	var stage_clears: Array[bool] = []
+	alley.stage_cleared.connect(func() -> void: stage_clears.append(true))
 	for encounter: EncounterController in encounters:
-		encounter.enabled = true
+		encounter.encounter_started.connect(func() -> void: starts.append(encounter.name))
+		encounter.encounter_cleared.connect(func() -> void: clears.append(encounter.name))
+		encounter.enemy_spawned.connect(func(enemy: Node2D) -> void: enemy.set_physics_process(false))
 	alley.camera.catch_up_speed = 0.0
 	alley.player.set_physics_process(false)
 
-	# Crossing every future trigger at once must still activate only the first
-	# prerequisite-free arena.
-	alley.player.global_position = Vector2(encounters[2].lock_x, 188.0)
+	# Crossing every future trigger and the exit cannot skip prerequisites.
+	alley.player.global_position = Vector2(alley.exit.global_position.x, 188.0)
 	await physics_frame
-	if encounters[0].state != EncounterController.ACTIVE:
-		return "Crossing the stage must activate the opening encounter first"
-	if (
-		encounters[1].state != EncounterController.IDLE
-		or encounters[2].state != EncounterController.IDLE
-	):
-		return "Later encounters activated before their prerequisites cleared"
+	if starts != [&"OpeningEncounter"]:
+		return "Crossing the stage must activate only the opening encounter"
 
 	for encounter_index: int in range(encounters.size()):
 		var encounter := encounters[encounter_index]
-		if encounter.state == EncounterController.IDLE:
-			alley.player.global_position = Vector2(encounter.lock_x, 188.0)
-			await physics_frame
-		if encounter.state != EncounterController.ACTIVE:
-			return "%s did not activate after its prerequisite" % encounter.name
+		alley.player.global_position = Vector2(encounter.lock_x, 188.0)
+		await physics_frame
+		if encounter.state != EncounterController.ACTIVE or not alley.camera.is_locked:
+			return "%s did not activate/lock after its prerequisite" % encounter.name
+		var expected_track := BOSS_TRACK if encounter == alley.boss_encounter else STAGE_TRACK
+		if not alley.music.playing or alley.music.stream.resource_path != expected_track:
+			return "%s must play %s" % [encounter.name, expected_track]
+		if not alley.music.loops() or alley.music.bus != &"Music":
+			return "Every gameplay theme must loop on the Music bus"
 		var all_spawned := await _wait_until(
 			func() -> bool: return encounter.spawned_count == encounter.enemy_count,
 			encounter.spawn_interval_frames * encounter.enemy_count + 5
 		)
-		if not all_spawned:
-			return "%s did not spawn all configured enemies" % encounter.name
+		if not all_spawned or encounter.alive_count != (1 if encounter_index == 3 else 3):
+			return "%s must spawn its exact wave (3/3/3/1)" % encounter.name
+
+		alley.player.global_position.x = alley.exit.global_position.x
+		await physics_frame
+		await physics_frame
+		if alley.state != PrototypeAlley.PLAYING or alley.stage_clear_music.playing:
+			return "Exit/clear music must stay gated during %s" % encounter.name
+		for later: EncounterController in encounters.slice(encounter_index + 1):
+			if later.state != EncounterController.IDLE:
+				return "Future encounter activated despite an unresolved prerequisite"
+		# Return before clearing so the next trigger is a separate crossing.
+		alley.player.global_position.x = encounter.lock_x
 		for actor: Node in alley.actors.get_children():
-			if actor is Williams:
+			if actor is EnemyFighter:
+				if encounter_index == 3 and not actor is Abobo:
+					return "Boss encounter must spawn Abobo"
+				if encounter_index < 3 and not actor is Williams:
+					return "Opening/middle/ending must preserve Williams"
 				actor.queue_free()
 		var cleared := await _wait_until(
-			func() -> bool: return encounter.state == EncounterController.CLEARED,
-			5
+			func() -> bool: return encounter.state == EncounterController.CLEARED, 5
 		)
-		if not cleared:
-			return "%s did not clear after its enemies left" % encounter.name
+		if not cleared or alley.camera.is_locked:
+			return "%s did not clear/unlock after its enemies left" % encounter.name
+		await physics_frame
+		if alley.state != PrototypeAlley.PLAYING or alley.stage_clear_music.playing:
+			return "Clearing a fight alone must not finish the stage"
+		if alley.music.stream.resource_path != expected_track or not alley.music.playing:
+			return "An encounter clear must not change/stop its gameplay theme"
 		if encounter_index + 1 < encounters.size():
-			var next := encounters[encounter_index + 1]
-			if next.state != EncounterController.IDLE:
-				return "%s did not remain idle after the previous clear" % next.name
-			alley.player.global_position = Vector2(next.lock_x, 188.0)
-			await physics_frame
-			if next.state != EncounterController.ACTIVE:
-				return "%s did not activate after the previous clear" % next.name
+			if encounters[encounter_index + 1].state != EncounterController.IDLE:
+				return "Next encounter must wait for its own trigger"
 
-	if alley.state != PrototypeAlley.PLAYING:
-		return "Clearing the ending encounter must not finish before the exit"
-	alley.player.global_position = Vector2(alley.exit.global_position.x, 188.0)
+	var expected_order: Array[StringName] = [&"OpeningEncounter", &"MiddleEncounter", &"EndingEncounter", &"BossEncounter"]
+	if starts != expected_order or clears != expected_order:
+		return "All four arenas must start and clear exactly once in order"
+	alley.player.global_position.x = alley.exit.global_position.x
 	await physics_frame
-	if alley.state != PrototypeAlley.CLEARED:
-		return "The exit must finish after all three encounters clear"
+	await physics_frame
+	if alley.state != PrototypeAlley.CLEARED or stage_clears != [true]:
+		return "The exit must finish exactly once after all four encounters clear"
+	if alley.music.playing or not alley.stage_clear_music.playing:
+		return "Stage clear must replace boss BGM, not overlap it"
+	if alley.stage_clear_music.stream.resource_path != "res://assets/audio/bgm/04_mission_complete.mp3":
+		return "The exit must request mission-complete music"
+	return ""
+
+
+## No teleports or removed boundaries: walk the authored route using Billy's
+## movement worker and the normal camera catch-up speed. Fights are removed
+## after spawning; combat itself is covered by actor suites.
+func _test_walkable_sequence(alley: PrototypeAlley) -> String:
+	alley.player.set_physics_process(false)
+	for encounter: EncounterController in alley.encounter_controllers():
+		encounter.enemy_spawned.connect(func(enemy: Node2D) -> void: enemy.set_physics_process(false))
+		for _frame: int in range(600):
+			if encounter.state == EncounterController.ACTIVE:
+				break
+			alley.player.movement_component.move(Vector2.RIGHT)
+			await physics_frame
+		if encounter.state != EncounterController.ACTIVE:
+			return "Walking cannot reach %s through the world/screen boundaries" % encounter.name
+		if alley.state != PrototypeAlley.PLAYING:
+			return "Walking cleared the stage prematurely"
+		if encounter == alley.boss_encounter:
+			if not is_equal_approx(alley.camera.view_right(), float(alley.camera.limit_right)):
+				return "Boss fight must reuse the clamped final screen"
+			var marker := encounter.spawn_points.get_child(0) as Marker2D
+			if marker.global_position.x <= alley.camera.view_left() or marker.global_position.x >= alley.camera.view_right():
+				return "Abobo must spawn inside the reachable final arena"
+		if not await _wait_until(func() -> bool: return encounter.spawned_count == encounter.enemy_count, 150):
+			return "Walkthrough wave failed to spawn"
+		for actor: Node in alley.actors.get_children():
+			if actor is EnemyFighter:
+				actor.queue_free()
+		if not await _wait_until(func() -> bool: return encounter.is_cleared(), 5):
+			return "Walkthrough wave failed to clear"
+	for _frame: int in range(120):
+		if alley.state == PrototypeAlley.CLEARED:
+			return ""
+		alley.player.movement_component.move(Vector2.RIGHT)
+		await physics_frame
+	return "Exit must be physically reachable after the boss clears"
+
+
+func _test_dead_player_cannot_activate_boss(alley: PrototypeAlley) -> String:
+	for encounter: EncounterController in alley.encounter_controllers():
+		encounter.enabled = encounter == alley.boss_encounter
+	alley.player.health_component.take_damage(999)
+	alley.player.global_position.x = alley.exit.global_position.x
+	await physics_frame
+	await physics_frame
+	if alley.boss_encounter.state != EncounterController.IDLE or alley.boss_encounter.spawned_count != 0:
+		return "Dead Billy must not activate the boss encounter"
+	if alley.music.stream.resource_path != STAGE_TRACK or alley.stage_clear_music.playing:
+		return "Defeat must not trigger boss/clear music"
 	return ""
 
 

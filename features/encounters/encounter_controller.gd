@@ -62,6 +62,7 @@ func _physics_process(_delta: float) -> void:
 		# start. It arms once the player is back on the ground plane.
 		if (
 			enabled
+			and not _player_is_dead()
 			and _prerequisite_is_cleared()
 			and player.global_position.x >= lock_x
 			and not _player_is_elevated()

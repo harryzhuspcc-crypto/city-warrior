@@ -34,6 +34,7 @@ var punch_chain: Array[AttackData] = []
 var kick_chain: Array[AttackData] = []
 
 var _runtime_stats: FighterStats
+var throw_owner: EnemyThrowComponent
 
 
 func _ready() -> void:
@@ -72,6 +73,14 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	input_component.physics_tick()
+	if is_instance_valid(throw_owner):
+		# The enemy owns the pair's one clock, including visual height. Do not
+		# tick JumpComponent (even grounded ticks would erase the carry arc).
+		input_component.clear_buffered_actions()
+		movement_component.stop()
+		jump_component.sync_ground_position()
+		input_component.end_physics_tick()
+		return
 	# The chain's window is open between attacks, so it counts down in every
 	# state: a combo left hanging while Billy walks away expires on its own.
 	attack_chain_component.physics_tick()
@@ -301,6 +310,9 @@ func _walk(direction: Vector2) -> void:
 
 
 func _sync_visuals() -> void:
+	if is_instance_valid(throw_owner):
+		throw_owner.sync_visuals()
+		return
 	if hair_grab_component.is_active():
 		hair_grab_component.sync_visuals()
 		return
@@ -372,6 +384,7 @@ func _validate_dependencies() -> void:
 
 
 func _on_attack_started() -> void:
+	_cancel_enemy_throw()
 	hair_grab_component.release()
 	state_machine.transition_to(PlayerStateMachine.ATTACK)
 
@@ -402,6 +415,12 @@ func _on_hit_landed(
 
 
 func _on_hit_received(attack_data: AttackData, knockback: Vector2, _source: Node2D) -> void:
+	var thrown_fall := false
+	if is_instance_valid(throw_owner):
+		if throw_owner.is_paired_hit(_source, attack_data) and not is_dead():
+			return
+		thrown_fall = throw_owner.has_launched()
+		throw_owner.release(false)
 	# Airborne hits always floor Billy: the jump is visual height only, so the
 	# body is already on the ground plane and can start its knockdown slide.
 	var was_airborne := jump_component.is_airborne
@@ -413,7 +432,8 @@ func _on_hit_received(attack_data: AttackData, knockback: Vector2, _source: Node
 		attack_data,
 		knockback,
 		health_component.is_dead(),
-		was_airborne
+		was_airborne or thrown_fall,
+		thrown_fall
 	)
 	combat_component.cancel_attack()
 
@@ -424,7 +444,38 @@ func can_hair_grab() -> bool:
 		and not is_dead() and not hit_reaction_component.is_incapacitated()
 		and not combat_component.is_attacking and not jump_component.is_airborne
 		and not climb_component.is_elevated() and not hair_grab_component.is_active()
+		and not is_instance_valid(throw_owner)
 	)
+
+
+func can_be_enemy_thrown() -> bool:
+	return can_hair_grab() and not hurtbox.is_invulnerable
+
+
+func claim_enemy_throw(owner_component: EnemyThrowComponent) -> void:
+	throw_owner = owner_component
+	input_component.clear_buffered_actions()
+	attack_chain_component.reset()
+	movement_component.stop()
+	state_machine.transition_to(PlayerStateMachine.THROWN)
+
+
+func release_enemy_throw(owner_component: EnemyThrowComponent, landed: bool, attack: AttackData) -> void:
+	if throw_owner != owner_component:
+		return
+	throw_owner = null
+	input_component.clear_buffered_actions()
+	jump_component.land_immediately()
+	if landed and not is_dead() and not hit_reaction_component.is_incapacitated():
+		hit_reaction_component.apply_hit(attack, Vector2.ZERO, false, true, true)
+	elif not is_dead() and not hit_reaction_component.is_incapacitated():
+		_transition_to_locomotion_state()
+	_sync_visuals()
+
+
+func _cancel_enemy_throw() -> void:
+	if is_instance_valid(throw_owner):
+		throw_owner.release(false)
 
 
 func _on_grab_started() -> void:
@@ -439,6 +490,7 @@ func _on_grab_finished() -> void:
 
 
 func _exit_tree() -> void:
+	_cancel_enemy_throw()
 	if is_instance_valid(hair_grab_component):
 		hair_grab_component.release()
 
@@ -461,6 +513,7 @@ func visual_elevation() -> float:
 
 
 func _on_reaction_started(reaction: StringName, _attack_data: AttackData) -> void:
+	_cancel_enemy_throw()
 	if hit_reaction_component.is_knocked_down() and not is_zero_approx(hit_reaction_component.fall_direction):
 		visuals.set_facing(-hit_reaction_component.fall_direction)
 	hair_grab_component.release()
@@ -484,6 +537,7 @@ func _on_combat_facing_changed(facing: float) -> void:
 
 
 func _on_climb_started(_ladder: Ladder) -> void:
+	_cancel_enemy_throw()
 	hair_grab_component.release()
 	state_machine.transition_to(PlayerStateMachine.CLIMB)
 
@@ -503,6 +557,10 @@ func _on_platform_entered(_platform: ClimbPlatform) -> void:
 
 
 func _on_died() -> void:
+	var thrown_fall := is_instance_valid(throw_owner) and throw_owner.has_launched()
+	_cancel_enemy_throw()
+	if thrown_fall:
+		hit_reaction_component.begin_death(Vector2.ZERO, null, true)
 	hair_grab_component.release()
 	combat_component.cancel_attack()
 	climb_component.release()

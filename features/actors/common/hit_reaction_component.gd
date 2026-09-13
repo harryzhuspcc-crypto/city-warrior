@@ -181,6 +181,18 @@ func begin_external_fall() -> void:
 	_fall_pending = true
 
 
+## A paired fall may be interrupted by a direct reaction, which has already
+## armed its own ordinary landing. Retire that fall without replaying either
+## its poses or a ground event the pair previously reported.
+func finish_external_fall(already_reported: bool) -> void:
+	if already_reported:
+		_fall_pending = false
+	else:
+		report_ground_landing()
+	if is_knocked_down():
+		reaction_frame = maxi(reaction_frame, fall_landing_frame)
+
+
 ## Idempotent across prone holds, repeated ticks and throw/reaction handoff.
 func report_ground_landing() -> void:
 	if not _fall_pending:

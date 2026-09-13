@@ -1,0 +1,151 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://features/actors/enemies/abobo/abobo.gd" id="1_williams"]
+[ext_resource type="Resource" path="res://features/actors/enemies/abobo/abobo_stats.tres" id="2_stats"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/abobo/abobo_sprite_frames.tres" id="3_frames"]
+[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_visuals.gd" id="4_visuals"]
+[ext_resource type="Script" path="res://features/actors/common/health_component.gd" id="5_health"]
+[ext_resource type="Script" path="res://features/actors/common/movement_component.gd" id="6_movement"]
+[ext_resource type="Script" path="res://features/actors/common/combat_component.gd" id="7_combat"]
+[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_ai_component.gd" id="8_ai"]
+[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_state_machine.gd" id="9_state"]
+[ext_resource type="Script" path="res://features/actors/common/hurtbox_component.gd" id="10_hurtbox"]
+[ext_resource type="Script" path="res://features/actors/common/hit_reaction_component.gd" id="11_reaction"]
+[ext_resource type="Resource" path="res://features/combat/abobo_punch.tres" id="12_punch"]
+[ext_resource type="Script" path="res://features/audio/actor_audio_component.gd" id="13_audio"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_08_punch_hit.wav" id="14_punch_sfx"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/voice_02_male_enemy_dies.wav" id="15_death_voice"]
+
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_10_fall_to_the_ground.wav" id="16_fall_sfx"]
+
+[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_throw_component.gd" id="17_throw"]
+[ext_resource type="Resource" path="res://features/combat/abobo_throw.tres" id="18_throw_data"]
+
+[ext_resource type="AudioStream" path="res://assets/audio/voice/voice_05_abobo_throws.wav" id="19_throw_voice"]
+
+[sub_resource type="RectangleShape2D" id="BodyShape"]
+size = Vector2(20, 8)
+
+[sub_resource type="RectangleShape2D" id="HurtboxShape"]
+size = Vector2(26, 64)
+
+[sub_resource type="RectangleShape2D" id="HitboxShape"]
+size = Vector2(22, 18)
+
+[node name="Abobo" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "hurtbox", "hit_reaction_component", "ai_component", "state_machine", "visuals", "audio_component", "throw_component")]
+texture_filter = 1
+position = Vector2(300, 150)
+collision_layer = 2
+collision_mask = 3
+motion_mode = 1
+script = ExtResource("1_williams")
+fighter_stats = ExtResource("2_stats")
+health_component = NodePath("HealthComponent")
+movement_component = NodePath("MovementComponent")
+combat_component = NodePath("CombatComponent")
+hurtbox = NodePath("Hurtbox")
+hit_reaction_component = NodePath("HitReactionComponent")
+ai_component = NodePath("AIComponent")
+state_machine = NodePath("StateMachine")
+visuals = NodePath("Visuals")
+audio_component = NodePath("ActorAudioComponent")
+throw_component = NodePath("ThrowComponent")
+
+[node name="BodyCollision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("BodyShape")
+
+[node name="Visuals" type="Node2D" parent="." node_paths=PackedStringArray("animated_sprite")]
+position = Vector2(0, -48)
+script = ExtResource("4_visuals")
+animated_sprite = NodePath("AnimatedSprite2D")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visuals"]
+sprite_frames = ExtResource("3_frames")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="Hurtbox" type="Area2D" parent="." node_paths=PackedStringArray("health_component")]
+collision_layer = 8
+collision_mask = 16
+monitoring = false
+script = ExtResource("10_hurtbox")
+health_component = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -34)
+shape = SubResource("HurtboxShape")
+
+[node name="AttackOrigin" type="Node2D" parent="."]
+
+[node name="Hitbox" type="Area2D" parent="AttackOrigin"]
+collision_layer = 32
+collision_mask = 4
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/Hitbox"]
+position = Vector2(23, -31)
+shape = SubResource("HitboxShape")
+disabled = true
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("5_health")
+
+[node name="MovementComponent" type="Node" parent="." node_paths=PackedStringArray("body")]
+script = ExtResource("6_movement")
+body = NodePath("..")
+
+[node name="CombatComponent" type="Node" parent="." node_paths=PackedStringArray("hitbox", "hitbox_shape", "source_actor")]
+script = ExtResource("7_combat")
+attack_data = ExtResource("12_punch")
+hitbox = NodePath("../AttackOrigin/Hitbox")
+hitbox_shape = NodePath("../AttackOrigin/Hitbox/CollisionShape2D")
+source_actor = NodePath("..")
+
+[node name="HitReactionComponent" type="Node" parent="." node_paths=PackedStringArray("movement_component", "hurtbox")]
+script = ExtResource("11_reaction")
+movement_component = NodePath("../MovementComponent")
+hurtbox = NodePath("../Hurtbox")
+
+[node name="AIComponent" type="Node" parent="."]
+script = ExtResource("8_ai")
+attack_range_x = 30.0
+body_clearance_x = 20.0
+attack_cooldown_frames = 75
+reaction_delay_frames = 30
+retreat_probability = 0.2
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("9_state")
+
+[node name="PunchHitAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("14_punch_sfx")
+bus = &"SFX"
+
+[node name="ActionVoiceAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("19_throw_voice")
+bus = &"Voice"
+
+[node name="DeathVoiceAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("15_death_voice")
+bus = &"Voice"
+
+[node name="GroundFallAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("16_fall_sfx")
+bus = &"SFX"
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("combat_component", "health_component", "hit_reaction_component", "ground_fall_player", "punch_hit_player", "action_voice_player", "death_voice_player")]
+script = ExtResource("13_audio")
+combat_component = NodePath("../CombatComponent")
+health_component = NodePath("../HealthComponent")
+hit_reaction_component = NodePath("../HitReactionComponent")
+ground_fall_player = NodePath("../GroundFallAudio")
+punch_hit_player = NodePath("../PunchHitAudio")
+action_voice_player = NodePath("../ActionVoiceAudio")
+death_voice_player = NodePath("../DeathVoiceAudio")
+
+[node name="ThrowComponent" type="Node" parent="." node_paths=PackedStringArray("actor")]
+script = ExtResource("17_throw")
+actor = NodePath("..")
+attack = ExtResource("18_throw_data")

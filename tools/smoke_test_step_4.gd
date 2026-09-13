@@ -180,7 +180,8 @@ func _test_feet_pivots(player: Player) -> String:
 		# instead, which smoke_test_ladder.gd checks.
 		# Paired combat also uses fixed body anchors: centering the raised
 		# knee's foot would slide Billy away from the victim's head.
-		var pivots_on_feet := animation_name not in [CLIMB_ANIMATION, &"hair_grab", &"knee", &"hair_throw"]
+		# Inverted/tumbling victim art pivots on the body, not raised boots.
+		var pivots_on_feet := animation_name not in [CLIMB_ANIMATION, &"hair_grab", &"knee", &"hair_throw", &"being_thrown"]
 		for frame_index: int in range(frames.get_frame_count(animation_name)):
 			var texture := frames.get_frame_texture(animation_name, frame_index)
 			var image := texture.get_image()

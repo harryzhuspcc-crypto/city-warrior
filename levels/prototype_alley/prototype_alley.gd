@@ -1,7 +1,7 @@
 class_name PrototypeAlley
 extends Node2D
 ## Level orchestrator: wires the HUD to Billy's health, finishes the stage at
-## the exit once the encounter is cleared, and offers a restart after defeat.
+## the exit once all encounters are cleared, and offers a restart after defeat.
 
 signal stage_cleared
 signal player_defeated
@@ -16,7 +16,7 @@ const RESTART_ACTION: StringName = &"attack"
 @export var player: Player
 @export var camera: BeltScrollCamera
 ## Ordered EncounterController children. Each one points at its prerequisite,
-## so the opening, middle, and ending arenas cannot overlap.
+## so the opening, middle, ending, and boss arenas cannot overlap.
 @export var encounters: Node2D
 ## The established middle encounter remains exposed for focused tests and
 ## tools that operate on one arena.
@@ -30,7 +30,11 @@ const RESTART_ACTION: StringName = &"attack"
 ## is set in the scene: -6 dB is a starting level for music with nothing yet
 ## to balance against, and the first sound effect is what will really set it.
 @export var music: MusicPlayer
-## Non-looping cue that replaces the stage theme once Billy reaches the exit
+## Activation replaces the stage track on the same Music player, not a second
+## overlapping player. The boss uses the final screen after the ending wave.
+@export var boss_encounter: EncounterController
+@export var boss_music: AudioStream
+## Non-looping cue that replaces any active theme once Billy reaches the exit
 ## after clearing every encounter.
 @export var stage_clear_music: AudioStreamPlayer
 ## Frames Billy stays down before the game-over prompt appears.
@@ -54,7 +58,7 @@ func _ready() -> void:
 	health.health_changed.connect(hud.set_health)
 	health.died.connect(_on_player_died)
 	for encounter: EncounterController in encounter_controllers():
-		encounter.encounter_started.connect(_on_encounter_started)
+		encounter.encounter_started.connect(_on_encounter_started.bind(encounter))
 		encounter.encounter_cleared.connect(_on_encounter_cleared)
 
 
@@ -82,7 +86,9 @@ func request_restart() -> void:
 		get_tree().reload_current_scene()
 
 
-func _on_encounter_started() -> void:
+func _on_encounter_started(encounter: EncounterController) -> void:
+	if state == PLAYING and encounter == boss_encounter:
+		music.play_track(boss_music)
 	_set_ladders_climbable(false)
 	player.climb_component.release()
 
@@ -166,5 +172,7 @@ func _validate_dependencies() -> void:
 	assert(exit != null, "PrototypeAlley requires the Exit marker")
 	assert(ladders != null, "PrototypeAlley requires the Ladders container")
 	assert(music != null, "PrototypeAlley requires the Music player")
+	assert(boss_encounter != null, "PrototypeAlley requires the BossEncounter")
+	assert(boss_music != null, "PrototypeAlley requires boss music")
 	assert(stage_clear_music != null, "PrototypeAlley requires stage-clear music")
 	assert(stage_clear_music.stream != null, "Stage-clear music requires an AudioStream")

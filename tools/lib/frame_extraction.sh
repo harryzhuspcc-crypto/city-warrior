@@ -10,6 +10,10 @@
 # lowest opaque rows (the feet/lower-leg band) are centered at x=40 and the
 # floor contact sits at y=80.
 
+# Optional canvas override for taller characters; defaults preserve Billy/Williams.
+FRAME_CANVAS_WIDTH="${FRAME_CANVAS_WIDTH:-80}"
+FRAME_CANVAS_HEIGHT="${FRAME_CANVAS_HEIGHT:-80}"
+
 extract_frame() {
   local relative_path="$1"
   local crop_rect="$2"
@@ -52,12 +56,12 @@ extract_frame() {
   )
   foot_x=$((foot_x - 1))
 
-  local destination_x=$(((80 - (2 * foot_x) - foot_width) / 2))
-  local destination_y=$((80 - pose_height))
+  local destination_x=$(((FRAME_CANVAS_WIDTH - (2 * foot_x) - foot_width) / 2))
+  local destination_y=$((FRAME_CANVAS_HEIGHT - pose_height))
   local destination_geometry
   printf -v destination_geometry '%+d%+d' "$destination_x" "$destination_y"
 
-  magick -size 80x80 canvas:none \
+  magick -size "${FRAME_CANVAS_WIDTH}x${FRAME_CANVAS_HEIGHT}" canvas:none \
     "$trimmed_pose" -geometry "$destination_geometry" -composite \
     -strip \
     "$destination"
@@ -87,12 +91,12 @@ extract_anchored_frame() {
   local crop_height="${BASH_REMATCH[2]}"
   local crop_x="${BASH_REMATCH[3]}"
 
-  local destination_x=$((40 - (anchor_sheet_x - crop_x)))
-  local destination_y=$((80 - crop_height))
+  local destination_x=$((FRAME_CANVAS_WIDTH / 2 - (anchor_sheet_x - crop_x)))
+  local destination_y=$((FRAME_CANVAS_HEIGHT - crop_height))
   local destination_geometry
   printf -v destination_geometry '%+d%+d' "$destination_x" "$destination_y"
 
-  magick -size 80x80 canvas:none \
+  magick -size "${FRAME_CANVAS_WIDTH}x${FRAME_CANVAS_HEIGHT}" canvas:none \
     \( "$CLEAN_SHEET" -crop "$crop_rect" +repage \) \
     -geometry "$destination_geometry" -composite \
     -strip \

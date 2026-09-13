@@ -154,4 +154,12 @@ extract_anchored_frame "hair_throw/hair_throw_01.png" "23x61+206+515" 217
 extract_anchored_frame "hair_throw/hair_throw_02.png" "50x61+237+515" 259
 extract_anchored_frame "hair_throw/hair_throw_03.png" "32x61+295+515" 312
 
+# Abobo throw victim reference: inverted, tumbling, prone. Keep the source
+# floor y=1135 and body anchors; flight displacement belongs to gameplay.
+mkdir -p "$OUTPUT_ROOT/being_thrown"
+extract_anchored_frame "being_thrown/being_thrown_00.png" "30x56+294+1079" 309
+extract_anchored_frame "being_thrown/being_thrown_01.png" "49x56+330+1079" 354
+extract_anchored_frame "being_thrown/being_thrown_02.png" "49x56+386+1079" 410
+python3 "$PROJECT_ROOT/tools/lib/abobo_sprite_resources.py" "$PROJECT_ROOT" billy
+
 echo "Generated Billy frames under: $OUTPUT_ROOT"

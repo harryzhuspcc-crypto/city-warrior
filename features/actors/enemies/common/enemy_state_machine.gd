@@ -11,6 +11,7 @@ const HITSTUN: StringName = &"hurt"
 const STATUS1: StringName = &"status1"
 const STATUS2: StringName = &"status2"
 const GRABBED: StringName = &"grabbed"
+const THROW: StringName = &"throw"
 const KNOCKDOWN: StringName = &"knockdown"
 const DEAD: StringName = &"death"
 
@@ -23,6 +24,7 @@ const VALID_STATES: Array[StringName] = [
 	STATUS1,
 	STATUS2,
 	GRABBED,
+	THROW,
 	KNOCKDOWN,
 	DEAD,
 ]

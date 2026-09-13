@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack"]
+
+[resource]
+script = ExtResource("1_attack")
+attack_name = &"abobo_throw"
+animation_name = &"throw"
+impact_sound = 1
+plays_action_voice = true
+damage = 24
+hitstun_frames = 20
+knocks_down = true
+knockback = Vector2(0, 0)
+animation_frame_starts = PackedInt32Array(0, 8, 16, 24)

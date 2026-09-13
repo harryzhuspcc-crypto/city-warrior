@@ -305,7 +305,8 @@ PrototypeAlley (Node2D)
 ├── Encounters
 │   ├── OpeningEncounter
 │   ├── MiddleEncounter
-│   └── EndingEncounter
+│   ├── EndingEncounter
+│   └── BossEncounter
 ├── Camera2D
 └── HUD (CanvasLayer)
 ```
@@ -314,15 +315,23 @@ Separate stage art from collision. Use invisible `StaticBody2D` boundaries to de
 
 Each encounter controller should:
 
-1. Spawn three enemies.
+1. Spawn its configured enemies (three Williams in opening/middle/ending; one Abobo in boss).
 2. Lock camera movement.
 3. Detect when all enemies have died.
 4. Unlock the camera.
 5. Finish the prototype when the player reaches the exit.
 
-The prototype chains three controllers from opening to middle to ending. A
+The prototype chains four controllers: opening → middle → ending → boss. A
 controller can arm only after its prerequisite clears, and the exit remains
-closed until every enabled encounter is clear.
+closed until every enabled encounter is clear. Ending is restored to three
+Williams at x=1040; the separate BossEncounter triggers at x=1120 and spawns
+one Abobo at (928,184), reusing the final camera view x=848–1232. The exit
+remains at x=1192, reachable within the existing world and screen-edge walls.
+Boss activation replaces the stage BGM with looping `03_abobo_entrance.mp3`
+on the same Music player; boss clear plus exit replaces it with the non-looping
+mission-complete cue. Abobo requests `voice_05_abobo_throws.wav` once on the
+Voice bus at confirmed paired throw start, not on failed attempts. See
+`features/actors/enemies/abobo/README.md` for timing and placement assumptions.
 
 ### Implemented prototype level
 

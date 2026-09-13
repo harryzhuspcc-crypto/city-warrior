@@ -18,6 +18,7 @@ const SECONDS_BEFORE_THE_END: float = 0.5
 const WRAP_FRAME_BUDGET: int = 600
 const BGM_DIRECTORY: String = "res://assets/audio/bgm"
 const STAGE_ONE_TRACK: String = "res://assets/audio/bgm/02_slums.mp3"
+const BOSS_TRACK: String = "res://assets/audio/bgm/03_abobo_entrance.mp3"
 const STAGE_CLEAR_TRACK: String = "res://assets/audio/bgm/04_mission_complete.mp3"
 ## The album, and which tracks play for an open-ended stretch. A track that
 ## underscores gameplay has to repeat; a cue of fixed length must not, or it
@@ -50,6 +51,7 @@ func _run() -> void:
 		_test_the_stage_plays_its_own_theme,
 		_test_stage_clear_replaces_the_theme,
 		_test_the_stage_track_comes_back_round,
+		_test_the_boss_track_comes_back_round,
 	]:
 		var error: String = await slice.call()
 		if not error.is_empty():
@@ -153,10 +155,31 @@ func _test_stage_clear_replaces_the_theme() -> String:
 ## The loop flag read back as behaviour: a track played to its end either
 ## starts again or stops, and only one of those is a stage track.
 func _test_the_stage_track_comes_back_round() -> String:
+	return await _test_track_comes_back_round(false)
+
+
+func _test_the_boss_track_comes_back_round() -> String:
+	return await _test_track_comes_back_round(true)
+
+
+func _test_track_comes_back_round(activate_boss: bool) -> String:
 	var alley := PROTOTYPE_ALLEY_SCENE.instantiate() as PrototypeAlley
 	root.add_child(alley)
 	await physics_frame
 	await AudioSettle.settle(self)
+	if activate_boss:
+		for encounter: EncounterController in alley.encounter_controllers():
+			encounter.enabled = encounter == alley.boss_encounter
+		alley.player.set_physics_process(false)
+		alley.player.global_position.x = alley.boss_encounter.lock_x
+		await physics_frame
+		await AudioSettle.settle(self)
+		if alley.music.stream.resource_path != BOSS_TRACK:
+			await AudioSettle.free_level(self, alley)
+			return "Boss activation must replace the stage track before the loop check"
+		for actor: Node in alley.actors.get_children():
+			if actor is EnemyFighter:
+				actor.set_physics_process(false)
 	var music := alley.music
 	var length: float = music.stream.get_length()
 	music.seek(length - SECONDS_BEFORE_THE_END)
@@ -188,8 +211,14 @@ func _check_stage_music(alley: PrototypeAlley) -> String:
 		return "Stage 1's track must loop for as long as the stage runs"
 	if not music.playing:
 		return "Stage 1 must start its track with the level"
+	if alley.boss_music == null or alley.boss_music.resource_path != BOSS_TRACK:
+		return "The prototype alley must configure Abobo entrance as boss BGM"
+	if alley.boss_encounter == null or alley.boss_encounter.state != EncounterController.IDLE:
+		return "Boss must start idle while the stage theme plays"
 	if alley.stage_clear_music == null or alley.stage_clear_music.stream == null:
 		return "The prototype alley must own a stage-clear music player"
+	if alley.stage_clear_music.playing:
+		return "Stage clear music must not autoplay"
 	if alley.stage_clear_music.stream.resource_path != STAGE_CLEAR_TRACK:
 		return "The stage-clear player must use the mission-complete cue"
 	if alley.music.bus != &"Music" or alley.stage_clear_music.bus != &"Music":

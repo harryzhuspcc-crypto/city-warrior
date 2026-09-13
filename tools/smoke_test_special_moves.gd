@@ -1,6 +1,7 @@
 extends SceneTree
 
 const PLAYER_SCENE: PackedScene = preload("res://features/actors/player/player.tscn")
+const WILLIAMS_SCENE: PackedScene = preload("res://features/actors/enemies/williams/williams.tscn")
 const DELTA: float = 1.0 / 60.0
 
 
@@ -109,6 +110,11 @@ func _run() -> void:
 		return
 
 	error = await _test_player_specials(player, elbow, head_attack, back_kick, jump_kick)
+	if not error.is_empty():
+		_fail(error)
+		return
+
+	error = await _test_williams_special_falls(player, [elbow, back_kick, jump_kick])
 	if not error.is_empty():
 		_fail(error)
 		return
@@ -613,12 +619,102 @@ func _test_player_specials(
 	return ""
 
 
+# Real actor integration: no reaction ticks may hide a delayed first-hit pose.
+func _test_williams_special_falls(player: Player, attacks: Array) -> String:
+	for attack: AttackData in attacks:
+		for facing: float in [1.0, -1.0]:
+			for lethal: bool in [false, true]:
+				var error := await _test_williams_special_fall(player, attack, facing, lethal)
+				if not error.is_empty():
+					return "%s facing=%s lethal=%s: %s" % [attack.attack_name, facing, lethal, error]
+	return ""
+
+
+func _test_williams_special_fall(
+	player: Player, attack: AttackData, facing: float, lethal: bool
+) -> String:
+	_reset_player(player, facing)
+	var victim := WILLIAMS_SCENE.instantiate() as Williams
+	victim.acquire_player_target = false
+	victim.position = player.global_position + Vector2(28.0 * facing * attack.hit_direction_multiplier, 0.0)
+	root.add_child(victim)
+	victim.set_physics_process(false)
+	# Native fall art points LEFT. The correct reaction facing is -fall direction;
+	# seed the opposite so stale AI facing cannot accidentally pass.
+	victim.ai_component.facing = facing
+	victim.combat_component.set_facing(facing)
+	victim._sync_visuals()
+	if lethal:
+		victim.health_component.current_health = attack.damage
+	var initial_health := victim.health_component.current_health
+	var initial_position := victim.global_position
+	var payloads: Array[Dictionary] = []
+	var capture := func(target: HurtboxComponent, data: AttackData, knockback: Vector2) -> void:
+		payloads.append({"target": target, "attack": data, "knockback": knockback})
+	player.combat_component.hit_landed.connect(capture)
+	await physics_frame
+	var error := ""
+	if not player.combat_component.try_start_attack(attack):
+		error = "Could not start special attack"
+	else:
+		for _frame: int in range(attack.startup_frames + attack.active_frames + 2):
+			player.combat_component.physics_tick(attack != player.elbow_attack_data)
+			if not payloads.is_empty():
+				break
+			await physics_frame
+		var expected_reaction := HitReactionComponent.DEATH if lethal else HitReactionComponent.KNOCKDOWN
+		var expected_state := EnemyStateMachine.DEAD if lethal else EnemyStateMachine.KNOCKDOWN
+		var sprite := victim.visuals.animated_sprite
+		if payloads.size() != 1:
+			error = "Expected exactly one physical first hit"
+		elif payloads[0]["target"] != victim.hurtbox or payloads[0]["attack"] != attack:
+			error = "hit_landed lost its victim or AttackData payload"
+		elif not (payloads[0]["knockback"] as Vector2).is_equal_approx(Vector2(absf(attack.knockback.x) * facing, attack.knockback.y)):
+			error = "Hit payload must pull rear victims toward Billy / push front victims away"
+		elif victim.health_component.current_health != initial_health - attack.damage:
+			error = "First hit applied incorrect damage"
+		elif victim.hit_reaction_component.current_reaction != expected_reaction or victim.state_machine.current_state != expected_state:
+			error = "First hit did not immediately enter %s" % expected_reaction
+		elif not victim.hurtbox.is_invulnerable:
+			error = "Falling victim was not immediately invulnerable"
+		elif victim.hit_reaction_component.reaction_frame != 0 or sprite.animation != expected_reaction or sprite.frame != 0:
+			error = "First hit did not immediately display the initial fall pose"
+		elif victim.ai_component.facing != -facing or sprite.flip_h != (facing > 0.0):
+			error = "Reaction retained inconsistent AI facing or mirrored LEFT-falling art incorrectly"
+		else:
+			victim._physics_process(DELTA)
+			var displacement := victim.global_position - initial_position
+			var old_distance := absf(initial_position.x - player.global_position.x)
+			var new_distance := absf(victim.global_position.x - player.global_position.x)
+			if displacement.x * facing <= 0.0 or not is_zero_approx(displacement.y):
+				error = "Actual fall displacement did not follow the hit payload"
+			elif attack.hit_direction_multiplier < 0 and new_distance >= old_distance:
+				error = "Rear victim did not move toward Billy"
+			elif attack.hit_direction_multiplier > 0 and new_distance <= old_distance:
+				error = "Jump-kick victim did not move away from Billy"
+	player.combat_component.hit_landed.disconnect(capture)
+	player.combat_component.cancel_attack()
+	victim.queue_free()
+	await physics_frame
+	return error
+
+
 func _test_rear_physical_hits(
 	player: Player,
 	elbow: AttackData,
 	back_kick: AttackData
 ) -> String:
-	_reset_player(player, 1.0)
+	for facing: float in [1.0, -1.0]:
+		var error := await _test_rear_physical_hits_facing(player, elbow, back_kick, facing)
+		if not error.is_empty():
+			return error
+	return ""
+
+
+func _test_rear_physical_hits_facing(
+	player: Player, elbow: AttackData, back_kick: AttackData, facing: float
+) -> String:
+	_reset_player(player, facing)
 	var target := Node2D.new()
 	target.global_position = player.global_position
 	var health := HealthComponent.new()
@@ -627,7 +723,7 @@ func _test_rear_physical_hits(
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(18.0, 18.0)
 	collision.shape = shape
-	collision.position = Vector2(-24.0, -30.0)
+	collision.position = Vector2(-24.0 * facing, -30.0)
 	hurtbox.collision_layer = 8
 	hurtbox.collision_mask = 0
 	hurtbox.monitoring = false
@@ -647,7 +743,7 @@ func _test_rear_physical_hits(
 	var front_shape := RectangleShape2D.new()
 	front_shape.size = Vector2(18.0, 18.0)
 	front_collision.shape = front_shape
-	front_collision.position = Vector2(24.0, -30.0)
+	front_collision.position = Vector2(24.0 * facing, -30.0)
 	front_hurtbox.collision_layer = 8
 	front_hurtbox.collision_mask = 0
 	front_hurtbox.monitoring = false
@@ -661,10 +757,9 @@ func _test_rear_physical_hits(
 	await physics_frame
 
 	var knockbacks: Array[Vector2] = []
-	player.combat_component.hit_landed.connect(
-		func(_target: HurtboxComponent, _attack: AttackData, knockback: Vector2) -> void:
-			knockbacks.append(knockback)
-	)
+	var capture := func(_target: HurtboxComponent, _attack: AttackData, knockback: Vector2) -> void:
+		knockbacks.append(knockback)
+	player.combat_component.hit_landed.connect(capture)
 	if not player.combat_component.try_start_attack(elbow):
 		return "Physical rear-elbow setup did not start"
 	for _frame: int in range(elbow.startup_frames + elbow.active_frames):
@@ -674,8 +769,8 @@ func _test_rear_physical_hits(
 		return "Physical enemy behind Billy was not hit exactly once by elbow"
 	if front_health.current_health != front_stats.max_health:
 		return "Elbow incorrectly hit the enemy in front of Billy"
-	if knockbacks.size() != 1 or knockbacks[0].x >= 0.0:
-		return "Rear elbow did not knock its target backward"
+	if knockbacks.size() != 1 or knockbacks[0].x * facing <= 0.0:
+		return "Rear elbow did not knock its target toward Billy"
 
 	player.combat_component.cancel_attack()
 	await process_frame
@@ -688,10 +783,11 @@ func _test_rear_physical_hits(
 		return "Physical enemy behind Billy was not hit exactly once by back kick"
 	if front_health.current_health != front_stats.max_health:
 		return "Back kick incorrectly hit the enemy in front of Billy"
-	if knockbacks.size() != 2 or knockbacks[1].x >= 0.0:
-		return "Rear back kick did not knock its target backward"
+	if knockbacks.size() != 2 or knockbacks[1].x * facing <= 0.0:
+		return "Rear back kick did not knock its target toward Billy"
 
 	player.combat_component.cancel_attack()
+	player.combat_component.hit_landed.disconnect(capture)
 	target.queue_free()
 	front_target.queue_free()
 	await physics_frame

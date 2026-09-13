@@ -16,6 +16,8 @@
 [ext_resource type="AudioStream" uid="uid://bvvlxw564ix2w" path="res://assets/audio/sfx/sfx_08_punch_hit.wav" id="14_punch_sfx"]
 [ext_resource type="AudioStream" uid="uid://db8ibanklp5e4" path="res://assets/audio/voice/voice_02_male_enemy_dies.wav" id="15_death_voice"]
 
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_10_fall_to_the_ground.wav" id="16_fall_sfx"]
+
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
 
@@ -116,9 +118,15 @@ bus = &"SFX"
 stream = ExtResource("15_death_voice")
 bus = &"Voice"
 
-[node name="ActorAudioComponent" type="Node" parent="." unique_id=2102871344 node_paths=PackedStringArray("combat_component", "health_component", "punch_hit_player", "death_voice_player")]
+[node name="GroundFallAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("16_fall_sfx")
+bus = &"SFX"
+
+[node name="ActorAudioComponent" type="Node" parent="." unique_id=2102871344 node_paths=PackedStringArray("combat_component", "health_component", "hit_reaction_component", "ground_fall_player", "punch_hit_player", "death_voice_player")]
 script = ExtResource("13_audio")
 combat_component = NodePath("../CombatComponent")
 health_component = NodePath("../HealthComponent")
+hit_reaction_component = NodePath("../HitReactionComponent")
+ground_fall_player = NodePath("../GroundFallAudio")
 punch_hit_player = NodePath("../PunchHitAudio")
 death_voice_player = NodePath("../DeathVoiceAudio")

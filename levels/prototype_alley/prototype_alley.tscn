@@ -188,8 +188,10 @@ shape = SubResource("ScreenEdgeShape")
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=482398331]
 stream = ExtResource("11_slums")
+bus = &"Music"
 volume_db = -6.0
 script = ExtResource("10_music")
 
 [node name="StageClearMusic" type="AudioStreamPlayer" parent="." unique_id=882957593]
 stream = ExtResource("12_mission_complete")
+bus = &"Music"

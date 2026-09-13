@@ -13,6 +13,7 @@ damage = 18
 hitstun_frames = 20
 knockback = Vector2(110, 0)
 hitbox_rect = Rect2(12, -50, 34, 28)
+knocks_down = true
 allow_air_movement = true
 finishes_on_landing = true
 landing_hold_frame = 8

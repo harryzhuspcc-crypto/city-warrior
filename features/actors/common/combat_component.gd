@@ -138,7 +138,8 @@ func resolve_hurtbox(target: HurtboxComponent) -> bool:
 
 	var resolved_attack := current_attack_data
 	var knockback := Vector2(
-		absf(resolved_attack.knockback.x) * attack_hit_direction,
+		absf(resolved_attack.knockback.x) * attack_hit_direction
+			* float(resolved_attack.knockback_direction_multiplier),
 		resolved_attack.knockback.y
 	)
 	if not target.receive_attack(resolved_attack, knockback, source_actor):

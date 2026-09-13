@@ -5,7 +5,13 @@
   loop.
 - `actor_audio_component.gd` — actor-local combat presentation. It plays impact
   SFX only for confirmed hits, action voices when voiced attacks begin, and a
-  death voice from the actor's health signal.
+  death voice from the actor's health signal. Both Billy and Williams play
+  `sfx_10_fall_to_the_ground.wav` on SFX once per ground fall, not on hit/death
+  entry: ordinary knockdown/death lands at reaction frame 16; a hair throw
+  lands with its prone pose at throw frame 32. Throw handoff and prone death
+  do not replay the landing. Normal jumps and aerial-attack landings are not
+  falls and remain silent. The reaction component owns the landing event;
+  audio only listens.
 
 `default_bus_layout.tres` separates Music, SFX, and Voice under Master so each
 category can be mixed independently.

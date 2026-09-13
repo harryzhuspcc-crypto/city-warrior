@@ -23,6 +23,9 @@ enum ImpactSound {
 @export var hitbox_rect: Rect2 = Rect2(11.0, -37.0, 18.0, 18.0)
 @export var knocks_down: bool = false
 @export_range(-1, 1, 2) var hit_direction_multiplier: int = 1
+## Relative to hit direction, NOT sprite facing or hitbox placement. Rear
+## elbow/back kick pull the victim toward the attacker without targeting front.
+@export_range(-1, 1, 2) var knockback_direction_multiplier: int = 1
 @export_range(-1, 1, 2) var animation_facing_multiplier: int = 1
 @export var reverse_facing_on_finish: bool = false
 @export var starts_jump: bool = false

@@ -219,8 +219,7 @@ func release_hair_grab(owner_component: HairGrabComponent) -> void:
 func finish_hair_throw(attack: AttackData) -> void:
 	# The throw already showed flight/impact. Begin on the prone pose, then
 	# use the existing get-up timing rather than replaying a second fall.
-	hit_reaction_component.apply_hit(attack, Vector2.ZERO, false, true)
-	hit_reaction_component.reaction_frame = 16
+	hit_reaction_component.apply_hit(attack, Vector2.ZERO, false, true, true)
 	_sync_visuals()
 
 
@@ -269,6 +268,8 @@ func _on_hit_received(attack_data: AttackData, knockback: Vector2, source: Node2
 
 
 func _on_reaction_started(reaction: StringName, _attack_data: AttackData) -> void:
+	if hit_reaction_component.is_knocked_down() and not is_zero_approx(hit_reaction_component.fall_direction):
+		ai_component.facing = -hit_reaction_component.fall_direction
 	if is_instance_valid(grab_owner):
 		grab_owner.release()
 	if reaction in [HitReactionComponent.STATUS1, HitReactionComponent.STATUS2]:
@@ -290,8 +291,13 @@ func _on_recovered() -> void:
 
 
 func _on_died() -> void:
+	var throw_landed := is_instance_valid(grab_owner) and grab_owner.has_landed()
 	if is_instance_valid(grab_owner):
 		grab_owner.release()
+	if throw_landed:
+		# The paired prone hold has already made ground contact. Death must
+		# neither replay its fall poses nor request a second landing sound.
+		hit_reaction_component.begin_death(Vector2.ZERO, null, true)
 	combat_component.cancel_attack()
 	state_machine.transition_to(EnemyStateMachine.DEAD)
 	# A fallen enemy no longer blocks other actors but still respects walls.

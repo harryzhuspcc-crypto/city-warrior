@@ -14,6 +14,7 @@ const ENTRY_FRAMES: int = 8
 const KNEE_HIT_FRAME: int = 4
 const KNEE_FRAMES: int = 20
 const THROW_FRAMES: int = 40
+const THROW_LANDING_FRAME: int = 32
 const HOLD_SPACING: float = 30.0
 
 @export var player: Player
@@ -39,6 +40,10 @@ func _exit_tree() -> void:
 
 func is_active() -> bool:
 	return phase != INACTIVE
+
+
+func has_landed() -> bool:
+	return phase == THROW and frame >= THROW_LANDING_FRAME
 
 
 ## Called after ordinary walking, so slide contact (not attack reach) claims
@@ -130,16 +135,24 @@ func physics_tick() -> void:
 			return
 	if phase == THROW:
 		if frame == 8:
+			victim.hit_reaction_component.begin_external_fall()
 			_deliver(throw_attack)
 			if not is_active():
 				return
-		if frame >= 8 and frame <= 32:
-			# Ground-plane physics respects walls; only the sprite gains height.
-			var progress := float(frame - 8) / 24.0
-			var destination := _throw_origin + Vector2(-facing * 100.0 * progress, 0.0)
-			victim.move_and_collide(destination - victim.global_position)
-			victim.visuals.position = _victim_visual_position + Vector2(0.0, -sin(progress * PI) * 35.0)
 	frame += 1
+	if phase == THROW and frame >= 8 and frame <= THROW_LANDING_FRAME:
+		# Use the same frame as sync_visuals: the prone pose, ground height,
+		# and landing event must agree. Physics still respects world walls.
+		var progress := float(frame - 8) / float(THROW_LANDING_FRAME - 8)
+		var destination := _throw_origin + Vector2(-facing * 100.0 * progress, 0.0)
+		victim.move_and_collide(destination - victim.global_position)
+		victim.visuals.position = _victim_visual_position + Vector2(0.0, -sin(progress * PI) * 35.0)
+		if frame == THROW_LANDING_FRAME:
+			victim.visuals.position = _victim_visual_position
+			sync_visuals()
+			victim.hit_reaction_component.report_ground_landing()
+			if not is_active():
+				return
 	if phase == KNEE and frame >= KNEE_FRAMES:
 		phase = HOLD
 		frame = ENTRY_FRAMES
@@ -170,6 +183,7 @@ func release() -> void:
 	if not is_active():
 		return
 	var released := victim
+	var interrupted_flight := phase == THROW and frame > 8 and frame <= THROW_LANDING_FRAME
 	victim = null
 	phase = INACTIVE
 	frame = 0
@@ -180,6 +194,13 @@ func release() -> void:
 			player.remove_collision_exception_with(released)
 			released.remove_collision_exception_with(player)
 		released.visuals.position = _victim_visual_position
+		# An interrupted nonlethal throw snaps back to the ground here. Lethal
+		# interruptions instead play the ordinary death fall and its landing.
+		if (
+			interrupted_flight and not released.health_component.is_dead()
+			and not released.hit_reaction_component.is_knocked_down()
+		):
+			released.hit_reaction_component.report_ground_landing()
 		released.release_hair_grab(self)
 	grab_finished.emit()
 

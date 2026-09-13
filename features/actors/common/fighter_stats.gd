@@ -29,6 +29,8 @@ extends Resource
 @export var hurt_pose_starts: PackedInt32Array = PackedInt32Array([0, 6])
 @export var knockdown_pose_starts: PackedInt32Array = PackedInt32Array([0, 8, 16, 46])
 @export var death_pose_starts: PackedInt32Array = PackedInt32Array([0, 8, 16])
+## First ground-contact pose, not recovery/end of the animation.
+@export_range(1, 300, 1) var fall_landing_frame: int = 16
 
 @export_category("Combo Chains")
 ## How long a combo chain stays open after a connected hit. A press later than

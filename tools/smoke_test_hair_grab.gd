@@ -97,9 +97,15 @@ func _run() -> void:
 	_hit()
 	_check(reaction.current_reaction == HitReactionComponent.KNOCKDOWN, "Third hit during status2 knocks down")
 	_check(enemy.hurtbox.is_invulnerable and not enemy.can_be_hair_grabbed(), "Downed enemy cannot be hit/grabbed")
-	_check(enemy_sounds.is_empty(), "Nonlethal staged fall must not request fall/death SFX")
-	for index: int in range(enemy.fighter_stats.knockdown_frames):
+	_check(enemy_sounds.is_empty(), "Staged knockdown startup must not play landing/death SFX")
+	for index: int in range(reaction.fall_landing_frame - 1):
 		reaction.physics_tick()
+	_check(enemy_sounds.is_empty(), "Staged fall must remain silent before ground contact")
+	reaction.physics_tick()
+	_check(enemy_sounds == [enemy.audio_component.ground_fall_player], "Staged fall requests SFX 10 once at ground contact")
+	for index: int in range(enemy.fighter_stats.knockdown_frames - reaction.fall_landing_frame):
+		reaction.physics_tick()
+	_check(enemy_sounds == [enemy.audio_component.ground_fall_player], "Prone/get-up must not repeat fall audio")
 	_check(not enemy.hurtbox.is_invulnerable and reaction.consecutive_hits == 0, "Knockdown recovery restores vulnerability and stage")
 	await _cleanup()
 
@@ -164,6 +170,10 @@ func _run() -> void:
 		# Give the nonlethal throw room to demonstrate its entire trajectory.
 		enemy.health_component.restore_full_health()
 		var initial_x := enemy.position.x
+		var throw_sounds: Array[Node] = []
+		var landing_frames: Array[int] = []
+		enemy.audio_component.playback_requested.connect(func(sound: Node) -> void: throw_sounds.append(sound))
+		enemy.hit_reaction_component.ground_landed.connect(func() -> void: landing_frames.append(grab.frame))
 		if direction > 0:
 			player.input_component.queue_attack()
 		else:
@@ -171,7 +181,13 @@ func _run() -> void:
 		await _tick(20)
 		_check(grab.phase == HairGrabComponent.THROW and not player.jump_component.is_airborne, "Punch OR jump starts throw, never normal attack/jump (phase=%s frame=%d reaction=%s health=%d)" % [grab.phase, grab.frame, enemy.hit_reaction_component.current_reaction, enemy.health_component.current_health])
 		_check(enemy.visuals.position.y < -40.0, "Throw displays airborne victim arc")
-		await _tick(20)
+		await _tick(11)
+		_check(throw_sounds.is_empty() and enemy.visuals.position.y < -40.0, "Thrown flight has no premature landing sound")
+		await _tick()
+		_check(grab.frame == 32 and grab.has_landed(), "Throw reaches ground at its authored landing frame")
+		_check(throw_sounds == [enemy.audio_component.ground_fall_player] and landing_frames == [32], "Throw requests exactly one victim-local fall SFX at frame 32")
+		_check(enemy.visuals.position == Vector2(0, -40) and enemy.visuals.animated_sprite.frame == 5, "Throw sound, ground height and prone pose agree on landing tick")
+		await _tick(8)
 		_check(not grab.is_active() and enemy.grab_owner == null, "Throw completion releases both actors")
 		_check((enemy.position.x - initial_x) * direction < -90, "Throw travels behind original Billy facing")
 		_check(enemy.hit_reaction_component.is_knocked_down(), "Throw lands in recoverable knockdown")
@@ -181,6 +197,38 @@ func _run() -> void:
 		_check(player.get_collision_exceptions().is_empty() and enemy.get_collision_exceptions().is_empty(), "Throw removes pair collision exceptions")
 		await _tick(60)
 		_check(not enemy.hit_reaction_component.is_incapacitated(), "Thrown enemy gets up")
+		_check(throw_sounds == [enemy.audio_component.ground_fall_player] and landing_frames == [32], "Throw handoff, recovery and linger must not duplicate landing sound")
+		await _cleanup()
+
+	# Interrupted throws must use the landing that actually occurs: ordinary
+	# death fall if killed before flight, ground snap if interrupted midair,
+	# and no second fall if killed during the already-landed paired hold.
+	for kind: String in ["lethal_throw", "flight_interrupt", "prone_death"]:
+		await _spawn()
+		if not await _grab():
+			await _cleanup()
+			continue
+		enemy.health_component.restore_full_health()
+		var sounds: Array[Node] = []
+		enemy.audio_component.playback_requested.connect(func(sound: Node) -> void: sounds.append(sound))
+		if kind == "lethal_throw":
+			enemy.health_component.take_damage(enemy.health_component.current_health - 1)
+		player.input_component.queue_jump()
+		await _tick(10 if kind == "lethal_throw" else (20 if kind == "flight_interrupt" else 32))
+		var fall_audio := enemy.audio_component.ground_fall_player
+		if kind == "lethal_throw":
+			_check(not player.hair_grab_component.is_active() and enemy.health_component.is_dead(), "Lethal throw releases into death")
+			_check(sounds.count(fall_audio) == 0, "Lethal throw must not thud at damage/release")
+		elif kind == "flight_interrupt":
+			_check(sounds.is_empty(), "Interrupted flight has not landed yet")
+			player.hurtbox.receive_attack(enemy.combat_component.attack_data, Vector2.ZERO, enemy)
+			_check(sounds.count(fall_audio) == 1 and enemy.visuals.position == Vector2(0, -40), "Interrupted flight sounds once when restored to ground")
+		else:
+			_check(sounds.count(fall_audio) == 1, "Prone throw has already sounded")
+			enemy.health_component.take_damage(enemy.health_component.current_health)
+			_check(enemy.hit_reaction_component.reaction_frame == 16, "Death during paired prone hold skips a second fall")
+		await _tick(60)
+		_check(sounds.count(fall_audio) == 1, "Exactly one landing across throw interruption: " + kind)
 		await _cleanup()
 
 	# Contextual input priority: jump-containing chords must never escape into

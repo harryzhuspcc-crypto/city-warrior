@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://features/actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://features/actors/player/billy_stats.tres" id="2_stats"]
@@ -32,6 +32,7 @@
 [ext_resource type="Script" path="res://features/actors/player/hair_grab_component.gd" id="28_grab"]
 [ext_resource type="Resource" path="res://features/combat/billy_knee.tres" id="29_knee"]
 [ext_resource type="Resource" path="res://features/combat/billy_hair_throw.tres" id="30_throw"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_10_fall_to_the_ground.wav" id="31_fall_sfx"]
 
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
@@ -171,10 +172,16 @@ bus = &"Voice"
 stream = ExtResource("27_death_voice")
 bus = &"Voice"
 
-[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("combat_component", "health_component", "punch_hit_player", "kick_hit_player", "action_voice_player", "death_voice_player")]
+[node name="GroundFallAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("31_fall_sfx")
+bus = &"SFX"
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("combat_component", "health_component", "hit_reaction_component", "ground_fall_player", "punch_hit_player", "kick_hit_player", "action_voice_player", "death_voice_player")]
 script = ExtResource("23_audio")
 combat_component = NodePath("../CombatComponent")
 health_component = NodePath("../HealthComponent")
+hit_reaction_component = NodePath("../HitReactionComponent")
+ground_fall_player = NodePath("../GroundFallAudio")
 punch_hit_player = NodePath("../PunchHitAudio")
 kick_hit_player = NodePath("../KickHitAudio")
 action_voice_player = NodePath("../ActionVoiceAudio")

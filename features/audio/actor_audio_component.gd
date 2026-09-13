@@ -7,6 +7,8 @@ signal playback_requested(player: AudioStreamPlayer2D)
 
 @export var combat_component: CombatComponent
 @export var health_component: HealthComponent
+@export var hit_reaction_component: HitReactionComponent
+@export var ground_fall_player: AudioStreamPlayer2D
 @export var punch_hit_player: AudioStreamPlayer2D
 @export var kick_hit_player: AudioStreamPlayer2D
 @export var action_voice_player: AudioStreamPlayer2D
@@ -16,6 +18,9 @@ signal playback_requested(player: AudioStreamPlayer2D)
 func _ready() -> void:
 	assert(health_component != null, "ActorAudioComponent requires HealthComponent")
 	health_component.died.connect(play_death_voice)
+	if hit_reaction_component != null:
+		hit_reaction_component.ground_landed.connect(play_ground_fall)
+	_validate_player(ground_fall_player, &"SFX")
 	if combat_component != null:
 		combat_component.attack_started.connect(_on_attack_started)
 		combat_component.hit_landed.connect(_on_hit_landed)
@@ -40,6 +45,10 @@ func play_attack_hit(attack_data: AttackData) -> void:
 func play_attack_voice(attack_data: AttackData) -> void:
 	if attack_data != null and attack_data.plays_action_voice:
 		_play(action_voice_player)
+
+
+func play_ground_fall() -> void:
+	_play(ground_fall_player)
 
 
 func play_death_voice() -> void:

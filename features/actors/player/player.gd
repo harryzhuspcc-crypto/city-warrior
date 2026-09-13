@@ -309,7 +309,7 @@ func _sync_visuals() -> void:
 	var attack_frame: int = 0
 	var attack_frame_starts := PackedInt32Array([0])
 	var attack_animation_facing_multiplier: int = 1
-	if combat_component.is_attacking:
+	if combat_component.is_attacking and not hit_reaction_component.is_incapacitated():
 		var attack := combat_component.current_attack_data
 		visual_direction = Vector2(combat_component.attack_facing, 0.0)
 		attack_animation = attack.animation_name
@@ -461,6 +461,8 @@ func visual_elevation() -> float:
 
 
 func _on_reaction_started(reaction: StringName, _attack_data: AttackData) -> void:
+	if hit_reaction_component.is_knocked_down() and not is_zero_approx(hit_reaction_component.fall_direction):
+		visuals.set_facing(-hit_reaction_component.fall_direction)
 	hair_grab_component.release()
 	if reaction == HitReactionComponent.HITSTUN:
 		state_machine.transition_to(PlayerStateMachine.HITSTUN)

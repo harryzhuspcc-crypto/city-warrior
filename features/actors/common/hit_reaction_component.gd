@@ -3,6 +3,7 @@ extends Node
 
 signal reaction_started(reaction: StringName, attack_data: AttackData)
 signal recovered
+signal ground_landed
 
 const NONE: StringName = &"none"
 const HITSTUN: StringName = &"hitstun"
@@ -19,6 +20,11 @@ var current_reaction: StringName = NONE
 var reaction_frame: int = 0
 var reaction_frames_total: int = 0
 var consecutive_hits: int = 0
+## Horizontal travel of the fall. Native actor fall art tips left, so visuals
+## face opposite this direction; targeting/facing of the attacker is untouched.
+var fall_direction: float = 0.0
+var fall_landing_frame: int = 16
+var _fall_pending: bool = false
 
 var _staged: bool = false
 var _status1_frames: int = 30
@@ -39,6 +45,7 @@ func _ready() -> void:
 
 func configure(stats: FighterStats) -> void:
 	assert(stats != null, "HitReactionComponent requires FighterStats")
+	fall_landing_frame = mini(stats.fall_landing_frame, maxi(stats.knockdown_frames, 1))
 	_staged = stats.staged_hit_reactions
 	_status1_frames = stats.status1_frames
 	_status2_frames = stats.status2_frames
@@ -54,7 +61,8 @@ func apply_hit(
 	attack_data: AttackData,
 	knockback: Vector2,
 	lethal: bool = false,
-	force_knockdown: bool = false
+	force_knockdown: bool = false,
+	fall_already_landed: bool = false
 ) -> StringName:
 	assert(attack_data != null, "HitReactionComponent requires AttackData for a hit")
 	if _staged:
@@ -80,11 +88,15 @@ func apply_hit(
 		reaction = KNOCKDOWN
 
 	if reaction == DEATH:
-		begin_death(knockback, attack_data)
+		begin_death(knockback, attack_data, fall_already_landed)
 		return reaction
 
 	current_reaction = reaction
 	reaction_frame = 0
+	_fall_pending = reaction == KNOCKDOWN and not fall_already_landed
+	fall_direction = signf(knockback.x) if reaction == KNOCKDOWN else 0.0
+	if reaction == KNOCKDOWN and fall_already_landed:
+		reaction_frame = fall_landing_frame
 	if reaction in [HITSTUN, STATUS1, STATUS2]:
 		reaction_frames_total = maxi(attack_data.hitstun_frames, 1)
 		if reaction == STATUS1:
@@ -107,11 +119,23 @@ func apply_hit(
 ## Starts the permanent death reaction. Lethal hits route here through
 ## apply_hit(); orchestrators call it directly when health reaches zero
 ## without a hurtbox hit so the fall still plays and lingering still counts.
-func begin_death(knockback: Vector2 = Vector2.ZERO, attack_data: AttackData = null) -> void:
+func begin_death(
+	knockback: Vector2 = Vector2.ZERO,
+	attack_data: AttackData = null,
+	fall_already_landed: bool = false
+) -> void:
 	if current_reaction == DEATH:
 		return
+	# Dying during an existing fall/prone hold must not restart its landing.
+	var continuing_fall := current_reaction == KNOCKDOWN
 	current_reaction = DEATH
-	reaction_frame = 0
+	if not continuing_fall:
+		reaction_frame = 0
+		_fall_pending = true
+		fall_direction = signf(knockback.x)
+	if fall_already_landed:
+		reaction_frame = fall_landing_frame
+		_fall_pending = false
 	reaction_frames_total = maxi(_knockdown_frames, 1)
 	consecutive_hits = 0
 	_knockback = knockback * _knockdown_knockback_scale
@@ -138,6 +162,8 @@ func physics_tick() -> void:
 		movement_component.stop()
 
 	reaction_frame += 1
+	if is_knocked_down() and reaction_frame >= fall_landing_frame:
+		report_ground_landing()
 	if current_reaction == DEATH:
 		return
 	if reaction_frame >= reaction_frames_total:
@@ -150,6 +176,19 @@ func physics_tick() -> void:
 		recovered.emit()
 
 
+## Hair throws own their arc instead of the ordinary reaction clock.
+func begin_external_fall() -> void:
+	_fall_pending = true
+
+
+## Idempotent across prone holds, repeated ticks and throw/reaction handoff.
+func report_ground_landing() -> void:
+	if not _fall_pending:
+		return
+	_fall_pending = false
+	ground_landed.emit()
+
+
 func is_incapacitated() -> bool:
 	return current_reaction != NONE
 
@@ -159,6 +198,8 @@ func is_knocked_down() -> bool:
 
 
 func reset() -> void:
+	_fall_pending = false
+	fall_direction = 0.0
 	current_reaction = NONE
 	reaction_frame = 0
 	reaction_frames_total = 0

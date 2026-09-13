@@ -26,6 +26,7 @@ TESTS = (
     "tools/smoke_test_ladder.gd",
     "tools/smoke_test_combo.gd",
     "tools/smoke_test_music.gd",
+    "tools/smoke_test_combat_audio.gd",
 )
 # Headless Godot paces physics to real time, so a suite's budget is really a
 # budget on simulated seconds. The ladder suite climbs the SCOOP ladder's

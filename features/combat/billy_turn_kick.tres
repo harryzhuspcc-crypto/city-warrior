@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://gylg2nquppds"]
 
-[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
+[ext_resource type="Script" uid="uid://br868xte1le84" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
 
 [resource]
 script = ExtResource("1_attack_data")
 attack_name = &"billy_turn_kick"
 animation_name = &"turn_kick"
+impact_sound = 2
 startup_frames = 8
 active_frames = 5
 recovery_frames = 16
@@ -15,6 +16,5 @@ knockback = Vector2(120, 0)
 hitbox_rect = Rect2(10, -50, 30, 30)
 knocks_down = true
 movement_speed = 150.0
-movement_start_frame = 0
 movement_end_frame = 8
 animation_frame_starts = PackedInt32Array(0, 4, 8, 13, 20)

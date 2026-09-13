@@ -27,7 +27,7 @@ func _run() -> void:
 		return
 	# The remaining checks isolate Billy's movement contract, so the encounter
 	# must not spawn enemies that walk over and interrupt them.
-	alley.encounter_controller.enabled = false
+	alley.set_encounters_enabled(false)
 	for actor: Node in actors.get_children():
 		if actor is Williams:
 			_fail("The encounter spawns enemies; none may be pre-placed")

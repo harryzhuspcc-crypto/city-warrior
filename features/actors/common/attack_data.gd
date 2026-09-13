@@ -1,8 +1,19 @@
 class_name AttackData
 extends Resource
 
+enum ImpactSound {
+	NONE,
+	PUNCH,
+	KICK,
+}
+
 @export var attack_name: StringName = &"punch"
 @export var animation_name: StringName = &"punch"
+## The contact sound is presentation data, but it belongs to the move so every
+## actor that uses this attack makes the same sound when the hit is confirmed.
+@export var impact_sound: ImpactSound = ImpactSound.NONE
+## Elbow and back-kick attacks share Billy's short exertion voice clip.
+@export var plays_action_voice: bool = false
 @export_range(0, 120, 1) var startup_frames: int = 5
 @export_range(1, 120, 1) var active_frames: int = 3
 @export_range(1, 120, 1) var recovery_frames: int = 10

@@ -32,6 +32,7 @@ func _run() -> void:
 		var alley := PROTOTYPE_ALLEY_SCENE.instantiate() as PrototypeAlley
 		root.add_child(alley)
 		await physics_frame
+		_isolate_middle_encounter(alley)
 		var error: String = await slice.call(alley)
 		if not error.is_empty():
 			_fail(error)
@@ -40,6 +41,17 @@ func _run() -> void:
 			root.remove_child(alley)
 			alley.free()
 		await physics_frame
+
+	var multi_alley := PROTOTYPE_ALLEY_SCENE.instantiate() as PrototypeAlley
+	root.add_child(multi_alley)
+	await physics_frame
+	var multi_error := await _test_multiple_encounters(multi_alley)
+	if not multi_error.is_empty():
+		_fail(multi_error)
+		return
+	root.remove_child(multi_alley)
+	multi_alley.free()
+	await physics_frame
 
 	# A level carries music, and the audio server needs a moment with it.
 	await AudioSettle.settle(self)
@@ -76,6 +88,25 @@ func _test_level_contract(alley: PrototypeAlley) -> String:
 		return "Billy must collide with the screen-edge layer"
 	if alley.encounter_controller == null:
 		return "PrototypeAlley must export its EncounterController"
+	var encounters := alley.encounter_controllers()
+	if encounters.size() != 3:
+		return "PrototypeAlley must contain opening, middle, and ending encounters"
+	if (
+		encounters[0].name != &"OpeningEncounter"
+		or encounters[1] != alley.encounter_controller
+		or encounters[2].name != &"EndingEncounter"
+	):
+		return "The three encounters must be ordered opening, middle, ending"
+	if (
+		encounters[1].prerequisite != encounters[0]
+		or encounters[2].prerequisite != encounters[1]
+	):
+		return "Encounter prerequisites must form one sequential chain"
+	if not (
+		encounters[0].lock_x < encounters[1].lock_x
+		and encounters[1].lock_x < encounters[2].lock_x
+	):
+		return "Encounter trigger positions must progress across the stage"
 	var encounter := alley.encounter_controller
 	if encounter.state != EncounterController.IDLE:
 		return "The encounter must start idle"
@@ -128,6 +159,78 @@ func _test_level_contract(alley: PrototypeAlley) -> String:
 	return ""
 
 
+## Existing focused slices exercise the established middle arena. The opening
+## and ending arenas are disabled there so teleports cannot activate unrelated
+## fights; the sequence gets its own end-to-end slice below.
+func _isolate_middle_encounter(alley: PrototypeAlley) -> void:
+	for encounter: EncounterController in alley.encounter_controllers():
+		encounter.enabled = encounter == alley.encounter_controller
+
+
+## The real stage runs three arenas in order. Reaching a later trigger cannot
+## bypass its prerequisite, every clear hands control to the next encounter,
+## and the exit remains gated until the ending fight is gone.
+func _test_multiple_encounters(alley: PrototypeAlley) -> String:
+	var encounters := alley.encounter_controllers()
+	if encounters.size() != 3:
+		return "Multi-encounter flow requires exactly three arenas"
+	for encounter: EncounterController in encounters:
+		encounter.enabled = true
+	alley.camera.catch_up_speed = 0.0
+	alley.player.set_physics_process(false)
+
+	# Crossing every future trigger at once must still activate only the first
+	# prerequisite-free arena.
+	alley.player.global_position = Vector2(encounters[2].lock_x, 188.0)
+	await physics_frame
+	if encounters[0].state != EncounterController.ACTIVE:
+		return "Crossing the stage must activate the opening encounter first"
+	if (
+		encounters[1].state != EncounterController.IDLE
+		or encounters[2].state != EncounterController.IDLE
+	):
+		return "Later encounters activated before their prerequisites cleared"
+
+	for encounter_index: int in range(encounters.size()):
+		var encounter := encounters[encounter_index]
+		if encounter.state == EncounterController.IDLE:
+			alley.player.global_position = Vector2(encounter.lock_x, 188.0)
+			await physics_frame
+		if encounter.state != EncounterController.ACTIVE:
+			return "%s did not activate after its prerequisite" % encounter.name
+		var all_spawned := await _wait_until(
+			func() -> bool: return encounter.spawned_count == encounter.enemy_count,
+			encounter.spawn_interval_frames * encounter.enemy_count + 5
+		)
+		if not all_spawned:
+			return "%s did not spawn all configured enemies" % encounter.name
+		for actor: Node in alley.actors.get_children():
+			if actor is Williams:
+				actor.queue_free()
+		var cleared := await _wait_until(
+			func() -> bool: return encounter.state == EncounterController.CLEARED,
+			5
+		)
+		if not cleared:
+			return "%s did not clear after its enemies left" % encounter.name
+		if encounter_index + 1 < encounters.size():
+			var next := encounters[encounter_index + 1]
+			if next.state != EncounterController.IDLE:
+				return "%s did not remain idle after the previous clear" % next.name
+			alley.player.global_position = Vector2(next.lock_x, 188.0)
+			await physics_frame
+			if next.state != EncounterController.ACTIVE:
+				return "%s did not activate after the previous clear" % next.name
+
+	if alley.state != PrototypeAlley.PLAYING:
+		return "Clearing the ending encounter must not finish before the exit"
+	alley.player.global_position = Vector2(alley.exit.global_position.x, 188.0)
+	await physics_frame
+	if alley.state != PrototypeAlley.CLEARED:
+		return "The exit must finish after all three encounters clear"
+	return ""
+
+
 ## Size of the stage art the level draws behind the belt.
 func _stage_texture_size(alley: PrototypeAlley) -> Vector2:
 	var background := alley.get_node_or_null("Background") as Sprite2D
@@ -141,7 +244,7 @@ func _stage_texture_size(alley: PrototypeAlley) -> Vector2:
 ## Billy is on the ground plane.
 func _test_camera_follow(alley: PrototypeAlley) -> String:
 	# Pure camera behavior: the encounter must not lock the view mid-slice.
-	alley.encounter_controller.enabled = false
+	alley.set_encounters_enabled(false)
 	var camera := alley.camera
 	var player := alley.player
 	if not is_equal_approx(camera.view_right() - camera.view_left(), VIEW_WIDTH):
@@ -202,7 +305,7 @@ func _test_camera_follow(alley: PrototypeAlley) -> String:
 ## the catch-up cap, and unlocking pans back to Billy instead of snapping.
 ## lock_changed fires once per transition.
 func _test_camera_lock_rules(alley: PrototypeAlley) -> String:
-	alley.encounter_controller.enabled = false
+	alley.set_encounters_enabled(false)
 	var camera := alley.camera
 	var player := alley.player
 	var lock_events: Array[bool] = []

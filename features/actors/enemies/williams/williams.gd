@@ -18,6 +18,7 @@ signal defeated
 @export var ai_component: EnemyAIComponent
 @export var state_machine: EnemyStateMachine
 @export var visuals: EnemyVisuals
+@export var audio_component: ActorAudioComponent
 
 var _runtime_stats: FighterStats
 var _has_reported_defeat: bool = false
@@ -172,6 +173,7 @@ func _validate_dependencies() -> void:
 	assert(ai_component != null, "Williams requires EnemyAIComponent")
 	assert(state_machine != null, "Williams requires EnemyStateMachine")
 	assert(visuals != null, "Williams requires EnemyVisuals")
+	assert(audio_component != null, "Williams requires ActorAudioComponent")
 
 
 func _on_attack_started() -> void:

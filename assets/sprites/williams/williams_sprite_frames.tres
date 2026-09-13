@@ -1,28 +1,27 @@
-[gd_resource type="SpriteFrames" load_steps=20 format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://1k87ytcxaff2"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/idle/idle_00.png" id="1_idle_00"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk/walk_00.png" id="2_walk_00"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk/walk_01.png" id="3_walk_01"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk/walk_02.png" id="4_walk_02"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk/walk_03.png" id="5_walk_03"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk_up/walk_up_00.png" id="6_walk_up_00"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk_up/walk_up_01.png" id="7_walk_up_01"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk_up/walk_up_02.png" id="8_walk_up_02"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/walk_up/walk_up_03.png" id="9_walk_up_03"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/punch/punch_00.png" id="10_punch_00"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/punch/punch_01.png" id="11_punch_01"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/punch/punch_02.png" id="12_punch_02"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/hurt/hurt_00.png" id="13_hurt_00"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/hurt/hurt_01.png" id="14_hurt_01"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/knockdown/knockdown_00.png" id="15_knockdown_00"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/knockdown/knockdown_01.png" id="16_knockdown_01"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/knockdown/knockdown_02.png" id="17_knockdown_02"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/knockdown/knockdown_03.png" id="18_knockdown_03"]
-[ext_resource type="Texture2D" path="res://assets/sprites/williams/death/death_00.png" id="19_death_00"]
+[ext_resource type="Texture2D" uid="uid://5g6p3hxkj22b" path="res://assets/sprites/williams/idle/idle_00.png" id="1_idle_00"]
+[ext_resource type="Texture2D" uid="uid://cntmsv1y5r72a" path="res://assets/sprites/williams/walk/walk_00.png" id="2_walk_00"]
+[ext_resource type="Texture2D" uid="uid://dsj7q6frtl4d3" path="res://assets/sprites/williams/walk/walk_01.png" id="3_walk_01"]
+[ext_resource type="Texture2D" uid="uid://wjgi555npvgc" path="res://assets/sprites/williams/walk/walk_02.png" id="4_walk_02"]
+[ext_resource type="Texture2D" uid="uid://c5026fglcjgox" path="res://assets/sprites/williams/walk/walk_03.png" id="5_walk_03"]
+[ext_resource type="Texture2D" uid="uid://da5ovp4k6v7vr" path="res://assets/sprites/williams/walk_up/walk_up_00.png" id="6_walk_up_00"]
+[ext_resource type="Texture2D" uid="uid://dl1iavbfdpq2y" path="res://assets/sprites/williams/walk_up/walk_up_01.png" id="7_walk_up_01"]
+[ext_resource type="Texture2D" uid="uid://bi26jm4bvy6a" path="res://assets/sprites/williams/walk_up/walk_up_02.png" id="8_walk_up_02"]
+[ext_resource type="Texture2D" uid="uid://bd8abeww06fhg" path="res://assets/sprites/williams/walk_up/walk_up_03.png" id="9_walk_up_03"]
+[ext_resource type="Texture2D" uid="uid://dptl1uhxmqrjg" path="res://assets/sprites/williams/punch/punch_00.png" id="10_punch_00"]
+[ext_resource type="Texture2D" uid="uid://2r37i38g4id8" path="res://assets/sprites/williams/punch/punch_01.png" id="11_punch_01"]
+[ext_resource type="Texture2D" uid="uid://dhgl5sy4nlowi" path="res://assets/sprites/williams/punch/punch_02.png" id="12_punch_02"]
+[ext_resource type="Texture2D" uid="uid://cd5fb8u2bmfau" path="res://assets/sprites/williams/hurt/hurt_00.png" id="13_hurt_00"]
+[ext_resource type="Texture2D" uid="uid://dfnrhoafajxne" path="res://assets/sprites/williams/hurt/hurt_01.png" id="14_hurt_01"]
+[ext_resource type="Texture2D" uid="uid://cvbovf1cfuhxa" path="res://assets/sprites/williams/knockdown/knockdown_00.png" id="15_knockdown_00"]
+[ext_resource type="Texture2D" uid="uid://b1i3iom8d25d4" path="res://assets/sprites/williams/knockdown/knockdown_01.png" id="16_knockdown_01"]
+[ext_resource type="Texture2D" uid="uid://c23u7wt3ybnqs" path="res://assets/sprites/williams/knockdown/knockdown_02.png" id="17_knockdown_02"]
+[ext_resource type="Texture2D" uid="uid://bu71frw3o5nwt" path="res://assets/sprites/williams/knockdown/knockdown_03.png" id="18_knockdown_03"]
+[ext_resource type="Texture2D" uid="uid://cm0jfqi3ytlyx" path="res://assets/sprites/williams/death/death_00.png" id="19_death_00"]
 
 [resource]
-animations = [
-{
+animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("15_knockdown_00")
@@ -33,7 +32,7 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("19_death_00")
 }],
-"loop": false,
+"loop": 0,
 "name": &"death",
 "speed": 1.0
 }, {
@@ -44,7 +43,7 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("14_hurt_01")
 }],
-"loop": false,
+"loop": 0,
 "name": &"hurt",
 "speed": 1.0
 }, {
@@ -52,7 +51,7 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("1_idle_00")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle",
 "speed": 2.0
 }, {
@@ -69,7 +68,7 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("18_knockdown_03")
 }],
-"loop": false,
+"loop": 0,
 "name": &"knockdown",
 "speed": 1.0
 }, {
@@ -83,9 +82,9 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("12_punch_02")
 }],
-"loop": false,
+"loop": 0,
 "name": &"punch",
-"speed": 1.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -100,7 +99,7 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("5_walk_03")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk",
 "speed": 8.0
 }, {
@@ -117,7 +116,7 @@ animations = [
 "duration": 1.0,
 "texture": ExtResource("9_walk_up_03")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk_up",
 "speed": 8.0
 }]

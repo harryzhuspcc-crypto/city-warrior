@@ -64,7 +64,7 @@ func _run() -> void:
 		root.add_child(alley)
 		await physics_frame
 		# Climbing is the subject here; only the last slice wants a fight.
-		alley.encounter_controller.enabled = false
+		alley.set_encounters_enabled(false)
 		var error: String = await slice.call(alley)
 		_release_all()
 		if is_instance_valid(alley):

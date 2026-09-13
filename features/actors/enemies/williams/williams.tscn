@@ -1,17 +1,20 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene format=3 uid="uid://b3e0bic7twsdo"]
 
-[ext_resource type="Script" path="res://features/actors/enemies/williams/williams.gd" id="1_williams"]
+[ext_resource type="Script" uid="uid://upotl1ampotx" path="res://features/actors/enemies/williams/williams.gd" id="1_williams"]
 [ext_resource type="Resource" path="res://features/actors/enemies/williams/williams_stats.tres" id="2_stats"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/williams/williams_sprite_frames.tres" id="3_frames"]
-[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_visuals.gd" id="4_visuals"]
-[ext_resource type="Script" path="res://features/actors/common/health_component.gd" id="5_health"]
-[ext_resource type="Script" path="res://features/actors/common/movement_component.gd" id="6_movement"]
-[ext_resource type="Script" path="res://features/actors/common/combat_component.gd" id="7_combat"]
-[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_ai_component.gd" id="8_ai"]
-[ext_resource type="Script" path="res://features/actors/enemies/common/enemy_state_machine.gd" id="9_state"]
-[ext_resource type="Script" path="res://features/actors/common/hurtbox_component.gd" id="10_hurtbox"]
-[ext_resource type="Script" path="res://features/actors/common/hit_reaction_component.gd" id="11_reaction"]
-[ext_resource type="Resource" path="res://features/combat/williams_punch.tres" id="12_punch"]
+[ext_resource type="Script" uid="uid://bo4ne0uoyf85d" path="res://features/actors/enemies/common/enemy_visuals.gd" id="4_visuals"]
+[ext_resource type="Script" uid="uid://b4n2wmffrw0rx" path="res://features/actors/common/health_component.gd" id="5_health"]
+[ext_resource type="Script" uid="uid://c43n845tmhdbl" path="res://features/actors/common/movement_component.gd" id="6_movement"]
+[ext_resource type="Script" uid="uid://u7pyto2wyd44" path="res://features/actors/common/combat_component.gd" id="7_combat"]
+[ext_resource type="Script" uid="uid://byw46ov1yndun" path="res://features/actors/enemies/common/enemy_ai_component.gd" id="8_ai"]
+[ext_resource type="Script" uid="uid://c6uh2hq7rlr62" path="res://features/actors/enemies/common/enemy_state_machine.gd" id="9_state"]
+[ext_resource type="Script" uid="uid://x6vgg75btchr" path="res://features/actors/common/hurtbox_component.gd" id="10_hurtbox"]
+[ext_resource type="Script" uid="uid://durk0ncnxp3qm" path="res://features/actors/common/hit_reaction_component.gd" id="11_reaction"]
+[ext_resource type="Resource" uid="uid://c6rxya7vhf6po" path="res://features/combat/williams_punch.tres" id="12_punch"]
+[ext_resource type="Script" uid="uid://bckmvyhkwf5ui" path="res://features/audio/actor_audio_component.gd" id="13_audio"]
+[ext_resource type="AudioStream" uid="uid://bvvlxw564ix2w" path="res://assets/audio/sfx/sfx_08_punch_hit.wav" id="14_punch_sfx"]
+[ext_resource type="AudioStream" uid="uid://db8ibanklp5e4" path="res://assets/audio/voice/voice_02_male_enemy_dies.wav" id="15_death_voice"]
 
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
@@ -22,12 +25,12 @@ size = Vector2(18, 44)
 [sub_resource type="RectangleShape2D" id="HitboxShape"]
 size = Vector2(22, 18)
 
-[node name="Williams" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "hurtbox", "hit_reaction_component", "ai_component", "state_machine", "visuals")]
+[node name="Williams" type="CharacterBody2D" unique_id=1542809323 node_paths=PackedStringArray("health_component", "movement_component", "combat_component", "hurtbox", "hit_reaction_component", "ai_component", "state_machine", "visuals", "audio_component")]
 texture_filter = 1
 position = Vector2(300, 150)
-motion_mode = 1
 collision_layer = 2
 collision_mask = 3
+motion_mode = 1
 script = ExtResource("1_williams")
 fighter_stats = ExtResource("2_stats")
 health_component = NodePath("HealthComponent")
@@ -38,66 +41,84 @@ hit_reaction_component = NodePath("HitReactionComponent")
 ai_component = NodePath("AIComponent")
 state_machine = NodePath("StateMachine")
 visuals = NodePath("Visuals")
+audio_component = NodePath("ActorAudioComponent")
 
-[node name="BodyCollision" type="CollisionShape2D" parent="."]
+[node name="BodyCollision" type="CollisionShape2D" parent="." unique_id=999956372]
 position = Vector2(0, -4)
 shape = SubResource("BodyShape")
 
-[node name="Visuals" type="Node2D" parent="." node_paths=PackedStringArray("animated_sprite")]
+[node name="Visuals" type="Node2D" parent="." unique_id=2037222671 node_paths=PackedStringArray("animated_sprite")]
 position = Vector2(0, -40)
 script = ExtResource("4_visuals")
 animated_sprite = NodePath("AnimatedSprite2D")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visuals"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visuals" unique_id=951369945]
 sprite_frames = ExtResource("3_frames")
-animation = &"idle"
+animation = &"punch"
 autoplay = "idle"
+frame = 2
+frame_progress = 1.0
 
-[node name="Hurtbox" type="Area2D" parent="." node_paths=PackedStringArray("health_component")]
+[node name="Hurtbox" type="Area2D" parent="." unique_id=1782791442 node_paths=PackedStringArray("health_component")]
 collision_layer = 8
 collision_mask = 16
 monitoring = false
 script = ExtResource("10_hurtbox")
 health_component = NodePath("../HealthComponent")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1979428021]
 position = Vector2(0, -24)
 shape = SubResource("HurtboxShape")
 
-[node name="AttackOrigin" type="Node2D" parent="."]
+[node name="AttackOrigin" type="Node2D" parent="." unique_id=883934203]
 
-[node name="Hitbox" type="Area2D" parent="AttackOrigin"]
+[node name="Hitbox" type="Area2D" parent="AttackOrigin" unique_id=1337305503]
 collision_layer = 32
 collision_mask = 4
 monitoring = false
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/Hitbox"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/Hitbox" unique_id=1478554966]
 position = Vector2(23, -31)
 shape = SubResource("HitboxShape")
 disabled = true
 
-[node name="HealthComponent" type="Node" parent="."]
+[node name="HealthComponent" type="Node" parent="." unique_id=1948001126]
 script = ExtResource("5_health")
 
-[node name="MovementComponent" type="Node" parent="." node_paths=PackedStringArray("body")]
+[node name="MovementComponent" type="Node" parent="." unique_id=1598978262 node_paths=PackedStringArray("body")]
 script = ExtResource("6_movement")
 body = NodePath("..")
 
-[node name="CombatComponent" type="Node" parent="." node_paths=PackedStringArray("hitbox", "hitbox_shape", "source_actor")]
+[node name="CombatComponent" type="Node" parent="." unique_id=1294780196 node_paths=PackedStringArray("hitbox", "hitbox_shape", "source_actor")]
 script = ExtResource("7_combat")
 attack_data = ExtResource("12_punch")
 hitbox = NodePath("../AttackOrigin/Hitbox")
 hitbox_shape = NodePath("../AttackOrigin/Hitbox/CollisionShape2D")
 source_actor = NodePath("..")
 
-[node name="HitReactionComponent" type="Node" parent="." node_paths=PackedStringArray("movement_component", "hurtbox")]
+[node name="HitReactionComponent" type="Node" parent="." unique_id=1301675723 node_paths=PackedStringArray("movement_component", "hurtbox")]
 script = ExtResource("11_reaction")
 movement_component = NodePath("../MovementComponent")
 hurtbox = NodePath("../Hurtbox")
 
-[node name="AIComponent" type="Node" parent="."]
+[node name="AIComponent" type="Node" parent="." unique_id=695348516]
 script = ExtResource("8_ai")
 
-[node name="StateMachine" type="Node" parent="."]
+[node name="StateMachine" type="Node" parent="." unique_id=1912525086]
 script = ExtResource("9_state")
+
+[node name="PunchHitAudio" type="AudioStreamPlayer2D" parent="." unique_id=779762349]
+stream = ExtResource("14_punch_sfx")
+bus = &"SFX"
+
+[node name="DeathVoiceAudio" type="AudioStreamPlayer2D" parent="." unique_id=621910039]
+stream = ExtResource("15_death_voice")
+bus = &"Voice"
+
+[node name="ActorAudioComponent" type="Node" parent="." unique_id=2102871344 node_paths=PackedStringArray("combat_component", "health_component", "punch_hit_player", "death_voice_player")]
+script = ExtResource("13_audio")
+combat_component = NodePath("../CombatComponent")
+health_component = NodePath("../HealthComponent")
+punch_hit_player = NodePath("../PunchHitAudio")
+death_voice_player = NodePath("../DeathVoiceAudio")

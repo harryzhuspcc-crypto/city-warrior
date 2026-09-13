@@ -1,14 +1,9 @@
-[gd_resource type="Resource" script_class="FighterStats" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="FighterStats" format=3 uid="uid://dqfi32gjiq8mh"]
 
-[ext_resource type="Script" path="res://features/actors/common/fighter_stats.gd" id="1_stats"]
+[ext_resource type="Script" uid="uid://b3wdo88hl4nv3" path="res://features/actors/common/fighter_stats.gd" id="1_stats"]
 
 [resource]
 script = ExtResource("1_stats")
-max_health = 100
-horizontal_speed = 90.0
-depth_speed = 60.0
-jump_takeoff_speed = 252.4
-jump_gravity = 600.0
-climb_speed = 48.0
-climb_pose_pixels = 8.0
-chain_window_frames = 24
+hurt_pose_starts = null
+knockdown_pose_starts = null
+death_pose_starts = null

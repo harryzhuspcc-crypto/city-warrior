@@ -1,16 +1,17 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene format=3 uid="uid://bv3n76c41p8hp"]
 
-[ext_resource type="Script" path="res://levels/prototype_alley/prototype_alley.gd" id="1_alley"]
-[ext_resource type="Texture2D" path="res://assets/stages/new_york_street.png" id="2_street"]
+[ext_resource type="Script" uid="uid://c2pk27oniqd06" path="res://levels/prototype_alley/prototype_alley.gd" id="1_alley"]
+[ext_resource type="Texture2D" uid="uid://qbsoki864stx" path="res://assets/stages/new_york_street.png" id="2_street"]
 [ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="4_williams"]
-[ext_resource type="Script" path="res://features/encounters/encounter_controller.gd" id="5_encounter"]
-[ext_resource type="Script" path="res://features/camera/belt_scroll_camera.gd" id="6_camera"]
+[ext_resource type="Script" uid="uid://caxf6uge8dkvp" path="res://features/encounters/encounter_controller.gd" id="5_encounter"]
+[ext_resource type="Script" uid="uid://0kkdfjl8q51p" path="res://features/camera/belt_scroll_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" path="res://features/hud/hud.tscn" id="7_hud"]
 [ext_resource type="PackedScene" path="res://features/level_objects/ladder/ladder.tscn" id="8_ladder"]
 [ext_resource type="PackedScene" path="res://features/level_objects/ledge/climb_platform.tscn" id="9_ledge"]
-[ext_resource type="Script" path="res://features/audio/music_player.gd" id="10_music"]
-[ext_resource type="AudioStream" path="res://assets/audio/bgm/02_slums.mp3" id="11_slums"]
+[ext_resource type="Script" uid="uid://ds3dw6xruoedq" path="res://features/audio/music_player.gd" id="10_music"]
+[ext_resource type="AudioStream" uid="uid://dwglc43xn6e4e" path="res://assets/audio/bgm/02_slums.mp3" id="11_slums"]
+[ext_resource type="AudioStream" path="res://assets/audio/bgm/04_mission_complete.mp3" id="12_mission_complete"]
 
 [sub_resource type="RectangleShape2D" id="HorizontalBoundaryShape"]
 size = Vector2(1264, 16)
@@ -21,105 +22,142 @@ size = Vector2(16, 232)
 [sub_resource type="RectangleShape2D" id="ScreenEdgeShape"]
 size = Vector2(16, 232)
 
-[node name="PrototypeAlley" type="Node2D" node_paths=PackedStringArray("actors", "player", "camera", "encounter_controller", "hud", "exit", "ladders", "music")]
+[node name="PrototypeAlley" type="Node2D" unique_id=712498877 node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "stage_clear_music")]
 script = ExtResource("1_alley")
 actors = NodePath("Actors")
 player = NodePath("Actors/Player")
 camera = NodePath("Camera2D")
-encounter_controller = NodePath("EncounterController")
+encounters = NodePath("Encounters")
+encounter_controller = NodePath("Encounters/MiddleEncounter")
 hud = NodePath("HUD")
 exit = NodePath("Exit")
 ladders = NodePath("Ladders")
 music = NodePath("Music")
+stage_clear_music = NodePath("StageClearMusic")
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="Background" type="Sprite2D" parent="." unique_id=2116658790]
 position = Vector2(0, -56)
 texture = ExtResource("2_street")
 centered = false
 
-[node name="WorldGeometry" type="Node2D" parent="."]
+[node name="WorldGeometry" type="Node2D" parent="." unique_id=597981346]
 
-[node name="TopBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="TopBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=1531887019]
 position = Vector2(616, 144)
-collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/TopBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/TopBoundary" unique_id=1593348871]
 shape = SubResource("HorizontalBoundaryShape")
 
-[node name="BottomBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="BottomBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=468590161]
 position = Vector2(616, 224)
-collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/BottomBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/BottomBoundary" unique_id=797671776]
 shape = SubResource("HorizontalBoundaryShape")
 
-[node name="LeftBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="LeftBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=1080142042]
 position = Vector2(-8, 108)
-collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/LeftBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/LeftBoundary" unique_id=2131725570]
 shape = SubResource("VerticalBoundaryShape")
 
-[node name="RightBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="RightBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=340511405]
 position = Vector2(1240, 108)
-collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/RightBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/RightBoundary" unique_id=273045886]
 shape = SubResource("VerticalBoundaryShape")
 
-[node name="Ledges" type="Node2D" parent="."]
+[node name="Ledges" type="Node2D" parent="." unique_id=1322865910]
 
-[node name="ScoopLedge" parent="Ledges" instance=ExtResource("9_ledge")]
+[node name="ScoopLedge" parent="Ledges" unique_id=2059202320 instance=ExtResource("9_ledge")]
 position = Vector2(666, 160)
-height = 135.0
-walkable_width = 330.0
 
-[node name="Ladders" type="Node2D" parent="."]
+[node name="Ladders" type="Node2D" parent="." unique_id=1258039181]
 
-[node name="ScoopLeftLadder" parent="Ladders" node_paths=PackedStringArray("platform") instance=ExtResource("8_ladder")]
+[node name="ScoopLeftLadder" parent="Ladders" unique_id=542200226 node_paths=PackedStringArray("platform") instance=ExtResource("8_ladder")]
 position = Vector2(522, 160)
 platform = NodePath("../../Ledges/ScoopLedge")
 
-[node name="ScoopRightLadder" parent="Ladders" node_paths=PackedStringArray("platform") instance=ExtResource("8_ladder")]
+[node name="ScoopRightLadder" parent="Ladders" unique_id=554013918 node_paths=PackedStringArray("platform") instance=ExtResource("8_ladder")]
 position = Vector2(778, 160)
 platform = NodePath("../../Ledges/ScoopLedge")
 
-[node name="Actors" type="Node2D" parent="."]
+[node name="Actors" type="Node2D" parent="." unique_id=790038351]
 y_sort_enabled = true
 
-[node name="Player" parent="Actors" instance=ExtResource("3_player")]
+[node name="Player" parent="Actors" unique_id=961199160 instance=ExtResource("3_player")]
 position = Vector2(56, 192)
 
-[node name="EncounterController" type="Node2D" parent="." node_paths=PackedStringArray("actors", "player", "camera", "spawn_points")]
+[node name="Encounters" type="Node2D" parent="." unique_id=63086477]
+
+[node name="OpeningEncounter" type="Node2D" parent="Encounters" unique_id=1656904796 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points")]
 script = ExtResource("5_encounter")
 enemy_scene = ExtResource("4_williams")
-actors = NodePath("../Actors")
-player = NodePath("../Actors/Player")
-camera = NodePath("../Camera2D")
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
-enemy_count = 3
-lock_x = 640.0
-spawn_interval_frames = 45
+lock_x = 96.0
 
-[node name="SpawnPoints" type="Node2D" parent="EncounterController"]
+[node name="SpawnPoints" type="Node2D" parent="Encounters/OpeningEncounter" unique_id=743447270]
 
-[node name="Right" type="Marker2D" parent="EncounterController/SpawnPoints"]
+[node name="Garage" type="Marker2D" parent="Encounters/OpeningEncounter/SpawnPoints" unique_id=279163655]
+position = Vector2(214, 178)
+
+[node name="OpeningRight" type="Marker2D" parent="Encounters/OpeningEncounter/SpawnPoints" unique_id=656993020]
+position = Vector2(350, 200)
+
+[node name="OpeningFarRight" type="Marker2D" parent="Encounters/OpeningEncounter/SpawnPoints" unique_id=610527336]
+position = Vector2(370, 168)
+
+[node name="MiddleEncounter" type="Node2D" parent="Encounters" unique_id=1652595549 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+script = ExtResource("5_encounter")
+enemy_scene = ExtResource("4_williams")
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+prerequisite = NodePath("../OpeningEncounter")
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/MiddleEncounter" unique_id=851683268]
+
+[node name="Right" type="Marker2D" parent="Encounters/MiddleEncounter/SpawnPoints" unique_id=974121097]
 position = Vector2(864, 200)
 
-[node name="Left" type="Marker2D" parent="EncounterController/SpawnPoints"]
+[node name="Left" type="Marker2D" parent="Encounters/MiddleEncounter/SpawnPoints" unique_id=234385873]
 position = Vector2(416, 176)
 
-[node name="FarRight" type="Marker2D" parent="EncounterController/SpawnPoints"]
+[node name="FarRight" type="Marker2D" parent="Encounters/MiddleEncounter/SpawnPoints" unique_id=2042666518]
 position = Vector2(880, 168)
 
-[node name="Exit" type="Marker2D" parent="."]
+[node name="EndingEncounter" type="Node2D" parent="Encounters" unique_id=2047747575 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+script = ExtResource("5_encounter")
+enemy_scene = ExtResource("4_williams")
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+prerequisite = NodePath("../MiddleEncounter")
+lock_x = 1040.0
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/EndingEncounter" unique_id=38298049]
+
+[node name="EndingLeft" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints" unique_id=768171447]
+position = Vector2(820, 200)
+
+[node name="EndingFarLeft" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints" unique_id=1051376594]
+position = Vector2(800, 176)
+
+[node name="EndingUpperLeft" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints" unique_id=550651391]
+position = Vector2(780, 168)
+
+[node name="Exit" type="Marker2D" parent="." unique_id=25816701]
 position = Vector2(1192, 184)
 
-[node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("target")]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1261646828 node_paths=PackedStringArray("target")]
 position = Vector2(192, 108)
 limit_left = 0
 limit_top = -56
@@ -128,27 +166,32 @@ limit_bottom = 216
 script = ExtResource("6_camera")
 target = NodePath("../Actors/Player")
 
-[node name="ScreenEdges" type="Node2D" parent="Camera2D"]
+[node name="ScreenEdges" type="Node2D" parent="Camera2D" unique_id=1176992487]
 
-[node name="LeftEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges"]
+[node name="LeftEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges" unique_id=166498673]
 position = Vector2(-200, 0)
 collision_layer = 128
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/LeftEdge"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/LeftEdge" unique_id=762557593]
 shape = SubResource("ScreenEdgeShape")
 
-[node name="RightEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges"]
+[node name="RightEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges" unique_id=521779302]
 position = Vector2(200, 0)
 collision_layer = 128
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/RightEdge"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/RightEdge" unique_id=1376995593]
 shape = SubResource("ScreenEdgeShape")
 
-[node name="HUD" parent="." instance=ExtResource("7_hud")]
+[node name="HUD" parent="." unique_id=1541241402 instance=ExtResource("7_hud")]
 
-[node name="Music" type="AudioStreamPlayer" parent="."]
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=482398331]
 stream = ExtResource("11_slums")
 volume_db = -6.0
+bus = &"Music"
 script = ExtResource("10_music")
+
+[node name="StageClearMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("12_mission_complete")
+bus = &"Music"

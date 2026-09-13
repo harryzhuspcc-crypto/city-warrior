@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://features/actors/player/player.gd" id="1_player"]
 [ext_resource type="Resource" path="res://features/actors/player/billy_stats.tres" id="2_stats"]
@@ -23,6 +23,11 @@
 [ext_resource type="Resource" path="res://features/combat/billy_punch_cross.tres" id="20_cross"]
 [ext_resource type="Resource" path="res://features/combat/billy_uppercut.tres" id="21_uppercut"]
 [ext_resource type="Resource" path="res://features/combat/billy_turn_kick.tres" id="22_turn_kick"]
+[ext_resource type="Script" path="res://features/audio/actor_audio_component.gd" id="23_audio"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_08_punch_hit.wav" id="24_punch_sfx"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_09_kick_hit.wav" id="25_kick_sfx"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/voice_01_billy_jimmy_elbow_or_back_kick.wav" id="26_action_voice"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/voice_04_player_dies.wav" id="27_death_voice"]
 
 [sub_resource type="RectangleShape2D" id="BodyShape"]
 size = Vector2(14, 8)
@@ -33,7 +38,7 @@ size = Vector2(18, 44)
 [sub_resource type="RectangleShape2D" id="HitboxShape"]
 size = Vector2(18, 18)
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "jump_component", "combat_component", "hurtbox", "hit_reaction_component", "climb_component", "attack_chain_component", "input_component", "state_machine", "visuals")]
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("health_component", "movement_component", "jump_component", "combat_component", "hurtbox", "hit_reaction_component", "climb_component", "attack_chain_component", "input_component", "state_machine", "visuals", "audio_component")]
 texture_filter = 1
 position = Vector2(192, 150)
 motion_mode = 1
@@ -60,6 +65,7 @@ attack_chain_component = NodePath("AttackChainComponent")
 input_component = NodePath("InputComponent")
 state_machine = NodePath("StateMachine")
 visuals = NodePath("Visuals")
+audio_component = NodePath("ActorAudioComponent")
 
 [node name="BodyCollision" type="CollisionShape2D" parent="."]
 position = Vector2(0, -4)
@@ -137,3 +143,28 @@ script = ExtResource("8_input")
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("9_state")
+
+[node name="PunchHitAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("24_punch_sfx")
+bus = &"SFX"
+
+[node name="KickHitAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("25_kick_sfx")
+bus = &"SFX"
+
+[node name="ActionVoiceAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("26_action_voice")
+bus = &"Voice"
+
+[node name="DeathVoiceAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("27_death_voice")
+bus = &"Voice"
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("combat_component", "health_component", "punch_hit_player", "kick_hit_player", "action_voice_player", "death_voice_player")]
+script = ExtResource("23_audio")
+combat_component = NodePath("../CombatComponent")
+health_component = NodePath("../HealthComponent")
+punch_hit_player = NodePath("../PunchHitAudio")
+kick_hit_player = NodePath("../KickHitAudio")
+action_voice_player = NodePath("../ActionVoiceAudio")
+death_voice_player = NodePath("../DeathVoiceAudio")

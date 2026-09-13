@@ -22,7 +22,7 @@ func _run() -> void:
 
 	# Detailed player checks drive physics manually; the encounter must not
 	# spawn enemies that approach and interrupt them.
-	(alley as PrototypeAlley).encounter_controller.enabled = false
+	(alley as PrototypeAlley).set_encounters_enabled(false)
 
 	var player := alley.get_node("Actors/Player") as Player
 	player.set_physics_process(false)

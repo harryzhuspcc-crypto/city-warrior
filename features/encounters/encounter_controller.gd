@@ -24,6 +24,10 @@ const CLEARED: StringName = &"cleared"
 @export var camera: BeltScrollCamera
 ## Marker2D children are used round-robin, so alternate sides of the view.
 @export var spawn_points: Node2D
+## Optional earlier encounter. This encounter cannot arm until that arena has
+## cleared, preventing teleports or elevated movement from starting several
+## camera locks at once.
+@export var prerequisite: EncounterController
 @export_range(1, 12, 1) var enemy_count: int = 3
 ## The encounter starts when the player reaches this x; the camera locks here.
 @export var lock_x: float = 640.0
@@ -56,7 +60,12 @@ func _physics_process(_delta: float) -> void:
 		# Crossing the trigger along a ledge passes over the arena rather than
 		# into it, and the fight would only drop the player off the ledge to
 		# start. It arms once the player is back on the ground plane.
-		if enabled and player.global_position.x >= lock_x and not _player_is_elevated():
+		if (
+			enabled
+			and _prerequisite_is_cleared()
+			and player.global_position.x >= lock_x
+			and not _player_is_elevated()
+		):
 			_start()
 	if state != ACTIVE or spawned_count >= enemy_count:
 		return
@@ -122,6 +131,10 @@ func _player_is_dead() -> bool:
 
 func _player_is_elevated() -> bool:
 	return player.has_method(&"is_elevated") and bool(player.call(&"is_elevated"))
+
+
+func _prerequisite_is_cleared() -> bool:
+	return prerequisite == null or prerequisite.is_cleared()
 
 
 func _validate_enemy_contract() -> void:

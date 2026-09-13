@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://bfgmyjkra1cyf"]
 
-[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
+[ext_resource type="Script" uid="uid://br868xte1le84" path="res://features/actors/common/attack_data.gd" id="1_attack_data"]
 
 [resource]
 script = ExtResource("1_attack_data")
 attack_name = &"billy_back_kick"
 animation_name = &"back_kick"
+impact_sound = 2
+plays_action_voice = true
 startup_frames = 10
 active_frames = 6
 recovery_frames = 14

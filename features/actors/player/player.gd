@@ -24,6 +24,7 @@ extends CharacterBody2D
 @export var input_component: PlayerInputComponent
 @export var state_machine: PlayerStateMachine
 @export var visuals: PlayerVisuals
+@export var audio_component: ActorAudioComponent
 
 ## Billy's combo chains, in the order their steps are earned. Each step is a
 ## whole attack, so the chain decides which move a press starts and combat
@@ -352,6 +353,7 @@ func _validate_dependencies() -> void:
 	assert(input_component != null, "Player requires PlayerInputComponent")
 	assert(state_machine != null, "Player requires PlayerStateMachine")
 	assert(visuals != null, "Player requires PlayerVisuals")
+	assert(audio_component != null, "Player requires ActorAudioComponent")
 
 
 func _on_attack_started() -> void:

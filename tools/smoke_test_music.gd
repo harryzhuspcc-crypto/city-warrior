@@ -18,6 +18,7 @@ const SECONDS_BEFORE_THE_END: float = 0.5
 const WRAP_FRAME_BUDGET: int = 600
 const BGM_DIRECTORY: String = "res://assets/audio/bgm"
 const STAGE_ONE_TRACK: String = "res://assets/audio/bgm/02_slums.mp3"
+const STAGE_CLEAR_TRACK: String = "res://assets/audio/bgm/04_mission_complete.mp3"
 ## The album, and which tracks play for an open-ended stretch. A track that
 ## underscores gameplay has to repeat; a cue of fixed length must not, or it
 ## restarts over whatever follows it.
@@ -47,6 +48,7 @@ func _run() -> void:
 		_test_gameplay_tracks_repeat_and_cues_do_not,
 		_test_loops_tells_a_loop_from_a_cue,
 		_test_the_stage_plays_its_own_theme,
+		_test_stage_clear_replaces_the_theme,
 		_test_the_stage_track_comes_back_round,
 	]:
 		var error: String = await slice.call()
@@ -118,6 +120,36 @@ func _test_the_stage_plays_its_own_theme() -> String:
 	return error
 
 
+## The fixed-length mission-complete cue replaces, rather than overlaps, the
+## looping street theme when the level reports its clear.
+func _test_stage_clear_replaces_the_theme() -> String:
+	var alley := PROTOTYPE_ALLEY_SCENE.instantiate() as PrototypeAlley
+	root.add_child(alley)
+	await physics_frame
+	await AudioSettle.settle(self)
+	if not alley.music.playing:
+		await AudioSettle.free_level(self, alley)
+		return "Stage-clear setup requires the street theme to be playing"
+	alley._finish_stage()
+	await process_frame
+	var error := ""
+	if alley.music.playing:
+		error = "The street theme must stop when the stage clears"
+	elif not alley.stage_clear_music.playing:
+		error = "Stage clear did not start the mission-complete cue"
+	elif alley.stage_clear_music.stream.resource_path != STAGE_CLEAR_TRACK:
+		error = "Stage clear plays %s, expected %s" % [
+			alley.stage_clear_music.stream.resource_path,
+			STAGE_CLEAR_TRACK,
+		]
+	elif bool(alley.stage_clear_music.stream.get(&"loop")):
+		error = "The mission-complete cue must play once, not loop"
+	elif alley.stage_clear_music.bus != &"Music":
+		error = "The mission-complete cue must route through the Music bus"
+	await AudioSettle.free_level(self, alley)
+	return error
+
+
 ## The loop flag read back as behaviour: a track played to its end either
 ## starts again or stops, and only one of those is a stage track.
 func _test_the_stage_track_comes_back_round() -> String:
@@ -156,6 +188,12 @@ func _check_stage_music(alley: PrototypeAlley) -> String:
 		return "Stage 1's track must loop for as long as the stage runs"
 	if not music.playing:
 		return "Stage 1 must start its track with the level"
+	if alley.stage_clear_music == null or alley.stage_clear_music.stream == null:
+		return "The prototype alley must own a stage-clear music player"
+	if alley.stage_clear_music.stream.resource_path != STAGE_CLEAR_TRACK:
+		return "The stage-clear player must use the mission-complete cue"
+	if alley.music.bus != &"Music" or alley.stage_clear_music.bus != &"Music":
+		return "Stage music and clear music must route through the Music bus"
 	return ""
 
 

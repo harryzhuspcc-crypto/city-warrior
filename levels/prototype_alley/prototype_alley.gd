@@ -15,6 +15,11 @@ const RESTART_ACTION: StringName = &"attack"
 @export var actors: Node2D
 @export var player: Player
 @export var camera: BeltScrollCamera
+## Ordered EncounterController children. Each one points at its prerequisite,
+## so the opening, middle, and ending arenas cannot overlap.
+@export var encounters: Node2D
+## The established middle encounter remains exposed for focused tests and
+## tools that operate on one arena.
 @export var encounter_controller: EncounterController
 @export var hud: Hud
 @export var exit: Marker2D
@@ -25,6 +30,9 @@ const RESTART_ACTION: StringName = &"attack"
 ## is set in the scene: -6 dB is a starting level for music with nothing yet
 ## to balance against, and the first sound effect is what will really set it.
 @export var music: MusicPlayer
+## Non-looping cue that replaces the stage theme once Billy reaches the exit
+## after clearing every encounter.
+@export var stage_clear_music: AudioStreamPlayer
 ## Frames Billy stays down before the game-over prompt appears.
 @export_range(0, 600, 1) var defeat_delay_frames: int = 90
 ## Frames the clear banner shows before the restart prompt joins it.
@@ -45,14 +53,15 @@ func _ready() -> void:
 	hud.set_health(health.current_health, health.maximum_health())
 	health.health_changed.connect(hud.set_health)
 	health.died.connect(_on_player_died)
-	encounter_controller.encounter_started.connect(_on_encounter_started)
-	encounter_controller.encounter_cleared.connect(_on_encounter_cleared)
+	for encounter: EncounterController in encounter_controllers():
+		encounter.encounter_started.connect(_on_encounter_started)
+		encounter.encounter_cleared.connect(_on_encounter_cleared)
 
 
 func _physics_process(_delta: float) -> void:
 	if state == PLAYING:
 		if (
-			encounter_controller.is_cleared()
+			_all_encounters_cleared()
 			and player.global_position.x >= exit.global_position.x
 		):
 			_finish_stage()
@@ -79,7 +88,31 @@ func _on_encounter_started() -> void:
 
 
 func _on_encounter_cleared() -> void:
+	for encounter: EncounterController in encounter_controllers():
+		if encounter.state == EncounterController.ACTIVE:
+			return
 	_set_ladders_climbable(true)
+
+
+func encounter_controllers() -> Array[EncounterController]:
+	var result: Array[EncounterController] = []
+	for child: Node in encounters.get_children():
+		var encounter := child as EncounterController
+		if encounter != null:
+			result.append(encounter)
+	return result
+
+
+func set_encounters_enabled(enabled: bool) -> void:
+	for encounter: EncounterController in encounter_controllers():
+		encounter.enabled = enabled
+
+
+func _all_encounters_cleared() -> bool:
+	for encounter: EncounterController in encounter_controllers():
+		if not encounter.is_cleared():
+			return false
+	return true
 
 
 func _set_ladders_climbable(climbable: bool) -> void:
@@ -93,6 +126,8 @@ func _set_ladders_climbable(climbable: bool) -> void:
 
 func _finish_stage() -> void:
 	state = CLEARED
+	music.stop()
+	stage_clear_music.play()
 	hud.show_message(stage_clear_message)
 	_prompt_message = "%s\n%s" % [stage_clear_message, restart_prompt]
 	_schedule_prompt(clear_prompt_delay_frames)
@@ -124,8 +159,12 @@ func _validate_dependencies() -> void:
 	assert(actors.y_sort_enabled, "PrototypeAlley Actors must enable Y sorting")
 	assert(player != null, "PrototypeAlley requires the Player")
 	assert(camera != null, "PrototypeAlley requires the BeltScrollCamera")
+	assert(encounters != null, "PrototypeAlley requires an Encounters container")
+	assert(encounter_controllers().size() > 0, "PrototypeAlley requires encounters")
 	assert(encounter_controller != null, "PrototypeAlley requires the EncounterController")
 	assert(hud != null, "PrototypeAlley requires the Hud")
 	assert(exit != null, "PrototypeAlley requires the Exit marker")
 	assert(ladders != null, "PrototypeAlley requires the Ladders container")
 	assert(music != null, "PrototypeAlley requires the Music player")
+	assert(stage_clear_music != null, "PrototypeAlley requires stage-clear music")
+	assert(stage_clear_music.stream != null, "Stage-clear music requires an AudioStream")

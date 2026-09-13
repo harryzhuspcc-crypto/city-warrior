@@ -302,20 +302,27 @@ PrototypeAlley (Node2D)
 ├── Actors (Node2D, Y Sort enabled)
 │   ├── Player
 │   └── Enemies
-├── EncounterController
+├── Encounters
+│   ├── OpeningEncounter
+│   ├── MiddleEncounter
+│   └── EndingEncounter
 ├── Camera2D
 └── HUD (CanvasLayer)
 ```
 
 Separate stage art from collision. Use invisible `StaticBody2D` boundaries to define the walkable strip.
 
-The encounter controller should:
+Each encounter controller should:
 
 1. Spawn three enemies.
 2. Lock camera movement.
 3. Detect when all enemies have died.
 4. Unlock the camera.
 5. Finish the prototype when the player reaches the exit.
+
+The prototype chains three controllers from opening to middle to ending. A
+controller can arm only after its prerequisite clears, and the exit remains
+closed until every enabled encounter is clear.
 
 ### Implemented prototype level
 

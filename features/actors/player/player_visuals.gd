@@ -109,6 +109,11 @@ func set_facing(horizontal_direction: float) -> void:
 	animated_sprite.flip_h = _last_facing < 0.0
 
 
+func sync_grab_pose(animation_name: StringName, pose: int, facing: float) -> void:
+	set_facing(facing)
+	_sync_scheduled_pose(animation_name, pose, PackedInt32Array([0, 1, 2, 3]))
+
+
 func _sync_scheduled_pose(
 	animation_name: StringName,
 	frame: int,

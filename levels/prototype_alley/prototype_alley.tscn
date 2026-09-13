@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c2pk27oniqd06" path="res://levels/prototype_alley/prototype_alley.gd" id="1_alley"]
 [ext_resource type="Texture2D" uid="uid://qbsoki864stx" path="res://assets/stages/new_york_street.png" id="2_street"]
 [ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="3_player"]
-[ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="4_williams"]
+[ext_resource type="PackedScene" uid="uid://b3e0bic7twsdo" path="res://features/actors/enemies/williams/williams.tscn" id="4_williams"]
 [ext_resource type="Script" uid="uid://caxf6uge8dkvp" path="res://features/encounters/encounter_controller.gd" id="5_encounter"]
 [ext_resource type="Script" uid="uid://0kkdfjl8q51p" path="res://features/camera/belt_scroll_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" path="res://features/hud/hud.tscn" id="7_hud"]
@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" path="res://features/level_objects/ledge/climb_platform.tscn" id="9_ledge"]
 [ext_resource type="Script" uid="uid://ds3dw6xruoedq" path="res://features/audio/music_player.gd" id="10_music"]
 [ext_resource type="AudioStream" uid="uid://dwglc43xn6e4e" path="res://assets/audio/bgm/02_slums.mp3" id="11_slums"]
-[ext_resource type="AudioStream" path="res://assets/audio/bgm/04_mission_complete.mp3" id="12_mission_complete"]
+[ext_resource type="AudioStream" uid="uid://ct0ga3qwe8lhv" path="res://assets/audio/bgm/04_mission_complete.mp3" id="12_mission_complete"]
 
 [sub_resource type="RectangleShape2D" id="HorizontalBoundaryShape"]
 size = Vector2(1264, 16)
@@ -189,9 +189,7 @@ shape = SubResource("ScreenEdgeShape")
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=482398331]
 stream = ExtResource("11_slums")
 volume_db = -6.0
-bus = &"Music"
 script = ExtResource("10_music")
 
-[node name="StageClearMusic" type="AudioStreamPlayer" parent="."]
+[node name="StageClearMusic" type="AudioStreamPlayer" parent="." unique_id=882957593]
 stream = ExtResource("12_mission_complete")
-bus = &"Music"

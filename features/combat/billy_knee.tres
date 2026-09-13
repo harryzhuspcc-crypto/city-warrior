@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://cipvsh4oftoim"]
+
+[ext_resource type="Script" uid="uid://br868xte1le84" path="res://features/actors/common/attack_data.gd" id="1_attack"]
+
+[resource]
+script = ExtResource("1_attack")
+attack_name = &"hair_grab_knee"
+animation_name = &"knee"
+impact_sound = 2
+startup_frames = 4
+active_frames = 1
+recovery_frames = 15
+damage = 8
+knockback = Vector2(0, 0)
+animation_frame_starts = PackedInt32Array(0, 12)

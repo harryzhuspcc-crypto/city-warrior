@@ -18,6 +18,10 @@ extends Resource
 @export_range(1.0, 40.0, 0.5) var climb_pose_pixels: float = 8.0
 
 @export_category("Hit Reactions")
+## Williams advances only while a staged reaction is still active.
+@export var staged_hit_reactions: bool = false
+@export_range(1, 120, 1) var status1_frames: int = 30
+@export_range(1, 180, 1) var status2_frames: int = 60
 @export_range(1, 300, 1) var knockdown_frames: int = 60
 @export_range(1, 20, 1) var hits_before_knockdown: int = 3
 @export_range(0, 300, 1) var hit_chain_reset_frames: int = 30

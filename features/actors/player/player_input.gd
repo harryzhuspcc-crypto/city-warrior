@@ -111,6 +111,24 @@ func queue_direction_tap(horizontal_direction: float) -> void:
 	_last_direction_tap_frame = _input_frame
 
 
+## Grab controls bypass the ordinary chord delay. A chord containing jump
+## is still a throw, never an elbow/back kick or an actual jump.
+func consume_grab_action() -> StringName:
+	var action: StringName = &""
+	if (
+		attack_buffer_frames_remaining > 0
+		or jump_buffer_frames_remaining > 0
+		or _elbow_buffer_frames_remaining > 0
+		or _back_kick_buffer_frames_remaining > 0
+	):
+		action = &"throw"
+	elif kick_buffer_frames_remaining > 0:
+		action = &"knee"
+	if action != &"":
+		clear_buffered_actions()
+	return action
+
+
 func consume_elbow_chord() -> bool:
 	if _elbow_buffer_frames_remaining <= 0:
 		return false

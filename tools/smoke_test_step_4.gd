@@ -178,7 +178,9 @@ func _test_feet_pivots(player: Player) -> String:
 		# The climb cycle plants each pose's foot on a different rung, so its
 		# floor contact slides sideways by design. It hangs from the head
 		# instead, which smoke_test_ladder.gd checks.
-		var pivots_on_feet := animation_name != CLIMB_ANIMATION
+		# Paired combat also uses fixed body anchors: centering the raised
+		# knee's foot would slide Billy away from the victim's head.
+		var pivots_on_feet := animation_name not in [CLIMB_ANIMATION, &"hair_grab", &"knee", &"hair_throw"]
 		for frame_index: int in range(frames.get_frame_count(animation_name)):
 			var texture := frames.get_frame_texture(animation_name, frame_index)
 			var image := texture.get_image()

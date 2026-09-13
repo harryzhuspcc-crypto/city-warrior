@@ -8,6 +8,9 @@ const APPROACH: StringName = &"approach"
 const RETREAT: StringName = &"retreat"
 const ATTACK: StringName = &"attack"
 const HITSTUN: StringName = &"hurt"
+const STATUS1: StringName = &"status1"
+const STATUS2: StringName = &"status2"
+const GRABBED: StringName = &"grabbed"
 const KNOCKDOWN: StringName = &"knockdown"
 const DEAD: StringName = &"death"
 
@@ -17,6 +20,9 @@ const VALID_STATES: Array[StringName] = [
 	RETREAT,
 	ATTACK,
 	HITSTUN,
+	STATUS1,
+	STATUS2,
+	GRABBED,
 	KNOCKDOWN,
 	DEAD,
 ]

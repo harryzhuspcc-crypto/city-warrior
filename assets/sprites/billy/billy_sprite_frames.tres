@@ -43,6 +43,16 @@
 [ext_resource type="Texture2D" uid="uid://bkk4c2qog5mwp" path="res://assets/sprites/billy/climb/climb_02.png" id="climb_2"]
 [ext_resource type="Texture2D" uid="uid://csqp42kc3ay5y" path="res://assets/sprites/billy/climb/climb_03.png" id="climb_3"]
 [ext_resource type="Texture2D" uid="uid://btumglgx4j2ks" path="res://assets/sprites/billy/climb/climb_04.png" id="climb_4"]
+[ext_resource type="Texture2D" uid="uid://bi8uvgkn1eiii" path="res://assets/sprites/billy/hair_grab/hair_grab_00.png" id="hair_grab_0"]
+[ext_resource type="Texture2D" uid="uid://dndea35x7su3x" path="res://assets/sprites/billy/hair_grab/hair_grab_01.png" id="hair_grab_1"]
+[ext_resource type="Texture2D" uid="uid://dh7rwm4u0pvdh" path="res://assets/sprites/billy/hair_grab/hair_grab_02.png" id="hair_grab_2"]
+[ext_resource type="Texture2D" uid="uid://bou77yvr3fp4f" path="res://assets/sprites/billy/hair_grab/hair_grab_03.png" id="hair_grab_3"]
+[ext_resource type="Texture2D" uid="uid://dacxp4ynmt3gp" path="res://assets/sprites/billy/hair_throw/hair_throw_00.png" id="hair_throw_0"]
+[ext_resource type="Texture2D" uid="uid://clldu8ujcji3p" path="res://assets/sprites/billy/hair_throw/hair_throw_01.png" id="hair_throw_1"]
+[ext_resource type="Texture2D" uid="uid://bfqf5pbj5r63v" path="res://assets/sprites/billy/hair_throw/hair_throw_02.png" id="hair_throw_2"]
+[ext_resource type="Texture2D" uid="uid://c2dfljrxryp1w" path="res://assets/sprites/billy/hair_throw/hair_throw_03.png" id="hair_throw_3"]
+[ext_resource type="Texture2D" uid="uid://dka4v0xjbqu5r" path="res://assets/sprites/billy/knee/knee_00.png" id="knee_0"]
+[ext_resource type="Texture2D" uid="uid://c1hiki7hgj3ew" path="res://assets/sprites/billy/knee/knee_01.png" id="knee_1"]
 [ext_resource type="Texture2D" uid="uid://22n1oh5ioma8" path="res://assets/sprites/billy/punch_cross/punch_cross_00.png" id="punch_cross_0"]
 [ext_resource type="Texture2D" uid="uid://dtiqrprxc1kuk" path="res://assets/sprites/billy/punch_cross/punch_cross_01.png" id="punch_cross_1"]
 [ext_resource type="Texture2D" uid="uid://cxmx6p07q84wo" path="res://assets/sprites/billy/punch_cross/punch_cross_02.png" id="punch_cross_2"]
@@ -125,6 +135,40 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": ExtResource("hair_grab_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("hair_grab_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("hair_grab_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("hair_grab_3")
+}],
+"loop": 0,
+"name": &"hair_grab",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("hair_throw_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("hair_throw_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("hair_throw_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("hair_throw_3")
+}],
+"loop": 0,
+"name": &"hair_throw",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": ExtResource("31_head_0")
 }, {
 "duration": 1.0,
@@ -200,6 +244,17 @@ animations = [{
 "loop": 0,
 "name": &"kick",
 "speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("knee_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("knee_1")
+}],
+"loop": 0,
+"name": &"knee",
+"speed": 8.0
 }, {
 "frames": [{
 "duration": 1.0,

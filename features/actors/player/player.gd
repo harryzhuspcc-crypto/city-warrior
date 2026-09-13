@@ -25,6 +25,7 @@ extends CharacterBody2D
 @export var state_machine: PlayerStateMachine
 @export var visuals: PlayerVisuals
 @export var audio_component: ActorAudioComponent
+@export var hair_grab_component: HairGrabComponent
 
 ## Billy's combo chains, in the order their steps are earned. Each step is a
 ## whole attack, so the chain decides which move a press starts and combat
@@ -53,6 +54,8 @@ func _ready() -> void:
 	kick_chain = [kick_attack_data, kick_attack_data, turn_kick_attack_data]
 	add_to_group(&"player")
 
+	hair_grab_component.grab_started.connect(_on_grab_started)
+	hair_grab_component.grab_finished.connect(_on_grab_finished)
 	health_component.died.connect(_on_died)
 	combat_component.attack_started.connect(_on_attack_started)
 	combat_component.hit_landed.connect(_on_hit_landed)
@@ -72,7 +75,7 @@ func _physics_process(delta: float) -> void:
 	# The chain's window is open between attacks, so it counts down in every
 	# state: a combo left hanging while Billy walks away expires on its own.
 	attack_chain_component.physics_tick()
-	if not hit_reaction_component.is_incapacitated():
+	if not hit_reaction_component.is_incapacitated() and not hair_grab_component.is_active():
 		combat_component.set_facing(input_component.movement_direction.x)
 
 	var reaction_ticked := false
@@ -103,6 +106,13 @@ func _physics_process(delta: float) -> void:
 	if not reaction_ticked:
 		# Nothing to react to, but the consecutive-hit chain still decays.
 		hit_reaction_component.physics_tick()
+
+	if hair_grab_component.is_active():
+		hair_grab_component.physics_tick()
+		jump_component.sync_ground_position()
+		_sync_visuals()
+		input_component.end_physics_tick()
+		return
 
 	if climb_component.is_elevated():
 		if _process_elevated(delta):
@@ -278,6 +288,7 @@ func _apply_attack_movement() -> void:
 
 func _apply_locomotion() -> void:
 	_walk(input_component.movement_direction)
+	hair_grab_component.try_contact(input_component.movement_direction)
 
 
 ## Walks in one direction and presents the matching locomotion state.
@@ -290,6 +301,9 @@ func _walk(direction: Vector2) -> void:
 
 
 func _sync_visuals() -> void:
+	if hair_grab_component.is_active():
+		hair_grab_component.sync_visuals()
+		return
 	var visual_direction := input_component.movement_direction
 	var attack_animation: StringName = &"punch"
 	var attack_frame: int = 0
@@ -354,9 +368,11 @@ func _validate_dependencies() -> void:
 	assert(state_machine != null, "Player requires PlayerStateMachine")
 	assert(visuals != null, "Player requires PlayerVisuals")
 	assert(audio_component != null, "Player requires ActorAudioComponent")
+	assert(hair_grab_component != null, "Player requires HairGrabComponent")
 
 
 func _on_attack_started() -> void:
+	hair_grab_component.release()
 	state_machine.transition_to(PlayerStateMachine.ATTACK)
 
 
@@ -402,6 +418,31 @@ func _on_hit_received(attack_data: AttackData, knockback: Vector2, _source: Node
 	combat_component.cancel_attack()
 
 
+func can_hair_grab() -> bool:
+	return (
+		is_inside_tree() and not is_queued_for_deletion()
+		and not is_dead() and not hit_reaction_component.is_incapacitated()
+		and not combat_component.is_attacking and not jump_component.is_airborne
+		and not climb_component.is_elevated() and not hair_grab_component.is_active()
+	)
+
+
+func _on_grab_started() -> void:
+	state_machine.transition_to(PlayerStateMachine.GRAB)
+
+
+func _on_grab_finished() -> void:
+	input_component.clear_buffered_actions()
+	if not is_dead() and not hit_reaction_component.is_incapacitated():
+		_transition_to_locomotion_state()
+		_sync_visuals()
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(hair_grab_component):
+		hair_grab_component.release()
+
+
 func is_dead() -> bool:
 	return health_component.is_dead()
 
@@ -420,6 +461,7 @@ func visual_elevation() -> float:
 
 
 func _on_reaction_started(reaction: StringName, _attack_data: AttackData) -> void:
+	hair_grab_component.release()
 	if reaction == HitReactionComponent.HITSTUN:
 		state_machine.transition_to(PlayerStateMachine.HITSTUN)
 	elif reaction == HitReactionComponent.KNOCKDOWN:
@@ -440,6 +482,7 @@ func _on_combat_facing_changed(facing: float) -> void:
 
 
 func _on_climb_started(_ladder: Ladder) -> void:
+	hair_grab_component.release()
 	state_machine.transition_to(PlayerStateMachine.CLIMB)
 
 
@@ -458,6 +501,7 @@ func _on_platform_entered(_platform: ClimbPlatform) -> void:
 
 
 func _on_died() -> void:
+	hair_grab_component.release()
 	combat_component.cancel_attack()
 	climb_component.release()
 	state_machine.transition_to(PlayerStateMachine.DEAD)

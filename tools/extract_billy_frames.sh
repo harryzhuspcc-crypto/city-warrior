@@ -135,4 +135,23 @@ extract_frame "knockdown/knockdown_03.png" "48x75+180+920"
 
 extract_frame "death/death_00.png" "54x75+123+920"
 
+# Hair-grab band (reference: four opening poses, then four backward-throw
+# poses). Explicit planted-body anchors avoid following the raised knee or
+# trailing boot. All crops share source floor y=576 -> canvas pivot (40,80).
+# Native initial facing is RIGHT; the throw turns left in the artwork itself.
+mkdir -p "$OUTPUT_ROOT/hair_grab" "$OUTPUT_ROOT/knee" "$OUTPUT_ROOT/hair_throw"
+extract_anchored_frame "hair_grab/hair_grab_00.png" "24x61+16+515" 26
+extract_anchored_frame "hair_grab/hair_grab_01.png" "31x61+48+515" 60
+extract_anchored_frame "hair_grab/hair_grab_02.png" "23x61+87+515" 96
+extract_anchored_frame "hair_grab/hair_grab_03.png" "24x61+118+515" 130
+
+# Independent copies of the knee-up and recovery poses, not texture aliases.
+extract_anchored_frame "knee/knee_00.png" "23x61+87+515" 96
+extract_anchored_frame "knee/knee_01.png" "24x61+118+515" 130
+
+extract_anchored_frame "hair_throw/hair_throw_00.png" "24x61+174+515" 186
+extract_anchored_frame "hair_throw/hair_throw_01.png" "23x61+206+515" 217
+extract_anchored_frame "hair_throw/hair_throw_02.png" "50x61+237+515" 259
+extract_anchored_frame "hair_throw/hair_throw_03.png" "32x61+295+515" 312
+
 echo "Generated Billy frames under: $OUTPUT_ROOT"

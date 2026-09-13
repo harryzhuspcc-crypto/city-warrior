@@ -20,6 +20,7 @@ signal defeated
 @export var visuals: EnemyVisuals
 @export var audio_component: ActorAudioComponent
 
+var grab_owner: HairGrabComponent
 var _runtime_stats: FighterStats
 var _has_reported_defeat: bool = false
 
@@ -63,6 +64,11 @@ func _physics_process(_delta: float) -> void:
 			queue_free()
 		return
 
+	if is_instance_valid(grab_owner):
+		# The pair's clock/motion is ticked exactly once, by Billy.
+		velocity = Vector2.ZERO
+		return
+
 	if hit_reaction_component.is_incapacitated():
 		hit_reaction_component.physics_tick()
 		_sync_visuals()
@@ -95,10 +101,17 @@ func _physics_process(_delta: float) -> void:
 
 
 func _acquire_target() -> void:
+	# A released grab may have lost Billy to removal/free rather than death.
+	# Clear both caches before passing a typed reference back into the AI.
+	if not is_instance_valid(target) or not target.is_inside_tree() or target.is_queued_for_deletion():
+		target = null
+		ai_component.set_target(null)
 	if ai_component.has_target():
 		return
 	if target == null and acquire_player_target:
-		target = get_tree().get_first_node_in_group(&"player") as Node2D
+		var candidate := get_tree().get_first_node_in_group(&"player") as Node2D
+		if is_instance_valid(candidate) and not candidate.is_queued_for_deletion():
+			target = candidate
 	if target != null:
 		ai_component.set_target(target)
 
@@ -132,6 +145,14 @@ func _sync_visuals() -> void:
 			combat_component.attack_facing * float(attack.animation_facing_multiplier)
 		)
 		return
+	if state in [EnemyStateMachine.STATUS1, EnemyStateMachine.STATUS2]:
+		visuals.sync_scheduled_pose(
+			state,
+			hit_reaction_component.reaction_frame,
+			_runtime_stats.hurt_pose_starts if state == EnemyStateMachine.STATUS1 else PackedInt32Array([0]),
+			ai_component.facing
+		)
+		return
 	if state == EnemyStateMachine.HITSTUN:
 		visuals.sync_scheduled_pose(
 			&"hurt",
@@ -163,6 +184,51 @@ func _sync_visuals() -> void:
 	visuals.sync_locomotion(is_moving, ai_component.movement_direction, ai_component.facing)
 
 
+func can_be_hair_grabbed() -> bool:
+	return (
+		is_inside_tree() and not is_queued_for_deletion()
+		and not health_component.is_dead() and not is_instance_valid(grab_owner)
+		and hit_reaction_component.current_reaction == HitReactionComponent.STATUS2
+		and not hurtbox.is_invulnerable
+	)
+
+
+func claim_hair_grab(owner_component: HairGrabComponent) -> void:
+	grab_owner = owner_component
+	hit_reaction_component.reset()
+	combat_component.cancel_attack()
+	# Preserve the pair's facing through throw landing and get-up, even if
+	# Billy approached a passive enemy from behind.
+	ai_component.facing = -owner_component.facing
+	combat_component.set_facing(ai_component.facing)
+	ai_component.notify_hit()
+	velocity = Vector2.ZERO
+	state_machine.transition_to(EnemyStateMachine.GRABBED)
+
+
+func release_hair_grab(owner_component: HairGrabComponent) -> void:
+	if grab_owner != owner_component:
+		return
+	grab_owner = null
+	if not health_component.is_dead() and not hit_reaction_component.is_incapacitated():
+		state_machine.transition_to(EnemyStateMachine.IDLE)
+		ai_component.notify_recovered()
+		_sync_visuals()
+
+
+func finish_hair_throw(attack: AttackData) -> void:
+	# The throw already showed flight/impact. Begin on the prone pose, then
+	# use the existing get-up timing rather than replaying a second fall.
+	hit_reaction_component.apply_hit(attack, Vector2.ZERO, false, true)
+	hit_reaction_component.reaction_frame = 16
+	_sync_visuals()
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(grab_owner):
+		grab_owner.release()
+
+
 func _validate_dependencies() -> void:
 	assert(fighter_stats != null, "Williams requires FighterStats")
 	assert(health_component != null, "Williams requires HealthComponent")
@@ -177,6 +243,8 @@ func _validate_dependencies() -> void:
 
 
 func _on_attack_started() -> void:
+	if is_instance_valid(grab_owner):
+		grab_owner.release()
 	state_machine.transition_to(EnemyStateMachine.ATTACK)
 
 
@@ -188,7 +256,11 @@ func _on_attack_finished(_completed_attack: AttackData, completed_naturally: boo
 		ai_component.notify_attack_finished()
 
 
-func _on_hit_received(attack_data: AttackData, knockback: Vector2, _source: Node2D) -> void:
+func _on_hit_received(attack_data: AttackData, knockback: Vector2, source: Node2D) -> void:
+	if is_instance_valid(grab_owner):
+		if grab_owner.is_paired_hit(source, attack_data) and not health_component.is_dead():
+			return
+		grab_owner.release()
 	# Start the reaction before cancelling so the interrupted attack finishes
 	# straight into HITSTUN with no intermediate locomotion state.
 	ai_component.notify_hit()
@@ -197,7 +269,11 @@ func _on_hit_received(attack_data: AttackData, knockback: Vector2, _source: Node
 
 
 func _on_reaction_started(reaction: StringName, _attack_data: AttackData) -> void:
-	if reaction == HitReactionComponent.HITSTUN:
+	if is_instance_valid(grab_owner):
+		grab_owner.release()
+	if reaction in [HitReactionComponent.STATUS1, HitReactionComponent.STATUS2]:
+		state_machine.transition_to(reaction)
+	elif reaction == HitReactionComponent.HITSTUN:
 		state_machine.transition_to(EnemyStateMachine.HITSTUN)
 	elif reaction == HitReactionComponent.KNOCKDOWN:
 		state_machine.transition_to(EnemyStateMachine.KNOCKDOWN)
@@ -214,6 +290,8 @@ func _on_recovered() -> void:
 
 
 func _on_died() -> void:
+	if is_instance_valid(grab_owner):
+		grab_owner.release()
 	combat_component.cancel_attack()
 	state_machine.transition_to(EnemyStateMachine.DEAD)
 	# A fallen enemy no longer blocks other actors but still respects walls.

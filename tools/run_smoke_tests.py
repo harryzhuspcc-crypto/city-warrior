@@ -22,6 +22,7 @@ TESTS = (
     "tools/smoke_test_combat_overlap.gd",
     "tools/smoke_test_special_moves.gd",
     "tools/smoke_test_williams.gd",
+    "tools/smoke_test_hair_grab.gd",
     "tools/smoke_test_encounter.gd",
     "tools/smoke_test_ladder.gd",
     "tools/smoke_test_combo.gd",

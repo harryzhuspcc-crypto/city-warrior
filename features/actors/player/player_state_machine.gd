@@ -10,6 +10,7 @@ const HITSTUN: StringName = &"hurt"
 const KNOCKDOWN: StringName = &"knockdown"
 const DEAD: StringName = &"death"
 const CLIMB: StringName = &"climb"
+const GRAB: StringName = &"grab"
 
 const VALID_STATES: Array[StringName] = [
 	IDLE,
@@ -19,6 +20,7 @@ const VALID_STATES: Array[StringName] = [
 	KNOCKDOWN,
 	DEAD,
 	CLIMB,
+	GRAB,
 ]
 
 var current_state: StringName = IDLE

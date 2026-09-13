@@ -215,7 +215,7 @@ func _test_billy_hit_reactions(player: Player, scene: PackedScene) -> String:
 		var enemy_x_before_hit := enemy.global_position.x
 		_punch_without_chaining(player)
 		if not await _wait_until(
-			func() -> bool: return enemy.state_machine.current_state == EnemyStateMachine.HITSTUN,
+			func() -> bool: return enemy.state_machine.current_state == (EnemyStateMachine.STATUS1 if hit_index == 0 else EnemyStateMachine.STATUS2),
 			player.input_component.chord_window_frames + punch.startup_frames + punch.active_frames + 2
 		):
 			return "Billy punch %d did not put Williams into HITSTUN" % (hit_index + 1)
@@ -226,17 +226,13 @@ func _test_billy_hit_reactions(player: Player, scene: PackedScene) -> String:
 				hit_index + 1,
 				expected_health,
 			]
-		if enemy.visuals.animated_sprite.animation != &"hurt":
-			return "Williams in HITSTUN must present the hurt animation"
+		var expected_pose: StringName = &"status1" if hit_index == 0 else &"status2"
+		if enemy.visuals.animated_sprite.animation != expected_pose:
+			return "Williams must present its active staged hit pose"
 		for _frame: int in range(4):
 			await physics_frame
 		if enemy.global_position.x <= enemy_x_before_hit:
 			return "Williams must be knocked back away from Billy"
-		if not await _wait_until(
-			func() -> bool: return enemy.state_machine.current_state == EnemyStateMachine.IDLE,
-			punch.hitstun_frames + 2
-		):
-			return "Williams did not recover to IDLE after hit %d" % (hit_index + 1)
 		if not await _wait_until(
 			func() -> bool: return not player.combat_component.is_attacking,
 			punch.total_frames()
@@ -470,7 +466,10 @@ func _test_standalone_scene(enemy: CharacterBody2D) -> String:
 
 
 func _test_feet_pivots(frames: SpriteFrames) -> String:
-	for animation_name: StringName in frames.get_animation_names():
+	# New paired poses use fixed authored body anchors, not a moving feet
+	# midpoint (raised knee/rotating victim). Their asset contract is tested
+	# in smoke_test_hair_grab.gd.
+	for animation_name: StringName in [&"idle", &"walk", &"walk_up", &"punch", &"hurt", &"knockdown", &"death"]:
 		for frame_index: int in range(frames.get_frame_count(animation_name)):
 			var image := frames.get_frame_texture(animation_name, frame_index).get_image()
 			if image.get_width() != 80 or image.get_height() != 80:
@@ -673,14 +672,14 @@ func _test_chain_reset_zero(player: Player, scene: PackedScene) -> String:
 			player.input_component.chord_window_frames + punch.startup_frames + punch.active_frames + 2
 		):
 			return "Chain-reset punch %d did not land" % (hit_index + 1)
-		if enemy.state_machine.current_state != EnemyStateMachine.HITSTUN:
-			return "With a zero reset window, hit %d must be hitstun, not %s" % [
+		if enemy.state_machine.current_state != EnemyStateMachine.STATUS1:
+			return "After recovery, hit %d must be status1, not %s" % [
 				hit_index + 1,
 				enemy.state_machine.current_state,
 			]
 		if not await _wait_until(
 			func() -> bool: return not enemy.hit_reaction_component.is_incapacitated(),
-			punch.hitstun_frames + 2
+			enemy.fighter_stats.status1_frames + 2
 		):
 			return "Chain-reset hit %d did not recover" % (hit_index + 1)
 		if enemy.hit_reaction_component.consecutive_hits != 0:
@@ -710,11 +709,11 @@ func _test_interrupted_attack_states(player: Player, scene: PackedScene) -> Stri
 		return "Interrupt setup: Williams did not attack"
 	_punch_without_chaining(player)
 	if not await _wait_until(
-		func() -> bool: return enemy.state_machine.current_state == EnemyStateMachine.HITSTUN,
+		func() -> bool: return enemy.state_machine.current_state == EnemyStateMachine.STATUS1,
 		enemy.combat_component.attack_data.startup_frames
 	):
 		return "Billy's punch must interrupt Williams during his startup"
-	var hitstun_index := transitions.find(EnemyStateMachine.HITSTUN)
+	var hitstun_index := transitions.find(EnemyStateMachine.STATUS1)
 	if hitstun_index < 1 or transitions[hitstun_index - 1] != EnemyStateMachine.ATTACK:
 		return "Interrupted attack must transition ATTACK → HITSTUN directly, got %s" % [transitions]
 	enemy.queue_free()

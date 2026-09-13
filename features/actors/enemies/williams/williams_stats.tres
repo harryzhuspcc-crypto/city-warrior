@@ -1,18 +1,13 @@
-[gd_resource type="Resource" script_class="FighterStats" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="FighterStats" format=3 uid="uid://c0na24yru2mef"]
 
-[ext_resource type="Script" path="res://features/actors/common/fighter_stats.gd" id="1_stats"]
+[ext_resource type="Script" uid="uid://b3wdo88hl4nv3" path="res://features/actors/common/fighter_stats.gd" id="1_stats"]
 
 [resource]
 script = ExtResource("1_stats")
 max_health = 50
 horizontal_speed = 60.0
 depth_speed = 40.0
-jump_takeoff_speed = 252.4
-jump_gravity = 600.0
-knockdown_frames = 60
-hits_before_knockdown = 3
-hit_chain_reset_frames = 30
-knockdown_knockback_scale = 1.5
+staged_hit_reactions = true
 hurt_pose_starts = PackedInt32Array(0, 6)
 knockdown_pose_starts = PackedInt32Array(0, 8, 16, 46)
 death_pose_starts = PackedInt32Array(0, 8, 16)

@@ -64,4 +64,30 @@ extract_frame "knockdown/knockdown_03.png" "34x47+366+661"
 
 extract_frame "death/death_00.png" "52x34+310+674"
 
+# Staged hits: keep legacy hurt and four-frame knockdown (including get-up)
+# unchanged. status1 is the two upright reactions; status2 is the crouched
+# reaction in the SAME y=643..705 band, not the similar pose one row above.
+mkdir -p "$OUTPUT_ROOT/status1" "$OUTPUT_ROOT/status2" \
+  "$OUTPUT_ROOT/grabbed" "$OUTPUT_ROOT/thrown"
+extract_anchored_frame "status1/status1_00.png" "27x63+8+643" 20
+extract_anchored_frame "status1/status1_01.png" "24x63+75+643" 86
+extract_anchored_frame "status2/status2_00.png" "23x63+139+643" 150
+
+# Bent-over hair-grab poses: fixed body anchors and shared source floor y=619
+# preserve head/hand contact instead of recentering each changing foot band.
+# Native facing RIGHT; mirror Williams when Billy grabs facing right.
+extract_anchored_frame "grabbed/grabbed_00.png" "38x56+71+563" 82
+extract_anchored_frame "grabbed/grabbed_01.png" "32x56+117+563" 128
+extract_anchored_frame "grabbed/grabbed_02.png" "30x56+157+563" 168
+
+# Full six-pose victim sequence from the throw reference, including bent
+# entry and prone landing. The tiny detached pixels at x=346..349 belong to
+# the rotation pose and are intentionally retained. No per-frame flipping.
+extract_anchored_frame "thrown/thrown_00.png" "38x56+227+563" 238
+extract_anchored_frame "thrown/thrown_01.png" "22x56+273+563" 284
+extract_anchored_frame "thrown/thrown_02.png" "47x56+303+563" 326
+extract_anchored_frame "thrown/thrown_03.png" "26x56+358+563" 371
+extract_anchored_frame "thrown/thrown_04.png" "47x56+392+563" 415
+extract_anchored_frame "thrown/thrown_05.png" "48x56+447+563" 471
+
 echo "Generated Williams frames under: $OUTPUT_ROOT"

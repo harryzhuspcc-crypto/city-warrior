@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://bg071w2nf612l"]
+
+[ext_resource type="Script" uid="uid://br868xte1le84" path="res://features/actors/common/attack_data.gd" id="1_attack"]
+
+[resource]
+script = ExtResource("1_attack")
+attack_name = &"hair_throw"
+animation_name = &"hair_throw"
+startup_frames = 8
+active_frames = 1
+recovery_frames = 31
+damage = 20
+knockback = Vector2(0, 0)
+knocks_down = true
+animation_frame_starts = PackedInt32Array(0, 8, 16, 24)

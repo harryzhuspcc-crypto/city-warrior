@@ -19,6 +19,18 @@
 [ext_resource type="Texture2D" uid="uid://c23u7wt3ybnqs" path="res://assets/sprites/williams/knockdown/knockdown_02.png" id="17_knockdown_02"]
 [ext_resource type="Texture2D" uid="uid://bu71frw3o5nwt" path="res://assets/sprites/williams/knockdown/knockdown_03.png" id="18_knockdown_03"]
 [ext_resource type="Texture2D" uid="uid://cm0jfqi3ytlyx" path="res://assets/sprites/williams/death/death_00.png" id="19_death_00"]
+[ext_resource type="Texture2D" uid="uid://cxnl3rgjrcaho" path="res://assets/sprites/williams/grabbed/grabbed_00.png" id="grabbed_0"]
+[ext_resource type="Texture2D" uid="uid://by2d6b13rcjrv" path="res://assets/sprites/williams/grabbed/grabbed_01.png" id="grabbed_1"]
+[ext_resource type="Texture2D" uid="uid://c6lkhn0s73hf6" path="res://assets/sprites/williams/grabbed/grabbed_02.png" id="grabbed_2"]
+[ext_resource type="Texture2D" uid="uid://cmvrnvi4iypj" path="res://assets/sprites/williams/status1/status1_00.png" id="status1_0"]
+[ext_resource type="Texture2D" uid="uid://bvxawgfthxu0a" path="res://assets/sprites/williams/status1/status1_01.png" id="status1_1"]
+[ext_resource type="Texture2D" uid="uid://ho1n8oh3hj5o" path="res://assets/sprites/williams/status2/status2_00.png" id="status2_0"]
+[ext_resource type="Texture2D" uid="uid://cud7hcphqophb" path="res://assets/sprites/williams/thrown/thrown_00.png" id="thrown_0"]
+[ext_resource type="Texture2D" uid="uid://dpb0l2eoi8etg" path="res://assets/sprites/williams/thrown/thrown_01.png" id="thrown_1"]
+[ext_resource type="Texture2D" uid="uid://bp6akt8irubxl" path="res://assets/sprites/williams/thrown/thrown_02.png" id="thrown_2"]
+[ext_resource type="Texture2D" uid="uid://dhqqjyx3k3kf8" path="res://assets/sprites/williams/thrown/thrown_03.png" id="thrown_3"]
+[ext_resource type="Texture2D" uid="uid://ci7grmpp7ewrs" path="res://assets/sprites/williams/thrown/thrown_04.png" id="thrown_4"]
+[ext_resource type="Texture2D" uid="uid://dr2iadkd2mer5" path="res://assets/sprites/williams/thrown/thrown_05.png" id="thrown_5"]
 
 [resource]
 animations = [{
@@ -35,6 +47,20 @@ animations = [{
 "loop": 0,
 "name": &"death",
 "speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("grabbed_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("grabbed_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("grabbed_2")
+}],
+"loop": 0,
+"name": &"grabbed",
+"speed": 8.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -84,7 +110,49 @@ animations = [{
 }],
 "loop": 0,
 "name": &"punch",
-"speed": 10.0
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("status1_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("status1_1")
+}],
+"loop": 0,
+"name": &"status1",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("status2_0")
+}],
+"loop": 0,
+"name": &"status2",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("thrown_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("thrown_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("thrown_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("thrown_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("thrown_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("thrown_5")
+}],
+"loop": 0,
+"name": &"thrown",
+"speed": 8.0
 }, {
 "frames": [{
 "duration": 1.0,

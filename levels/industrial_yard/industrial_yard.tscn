@@ -1,0 +1,231 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/prototype_alley/prototype_alley.gd" id="stage"]
+[ext_resource type="Texture2D" path="res://assets/stages/industrial_yard.png" id="background"]
+[ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="williams"]
+[ext_resource type="PackedScene" path="res://features/actors/enemies/linda/linda.tscn" id="linda"]
+[ext_resource type="PackedScene" path="res://features/actors/enemies/abobo/abobo.tscn" id="abobo"]
+[ext_resource type="Script" path="res://features/encounters/encounter_controller.gd" id="encounter"]
+[ext_resource type="Script" path="res://features/camera/belt_scroll_camera.gd" id="camera"]
+[ext_resource type="PackedScene" path="res://features/hud/hud.tscn" id="hud"]
+[ext_resource type="Script" path="res://features/audio/music_player.gd" id="music"]
+[ext_resource type="AudioStream" path="res://assets/audio/bgm/06_industrial_area.mp3" id="industrial_music"]
+[ext_resource type="AudioStream" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="boss_music"]
+[ext_resource type="AudioStream" path="res://assets/audio/bgm/04_mission_complete.mp3" id="clear_music"]
+[ext_resource type="Script" path="res://features/stage_flow/stage_transition.gd" id="transition"]
+
+[sub_resource type="RectangleShape2D" id="horizontal_boundary"]
+size = Vector2(1568, 16)
+
+[sub_resource type="RectangleShape2D" id="vertical_boundary"]
+size = Vector2(16, 288)
+
+[node name="IndustrialYard" type="Node2D" node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "boss_encounter", "stage_clear_music", "stage_transition")]
+script = ExtResource("stage")
+actors = NodePath("Actors")
+player = NodePath("Actors/Player")
+camera = NodePath("Camera2D")
+encounters = NodePath("Encounters")
+encounter_controller = NodePath("Encounters/LoadingBayEncounter")
+hud = NodePath("HUD")
+exit = NodePath("Exit")
+ladders = NodePath("Ladders")
+music = NodePath("Music")
+boss_encounter = NodePath("Encounters/BossEncounter")
+boss_music = ExtResource("boss_music")
+stage_clear_music = NodePath("StageClearMusic")
+stage_transition = NodePath("StageTransition")
+stage_name = "STAGE 2 - INDUSTRIAL YARD"
+stage_clear_message = "STAGE 2 CLEAR"
+
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(0, -56)
+texture = ExtResource("background")
+centered = false
+texture_filter = 1
+
+[node name="WorldGeometry" type="Node2D" parent="."]
+
+[node name="TopBoundary" type="StaticBody2D" parent="WorldGeometry"]
+position = Vector2(768, 144)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/TopBoundary"]
+shape = SubResource("horizontal_boundary")
+
+[node name="BottomBoundary" type="StaticBody2D" parent="WorldGeometry"]
+position = Vector2(768, 224)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/BottomBoundary"]
+shape = SubResource("horizontal_boundary")
+
+[node name="LeftBoundary" type="StaticBody2D" parent="WorldGeometry"]
+position = Vector2(-8, 80)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/LeftBoundary"]
+shape = SubResource("vertical_boundary")
+
+[node name="RightBoundary" type="StaticBody2D" parent="WorldGeometry"]
+position = Vector2(1544, 80)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/RightBoundary"]
+shape = SubResource("vertical_boundary")
+
+[node name="Ladders" type="Node2D" parent="."]
+
+[node name="Actors" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Player" parent="Actors" instance=ExtResource("player")]
+position = Vector2(56, 192)
+
+[node name="Encounters" type="Node2D" parent="."]
+
+[node name="GateEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points")]
+script = ExtResource("encounter")
+enemy_scene = ExtResource("williams")
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+lock_x = 160.0
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/GateEncounter"]
+
+[node name="GateRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
+position = Vector2(408, 184)
+
+[node name="GateLeft" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
+position = Vector2(20, 200)
+
+[node name="GateFarRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
+position = Vector2(424, 168)
+
+[node name="LoadingBayEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+script = ExtResource("encounter")
+enemy_scene = ExtResource("williams")
+enemy_sequence = Array[PackedScene]([ExtResource("williams"), ExtResource("linda"), ExtResource("williams")])
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+prerequisite = NodePath("../GateEncounter")
+lock_x = 640.0
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/LoadingBayEncounter"]
+
+[node name="BayRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
+position = Vector2(864, 184)
+
+[node name="BayLeft" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
+position = Vector2(416, 200)
+
+[node name="BayUpperRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
+position = Vector2(880, 168)
+
+[node name="WarehouseEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+script = ExtResource("encounter")
+enemy_scene = ExtResource("williams")
+enemy_sequence = Array[PackedScene]([ExtResource("williams"), ExtResource("linda"), ExtResource("williams"), ExtResource("linda")])
+enemy_count = 4
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+prerequisite = NodePath("../LoadingBayEncounter")
+lock_x = 1088.0
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/WarehouseEncounter"]
+
+[node name="WarehouseRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+position = Vector2(1312, 184)
+
+[node name="WarehouseLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+position = Vector2(864, 200)
+
+[node name="WarehouseUpperRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+position = Vector2(1328, 168)
+
+[node name="WarehouseUpperLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+position = Vector2(848, 176)
+
+[node name="BossEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+script = ExtResource("encounter")
+enemy_scene = ExtResource("abobo")
+enemy_count = 1
+actors = NodePath("../../Actors")
+player = NodePath("../../Actors/Player")
+camera = NodePath("../../Camera2D")
+spawn_points = NodePath("SpawnPoints")
+prerequisite = NodePath("../WarehouseEncounter")
+lock_x = 1400.0
+
+[node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter"]
+
+[node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints"]
+position = Vector2(1224, 184)
+
+[node name="Exit" type="Marker2D" parent="."]
+position = Vector2(1496, 184)
+
+[node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("target")]
+position = Vector2(192, 108)
+limit_left = 0
+limit_top = -56
+limit_right = 1536
+limit_bottom = 216
+script = ExtResource("camera")
+target = NodePath("../Actors/Player")
+
+[node name="ScreenEdges" type="Node2D" parent="Camera2D"]
+
+[node name="LeftEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges"]
+position = Vector2(-200, 0)
+collision_layer = 128
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/LeftEdge"]
+shape = SubResource("vertical_boundary")
+
+[node name="RightEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges"]
+position = Vector2(200, 0)
+collision_layer = 128
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/RightEdge"]
+shape = SubResource("vertical_boundary")
+
+[node name="HUD" parent="." instance=ExtResource("hud")]
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("industrial_music")
+bus = &"Music"
+volume_db = -6.0
+script = ExtResource("music")
+
+[node name="StageClearMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("clear_music")
+bus = &"Music"
+
+[node name="StageTransition" type="Node" parent="." node_paths=PackedStringArray("player", "hud", "fade_rect")]
+script = ExtResource("transition")
+player = NodePath("../Actors/Player")
+hud = NodePath("../HUD")
+fade_rect = NodePath("../TransitionOverlay/Fade")
+show_intro = true
+
+[node name="TransitionOverlay" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="Fade" type="ColorRect" parent="TransitionOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

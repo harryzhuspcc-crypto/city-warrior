@@ -13,10 +13,11 @@ border_color = Color(0.85098, 0.85098, 0.85098, 1)
 [sub_resource type="StyleBoxFlat" id="BarFill"]
 bg_color = Color(0.960784, 0.72549, 0.156863, 1)
 
-[node name="HUD" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "message_label")]
+[node name="HUD" type="CanvasLayer" node_paths=PackedStringArray("health_bar", "message_label", "stage_label")]
 script = ExtResource("1_hud")
 health_bar = NodePath("Root/PlayerPanel/HealthBar")
 message_label = NodePath("Root/Message")
+stage_label = NodePath("Root/StageName")
 
 [node name="Root" type="Control" parent="."]
 layout_mode = 3
@@ -66,3 +67,17 @@ grow_vertical = 2
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="StageName" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 5.0
+offset_right = -8.0
+offset_bottom = 18.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 2
+mouse_filter = 2

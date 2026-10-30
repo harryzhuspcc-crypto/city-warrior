@@ -11,6 +11,7 @@ signal playback_requested(player: AudioStreamPlayer2D)
 @export var ground_fall_player: AudioStreamPlayer2D
 @export var punch_hit_player: AudioStreamPlayer2D
 @export var kick_hit_player: AudioStreamPlayer2D
+@export var whip_hit_player: AudioStreamPlayer2D
 @export var action_voice_player: AudioStreamPlayer2D
 @export var death_voice_player: AudioStreamPlayer2D
 
@@ -26,6 +27,7 @@ func _ready() -> void:
 		combat_component.hit_landed.connect(_on_hit_landed)
 	_validate_player(punch_hit_player, &"SFX")
 	_validate_player(kick_hit_player, &"SFX")
+	_validate_player(whip_hit_player, &"SFX")
 	_validate_player(action_voice_player, &"Voice")
 	_validate_player(death_voice_player, &"Voice")
 
@@ -40,6 +42,8 @@ func play_attack_hit(attack_data: AttackData) -> void:
 			_play(punch_hit_player)
 		AttackData.ImpactSound.KICK:
 			_play(kick_hit_player)
+		AttackData.ImpactSound.WHIP:
+			_play(whip_hit_player)
 
 
 func play_attack_voice(attack_data: AttackData) -> void:

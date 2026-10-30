@@ -16,6 +16,9 @@ const CLEARED: StringName = &"cleared"
 ## Scene root must be a Node2D offering set_target(Node2D) and a defeated
 ## signal; the contract is checked once when the controller is ready.
 @export var enemy_scene: PackedScene
+## Optional exact mixed-wave roster. When set, supply one scene per enemy;
+## enemy_scene remains the default for ordinary homogeneous encounters.
+@export var enemy_sequence: Array[PackedScene] = []
 @export var actors: Node2D
 ## Optional is_dead() on the player stops reinforcements once nobody is
 ## left to fight, and optional is_elevated() holds the trigger while the
@@ -92,7 +95,8 @@ func _start() -> void:
 
 
 func _spawn_next() -> void:
-	var enemy := enemy_scene.instantiate() as Node2D
+	var scene := enemy_scene if enemy_sequence.is_empty() else enemy_sequence[spawned_count]
+	var enemy := scene.instantiate() as Node2D
 	var marker_index := spawned_count % spawn_points.get_child_count()
 	var marker := spawn_points.get_child(marker_index) as Node2D
 	assert(marker != null, "Spawn markers must be Node2D")
@@ -139,11 +143,19 @@ func _prerequisite_is_cleared() -> bool:
 
 
 func _validate_enemy_contract() -> void:
-	var probe: Node = enemy_scene.instantiate()
-	var valid := (
-		probe is Node2D
-		and probe.has_method(&"set_target")
-		and probe.has_signal(&"defeated")
+	assert(
+		enemy_sequence.is_empty() or enemy_sequence.size() == enemy_count,
+		"Mixed encounter roster must have exactly enemy_count scenes"
 	)
-	probe.free()
-	assert(valid, "Encounter enemies must be Node2D scenes with set_target() and a defeated signal")
+	var scenes: Array[PackedScene] = [enemy_scene]
+	scenes.append_array(enemy_sequence)
+	for scene: PackedScene in scenes:
+		assert(scene != null, "Encounter roster cannot contain empty scenes")
+		var probe: Node = scene.instantiate()
+		var valid := (
+			probe is Node2D
+			and probe.has_method(&"set_target")
+			and probe.has_signal(&"defeated")
+		)
+		probe.free()
+		assert(valid, "Encounter enemies must be Node2D scenes with set_target() and a defeated signal")

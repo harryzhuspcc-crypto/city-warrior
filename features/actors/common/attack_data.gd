@@ -5,6 +5,7 @@ enum ImpactSound {
 	NONE,
 	PUNCH,
 	KICK,
+	WHIP,
 }
 
 @export var attack_name: StringName = &"punch"

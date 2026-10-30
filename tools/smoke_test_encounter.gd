@@ -211,8 +211,9 @@ func _test_multiple_encounters(alley: PrototypeAlley) -> String:
 			func() -> bool: return encounter.spawned_count == encounter.enemy_count,
 			encounter.spawn_interval_frames * encounter.enemy_count + 5
 		)
-		if not all_spawned or encounter.alive_count != (1 if encounter_index == 3 else 3):
-			return "%s must spawn its exact wave (3/3/3/1)" % encounter.name
+		var expected_counts := [3, 3, 4, 1]
+		if not all_spawned or encounter.alive_count != expected_counts[encounter_index]:
+			return "%s must spawn its exact wave (3/3/4/1)" % encounter.name
 
 		alley.player.global_position.x = alley.exit.global_position.x
 		await physics_frame
@@ -224,13 +225,21 @@ func _test_multiple_encounters(alley: PrototypeAlley) -> String:
 				return "Future encounter activated despite an unresolved prerequisite"
 		# Return before clearing so the next trigger is a separate crossing.
 		alley.player.global_position.x = encounter.lock_x
+		var williams_count := 0
+		var linda_count := 0
 		for actor: Node in alley.actors.get_children():
 			if actor is EnemyFighter:
 				if encounter_index == 3 and not actor is Abobo:
 					return "Boss encounter must spawn Abobo"
-				if encounter_index < 3 and not actor is Williams:
-					return "Opening/middle/ending must preserve Williams"
+				if encounter_index < 2 and not actor is Williams:
+					return "Opening/middle must preserve Williams"
+				if actor is Williams:
+					williams_count += 1
+				if actor is Linda:
+					linda_count += 1
 				actor.queue_free()
+		if encounter_index == 2 and (williams_count != 3 or linda_count != 1):
+			return "Ending must preserve all three Williams and add exactly one Linda"
 		var cleared := await _wait_until(
 			func() -> bool: return encounter.state == EncounterController.CLEARED, 5
 		)

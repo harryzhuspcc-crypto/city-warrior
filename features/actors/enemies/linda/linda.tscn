@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="base"]
+[ext_resource type="Script" path="res://features/actors/enemies/linda/linda.gd" id="linda"]
+[ext_resource type="Resource" path="res://features/actors/enemies/linda/linda_stats.tres" id="stats"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/linda/linda_sprite_frames.tres" id="frames"]
+[ext_resource type="Resource" path="res://features/combat/linda_punch.tres" id="punch"]
+[ext_resource type="Resource" path="res://features/combat/linda_whip.tres" id="whip"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/voice_03_linda_dies.wav" id="death"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_19_whip.wav" id="whip_sfx"]
+
+[node name="Linda" instance=ExtResource("base")]
+script = ExtResource("linda")
+fighter_stats = ExtResource("stats")
+whip_attack = ExtResource("whip")
+
+[node name="AnimatedSprite2D" parent="Visuals" index="0"]
+sprite_frames = ExtResource("frames")
+animation = &"idle"
+frame = 0
+frame_progress = 0.0
+
+[node name="CombatComponent" parent="." index="6"]
+attack_data = ExtResource("punch")
+
+[node name="AIComponent" parent="." index="8"]
+attack_range_x = 44.0
+attack_cooldown_frames = 55
+reaction_delay_frames = 25
+
+[node name="DeathVoiceAudio" parent="." index="11"]
+stream = ExtResource("death")
+
+[node name="ActorAudioComponent" parent="." index="13" node_paths=PackedStringArray("whip_hit_player")]
+whip_hit_player = NodePath("../WhipHitAudio")
+
+[node name="WhipHitAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("whip_sfx")
+bus = &"SFX"

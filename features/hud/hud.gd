@@ -5,6 +5,7 @@ extends CanvasLayer
 
 @export var health_bar: ProgressBar
 @export var message_label: Label
+@export var stage_label: Label
 
 
 func _ready() -> void:
@@ -25,3 +26,8 @@ func show_message(text: String) -> void:
 
 func hide_message() -> void:
 	message_label.hide()
+
+
+func set_stage_name(text: String) -> void:
+	if stage_label != null:
+		stage_label.text = text

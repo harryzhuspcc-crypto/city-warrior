@@ -1,0 +1,494 @@
+{
+  "image": "linda_atlas.png",
+  "cell_size": [
+    80,
+    80
+  ],
+  "pivot": [
+    40,
+    80
+  ],
+  "facing": "right",
+  "animations": {
+    "idle": {
+      "fps": 4,
+      "loop": true,
+      "frames": [
+        {
+          "region": [
+            0,
+            0,
+            80,
+            80
+          ],
+          "source_crop": [
+            8,
+            349,
+            29,
+            61
+          ],
+          "source_pivot_x": 20
+        }
+      ]
+    },
+    "walk": {
+      "fps": 8,
+      "loop": true,
+      "frames": [
+        {
+          "region": [
+            0,
+            80,
+            80,
+            80
+          ],
+          "source_crop": [
+            77,
+            349,
+            29,
+            61
+          ],
+          "source_pivot_x": 89
+        },
+        {
+          "region": [
+            80,
+            80,
+            80,
+            80
+          ],
+          "source_crop": [
+            114,
+            349,
+            23,
+            61
+          ],
+          "source_pivot_x": 118
+        },
+        {
+          "region": [
+            160,
+            80,
+            80,
+            80
+          ],
+          "source_crop": [
+            145,
+            349,
+            24,
+            61
+          ],
+          "source_pivot_x": 154
+        },
+        {
+          "region": [
+            240,
+            80,
+            80,
+            80
+          ],
+          "source_crop": [
+            177,
+            350,
+            29,
+            60
+          ],
+          "source_pivot_x": 186
+        }
+      ]
+    },
+    "walk_up": {
+      "fps": 8,
+      "loop": true,
+      "frames": [
+        {
+          "region": [
+            0,
+            160,
+            80,
+            80
+          ],
+          "source_crop": [
+            246,
+            350,
+            27,
+            60
+          ],
+          "source_pivot_x": 254
+        },
+        {
+          "region": [
+            80,
+            160,
+            80,
+            80
+          ],
+          "source_crop": [
+            281,
+            350,
+            26,
+            60
+          ],
+          "source_pivot_x": 290
+        },
+        {
+          "region": [
+            160,
+            160,
+            80,
+            80
+          ],
+          "source_crop": [
+            315,
+            350,
+            24,
+            60
+          ],
+          "source_pivot_x": 322
+        },
+        {
+          "region": [
+            240,
+            160,
+            80,
+            80
+          ],
+          "source_crop": [
+            347,
+            349,
+            27,
+            61
+          ],
+          "source_pivot_x": 357
+        }
+      ]
+    },
+    "punch": {
+      "fps": 10,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            240,
+            80,
+            80
+          ],
+          "source_crop": [
+            8,
+            115,
+            28,
+            60
+          ],
+          "source_pivot_x": 20
+        },
+        {
+          "region": [
+            80,
+            240,
+            80,
+            80
+          ],
+          "source_crop": [
+            44,
+            114,
+            47,
+            61
+          ],
+          "source_pivot_x": 56
+        },
+        {
+          "region": [
+            160,
+            240,
+            80,
+            80
+          ],
+          "source_crop": [
+            99,
+            114,
+            29,
+            61
+          ],
+          "source_pivot_x": 111
+        }
+      ]
+    },
+    "whip": {
+      "fps": 10,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            320,
+            80,
+            80
+          ],
+          "source_crop": [
+            414,
+            349,
+            43,
+            61
+          ],
+          "source_pivot_x": 436
+        },
+        {
+          "region": [
+            80,
+            320,
+            80,
+            80
+          ],
+          "source_crop": [
+            465,
+            348,
+            39,
+            62
+          ],
+          "source_pivot_x": 487
+        },
+        {
+          "region": [
+            160,
+            320,
+            80,
+            80
+          ],
+          "source_crop": [
+            512,
+            351,
+            48,
+            59
+          ],
+          "source_pivot_x": 526
+        },
+        {
+          "region": [
+            240,
+            320,
+            80,
+            80
+          ],
+          "source_crop": [
+            568,
+            352,
+            29,
+            58
+          ],
+          "source_pivot_x": 582
+        }
+      ]
+    },
+    "hurt": {
+      "fps": 8,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            400,
+            80,
+            80
+          ],
+          "source_crop": [
+            8,
+            270,
+            25,
+            62
+          ],
+          "source_pivot_x": 23
+        },
+        {
+          "region": [
+            80,
+            400,
+            80,
+            80
+          ],
+          "source_crop": [
+            73,
+            269,
+            21,
+            63
+          ],
+          "source_pivot_x": 82
+        }
+      ]
+    },
+    "status1": {
+      "fps": 8,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            480,
+            80,
+            80
+          ],
+          "source_crop": [
+            8,
+            270,
+            25,
+            62
+          ],
+          "source_pivot_x": 23
+        },
+        {
+          "region": [
+            80,
+            480,
+            80,
+            80
+          ],
+          "source_crop": [
+            73,
+            269,
+            21,
+            63
+          ],
+          "source_pivot_x": 82
+        }
+      ]
+    },
+    "status2": {
+      "fps": 5,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            560,
+            80,
+            80
+          ],
+          "source_crop": [
+            430,
+            288,
+            30,
+            44
+          ],
+          "source_pivot_x": 445
+        }
+      ]
+    },
+    "knockdown": {
+      "fps": 8,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            640,
+            80,
+            80
+          ],
+          "source_crop": [
+            266,
+            288,
+            47,
+            44
+          ],
+          "source_pivot_x": 297
+        },
+        {
+          "region": [
+            80,
+            640,
+            80,
+            80
+          ],
+          "source_crop": [
+            321,
+            300,
+            47,
+            32
+          ],
+          "source_pivot_x": 336
+        },
+        {
+          "region": [
+            160,
+            640,
+            80,
+            80
+          ],
+          "source_crop": [
+            376,
+            305,
+            46,
+            27
+          ],
+          "source_pivot_x": 398
+        },
+        {
+          "region": [
+            240,
+            640,
+            80,
+            80
+          ],
+          "source_crop": [
+            430,
+            288,
+            30,
+            44
+          ],
+          "source_pivot_x": 445
+        }
+      ]
+    },
+    "death": {
+      "fps": 8,
+      "loop": false,
+      "frames": [
+        {
+          "region": [
+            0,
+            720,
+            80,
+            80
+          ],
+          "source_crop": [
+            266,
+            288,
+            47,
+            44
+          ],
+          "source_pivot_x": 297
+        },
+        {
+          "region": [
+            80,
+            720,
+            80,
+            80
+          ],
+          "source_crop": [
+            321,
+            300,
+            47,
+            32
+          ],
+          "source_pivot_x": 336
+        },
+        {
+          "region": [
+            160,
+            720,
+            80,
+            80
+          ],
+          "source_crop": [
+            376,
+            305,
+            46,
+            27
+          ],
+          "source_pivot_x": 398
+        }
+      ]
+    }
+  }
+}

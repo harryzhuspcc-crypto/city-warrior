@@ -286,7 +286,10 @@ func _run() -> void:
 	var encounters := alley.encounter_controllers()
 	_check(encounters.size() == 4, "Four sequential encounters")
 	for encounter: EncounterController in encounters.slice(0, 3):
-		_check(encounter.enemy_scene == WILLIAMS and encounter.enemy_count == 3, "Earlier three Williams waves preserved")
+		var is_ending := encounter == encounters[2]
+		_check(encounter.enemy_scene == WILLIAMS and encounter.enemy_count == (4 if is_ending else 3), "Williams waves preserved, with Linda added to ending")
+		if is_ending:
+			_check(encounter.enemy_sequence.size() == 4, "Ending mixed roster")
 		encounter.enabled = false
 	_check(encounters[3].enemy_scene == ABOBO and encounters[3].enemy_count == 1, "One boss Abobo")
 	alley.player.set_physics_process(false)

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="attack"]
+
+[resource]
+script = ExtResource("attack")
+attack_name = &"linda_whip"
+animation_name = &"whip"
+impact_sound = 3
+startup_frames = 18
+active_frames = 5
+recovery_frames = 21
+damage = 10
+hitstun_frames = 20
+knockback = Vector2(90, 0)
+hitbox_rect = Rect2(14, -46, 30, 34)
+animation_frame_starts = PackedInt32Array(0, 8, 18, 23)

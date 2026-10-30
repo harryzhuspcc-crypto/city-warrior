@@ -1,7 +1,8 @@
 class_name PrototypeAlley
 extends Node2D
-## Level orchestrator: wires the HUD to Billy's health, finishes the stage at
-## the exit once all encounters are cleared, and offers a restart after defeat.
+## Shared level orchestrator for the street and industrial yard. Wires Billy
+## to the HUD, gates the exit behind every fight, optionally starts a next-stage
+## cinematic, and offers a current-scene restart after defeat/terminal clear.
 
 signal stage_cleared
 signal player_defeated
@@ -37,6 +38,8 @@ const RESTART_ACTION: StringName = &"attack"
 ## Non-looping cue that replaces any active theme once Billy reaches the exit
 ## after clearing every encounter.
 @export var stage_clear_music: AudioStreamPlayer
+@export var stage_transition: StageTransition
+@export var stage_name: String = "STAGE 1 - STREETS"
 ## Frames Billy stays down before the game-over prompt appears.
 @export_range(0, 600, 1) var defeat_delay_frames: int = 90
 ## Frames the clear banner shows before the restart prompt joins it.
@@ -54,15 +57,20 @@ var _restart_armed: bool = false
 func _ready() -> void:
 	_validate_dependencies()
 	var health := player.health_component
+	hud.set_stage_name(stage_name)
 	hud.set_health(health.current_health, health.maximum_health())
 	health.health_changed.connect(hud.set_health)
 	health.died.connect(_on_player_died)
+	if stage_transition != null:
+		stage_transition.transition_failed.connect(_on_transition_failed)
 	for encounter: EncounterController in encounter_controllers():
 		encounter.encounter_started.connect(_on_encounter_started.bind(encounter))
 		encounter.encounter_cleared.connect(_on_encounter_cleared)
 
 
 func _physics_process(_delta: float) -> void:
+	if stage_transition != null and stage_transition.is_busy():
+		return
 	if state == PLAYING:
 		if (
 			_all_encounters_cleared()
@@ -131,12 +139,17 @@ func _set_ladders_climbable(climbable: bool) -> void:
 
 
 func _finish_stage() -> void:
+	if state != PLAYING:
+		return
 	state = CLEARED
 	music.stop()
 	stage_clear_music.play()
 	hud.show_message(stage_clear_message)
-	_prompt_message = "%s\n%s" % [stage_clear_message, restart_prompt]
-	_schedule_prompt(clear_prompt_delay_frames)
+	if stage_transition != null and stage_transition.has_next_stage():
+		stage_transition.begin_outro()
+	else:
+		_prompt_message = "%s\n%s" % [stage_clear_message, restart_prompt]
+		_schedule_prompt(clear_prompt_delay_frames)
 	stage_cleared.emit()
 
 
@@ -147,6 +160,11 @@ func _on_player_died() -> void:
 	_prompt_message = "%s\n%s" % [game_over_message, restart_prompt]
 	_schedule_prompt(defeat_delay_frames)
 	player_defeated.emit()
+
+
+func _on_transition_failed(_scene_path: String) -> void:
+	_prompt_message = "COULD NOT LOAD NEXT STAGE\n%s" % restart_prompt
+	_schedule_prompt(0)
 
 
 func _schedule_prompt(delay_frames: int) -> void:

@@ -23,9 +23,10 @@ combat are this project's implementation, not original arcade game code.
 ## Physical route
 
 - **WASD / arrows:** move across each actual platform top, including depth.
-- **K:** jump. Move up slightly before jumping onto the concrete block, then
-  jump the dark gap to the girder pile. Jump onto the lower red steps and
-  walk left up their higher tops; jump right to the warehouse loading roof.
+- **K:** jump right onto the concrete block from the ordinary starting lane,
+  then jump the dark gap to the girder pile. From around **(500,192)**,
+  jump right onto the warehouse roof. The red steps remain usable, but the
+  old mandatory backwards zigzag is no longer required.
 - The visible blue belt carries fighters right at **24 px/s**, only while
   supported on its top. It does not move airborne fighters. No drawn belt
   animation covers or replaces the source artwork.
@@ -38,8 +39,15 @@ combat are this project's implementation, not original arcade game code.
 - After Abobo, approach the **green door** at **(800,176)**. The HUD identifies
   this exit. Being far right, airborne, or on the awning does not clear it.
 
-Billy's Stage-2-only jump takeoff is **360 px/s** at the existing **600 px/s²**
-gravity, enough for the drawn platforms. Stage 1's stats are unchanged.
+Billy's Stage-2-only jump takeoff is **420 px/s** at the existing **600 px/s²**
+gravity (a discrete apex of about **143 px**, previously only **105 px**).
+This comfortably clears the **128 px** girder-to-roof rise. Stages 1 and 3
+keep their previous jump tuning; Stage 3 now owns a separate stats resource.
+Descending jumps can catch the concrete top within **32 px** of depth and
+the girder/roof within **16 px**. The actor is moved onto the real traced
+top, not left standing on invisible enlarged support. There is no horizontal
+snap, no filling of gaps, no magnetism onto the narrow tower tops, and no
+snapping through solid bodies. Ordinary walking still uses exact foot support.
 Sixteen-pixel step-ups are automatic; tall girder faces require a jump.
 A **K** pressed up to **8 frames** after walking off an edge still jumps from
 that edge, so a slightly late press at the red steps reaches the olive roof.
@@ -88,7 +96,8 @@ tall faces, resolves landings across gravity ticks, handles belt velocity and
 safe recovery, and filters crate collisions by floor. Ladder heights include
 the supporting roof. The camera follows elevation and the lower yard without
 bobbing with jumps. Existing height-aware combat and raised Abobo throws remain.
-These adapters are attached only in Stage 2; Stage 1 behavior is unchanged.
+Stages 2 and 3 share these adapters with separate layouts; Stage 1 behavior
+is unchanged.
 
 Regenerate the unmodified crop and its export-safe manifest (requires Pillow):
 
@@ -114,8 +123,9 @@ Spawns are on their real fight decks. Jumping over a trigger arms it on landing.
 All four fights and safely reaching the door are required to clear.
 
 `06_industrial_area.mp3` loops on Music at -6 dB; boss activation switches to
-`03_abobo_entrance.mp3`, and clear uses the mission-complete cue. Stage 2 is
-terminal: clear/defeat offer **J** to replay this stage, never request Stage 3.
+`03_abobo_entrance.mp3`, and clear uses the mission-complete cue. Clearing the
+green door starts the existing walk-off/fade into `levels/woods/woods.tscn`
+(Stage 3). Defeat still offers **J** to replay Stage 2.
 
 ## Verification
 
@@ -124,6 +134,7 @@ terminal: clear/defeat offer **J** to replay this stage, never request Stage 3.
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_stage_two.gd
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_terrain.gd
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_opening.gd
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_accessibility.gd
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_no_falls.gd
 python3 tools/run_smoke_tests.py
 git diff --check
@@ -142,3 +153,7 @@ The opening regression covers the previously unsupported concrete strip,
 diagonal edge walking, partial foot contact on girders, a buffered jump from
 the block's real edge, decorative street grates and the opening road boundary.
 It also verifies that stepping into the actual gap still starts a fall.
+
+The accessibility regression uses ordinary **Right + K**, from three initial
+depths and three roof takeoff positions. It checks concrete/girder landings,
+the direct forward roof route, no fall damage, and an unchanged real pit.

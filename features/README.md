@@ -20,17 +20,19 @@ Gameplay is organized by feature rather than file type:
   Boss activation replaces the stage BGM; all four clears plus exit replace it
   with mission-complete music. Placement/audio details: `actors/enemies/abobo/README.md`.
 - `hud` — stateless UI projections fed by the level through methods.
-- `stage_flow` — Billy's clear-banner/walk-off/fade transition from Stage 1 to
-  Stage 2, plus the next stage's title/fade-in and input restoration.
+- `stage_flow` — Billy's clear-banner/walk-off/fade transitions through Stages
+  1 → 2 → 3, plus each next stage's title/fade-in and input restoration.
 - `level_objects/ladder` — passive climbable ladder areas queried by the player's climb component.
 - `level_objects/ledge` — the elevated surfaces those ladders lead to: a height above the ground plane plus the span of stage x it covers.
 - `level_objects/terrain` — native-picture polygon collision tracing and an
-  optional Stage 2 actor motor: actual girder tops, slanted roof, original blue
-  conveyor, lower yard and fall recovery. No replacement artwork or overlays.
+  optional Stage 2/3 actor motor: girder tops, slanted roofs, original blue
+  conveyor, woods, broken bridge, cliff decks and fall recovery. Each stage
+  supplies its own layout resource. No replacement artwork or overlays.
 
 Child components emit past-tense signals upward. Actor roots issue commands to components through typed methods.
 
-Playable levels: `levels/prototype_alley/prototype_alley.tscn` (Stage 1) and
-`levels/industrial_yard/industrial_yard.tscn` (Stage 2). Stage 1 now advances
-automatically after its exit; Stage 2 currently ends with a replay prompt.
-Map, encounter and transition details: `levels/industrial_yard/README.md`.
+Playable levels: `levels/prototype_alley/prototype_alley.tscn` (Stage 1),
+`levels/industrial_yard/industrial_yard.tscn` (Stage 2), and
+`levels/woods/woods.tscn` (Stage 3). Stages 1 and 2 advance after their exits;
+Stage 3 ends with a replay prompt. Map details: `levels/industrial_yard/README.md`
+and `levels/woods/README.md`.

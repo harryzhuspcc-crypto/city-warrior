@@ -61,7 +61,7 @@ func _test_intro_and_walkable_map() -> void:
 	_check(yard.player.is_physics_processing() and yard.player.input_component.is_processing_unhandled_input(), "Intro restores input/physics")
 	_check(yard.player.collision_layer == 2 and yard.player.collision_mask & 129 == 129, "Intro restores world/screen collision")
 	_check(not yard.player.hurtbox.is_invulnerable, "Intro restores vulnerability")
-	_check(not flow.has_next_stage() and not flow.begin_outro(), "Stage two is a terminal stage for now")
+	_check(flow.has_next_stage() and flow.next_stage_path == "res://levels/woods/woods.tscn", "Stage two connects to the woods")
 
 	# Real controls, stairs, conveyors and required jumps. Only combat is
 	# bypassed; physics, camera, terrain support and encounter gating are real.
@@ -90,10 +90,7 @@ func _test_intro_and_walkable_map() -> void:
 			Input.action_press(&"move_down")
 			await _wait_until(func() -> bool: return yard.player.position.y >= 192, 50)
 			Input.action_release(&"move_down")
-			await _walk_to_x(yard, 484)
-			await _jump_to_surface(yard, 136)
 			await _walk_to_x(yard, 500)
-			_check(is_equal_approx(yard.player.jump_component.ground_elevation, 168.0), "Actual stair tops step up towards the tower")
 			await _jump_to_surface(yard, 208)
 		for tick: int in range(600):
 			if encounter.state == EncounterController.ACTIVE:
@@ -133,11 +130,11 @@ func _test_intro_and_walkable_map() -> void:
 	_check(yard.state == PrototypeAlley.CLEARED, "Stage two exit is physically reachable")
 	_check(yard.player.health_component.current_health == 100, "Original plinth/girder/deck route is crossable without fall damage")
 	_check(starts.size() == 4 and starts == clears, "Each yard wave starts/clears once in order")
-	_check(yard.hud.message_label.text == "STAGE 2 CLEAR", "Terminal stage-two clear banner")
+	_check(yard.hud.message_label.text == "STAGE 2 CLEAR", "Stage-two clear banner")
 	_check(not yard.music.playing and yard.stage_clear_music.playing, "Yard clear replaces gameplay music")
 	for tick: int in range(yard.clear_prompt_delay_frames + 1):
 		await physics_frame
-	_check(yard.hud.message_label.text.contains("PRESS J TO RESTART"), "Stage two offers replay, not an invalid stage three")
+	_check(yard.stage_transition.phase == StageTransition.WALK, "Stage two walks off towards Stage 3 instead of offering terminal replay")
 	await AudioSettle.free_level(self, yard)
 
 

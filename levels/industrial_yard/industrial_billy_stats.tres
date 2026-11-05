@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("stats")
-jump_takeoff_speed = 360.0
+jump_takeoff_speed = 420.0
 hurt_pose_starts = null
 knockdown_pose_starts = null
 death_pose_starts = null

@@ -3,23 +3,28 @@ extends Node2D
 ## Native-picture collision tracing. Polygons use source-picture coordinates;
 ## actor y is depth and elevation is projected separately. No map drawing.
 
-const LAYOUT := preload("res://assets/stages/industrial_layout.tres")
+@export var layout_resource: Resource = preload("res://assets/stages/industrial_layout.tres")
 const SUPPORT_LAYER := 1024
 const OBSTACLE_LAYER := 512
 const ROOF_WALL_LAYER := 4096
 var surfaces: Array = []
 var image_offset_y: float = -264.0
-## Only the opening gap is a real pit; past it every edge holds actors in.
+## Legacy single pit extent for Stage 2; layouts may instead list fall_zones.
 var fall_zone_max_x: float = INF
+## Optional depth correction on jump landings, never an expanded floor polygon.
+var landing_depth_assist: float = 0.0
+var _fall_zones: Array = []
 var _polygons: Array[PackedVector2Array] = []
 var _bounds: Array[Rect2] = []
 
 
 func _ready() -> void:
-	var layout: Dictionary = LAYOUT.get_meta(&"layout")
+	var layout: Dictionary = layout_resource.get_meta(&"layout")
 	surfaces = layout["surfaces"]
 	image_offset_y = float(layout["image_offset_y"])
 	fall_zone_max_x = float(layout.get("fall_zone_max_x", INF))
+	landing_depth_assist = float(layout.get("landing_depth_assist", 0.0))
+	_fall_zones = layout.get("fall_zones", [])
 	for surface: Dictionary in surfaces:
 		var polygon := _polygon(surface)
 		_polygons.append(polygon)
@@ -58,6 +63,11 @@ func floor_at(x: float, ground_y: float = 192.0, ceiling: float = INF, footprint
 
 
 func allows_fall_at(x: float) -> bool:
+	if not _fall_zones.is_empty():
+		for zone: Array in _fall_zones:
+			if x >= float(zone[0]) and x <= float(zone[1]):
+				return true
+		return false
 	return x <= fall_zone_max_x
 
 

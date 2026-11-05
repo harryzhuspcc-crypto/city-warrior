@@ -77,7 +77,7 @@ func resolve_velocity(velocity: Vector2) -> Vector2:
 	if not is_falling() and not body.get(&"health_component").is_dead():
 		result.x += terrain.belt_at(body.global_position.x, body.global_position.y, elevation() + 0.5, _footprint)
 	# Sweep the desired depth/x interval so special moves cannot tunnel up a
-	# platform face. Gaps in the opening fall zone don't block motion there:
+	# platform face. Gaps in configured fall zones don't block motion there:
 	# unsupported actors really fall. Everywhere else edges hold actors in.
 	var delta := body.get_physics_process_delta_time()
 	if delta <= 0.0:
@@ -95,7 +95,7 @@ func resolve_velocity(velocity: Vector2) -> Vector2:
 		if floor == null and higher != null and float(higher) > elevation() + clearance:
 			break
 		# Back edges meet the pictured wall, not an invisible fall behind it.
-		# Past the opening every other edge does too. Preserve sideways or
+		# Outside fall zones every other edge does too. Preserve sideways or
 		# depth movement along such an edge: clipping both axes makes
 		# diagonal movement stick to the scenery.
 		if _edge_blocks(next, step.y < 0.0):
@@ -113,9 +113,13 @@ func resolve_velocity(velocity: Vector2) -> Vector2:
 func _edge_blocks(point: Vector2, toward_back: bool) -> bool:
 	if is_falling():
 		# Airborne actors may cross gaps only where a surface lies below.
-		return not terrain.allows_fall_at(point.x) and _edge_floor_at(point) == null
+		# The rear wall is never an assisted landing corridor: allowing Up
+		# behind it can strand a descending actor behind the roof's crates.
+		if toward_back:
+			return not terrain.allows_fall_at(point.x) and _edge_floor_at(point) == null
+		return not terrain.allows_fall_at(point.x) and not _has_landing_near(point)
 	var floor: Variant = _edge_floor_at(point, elevation() + STEP_HEIGHT)
-	if toward_back and floor == null:
+	if toward_back and (floor == null or float(floor) < elevation() - STEP_HEIGHT):
 		return true
 	if terrain.allows_fall_at(point.x):
 		return false
@@ -126,6 +130,40 @@ func _edge_blocks(point: Vector2, toward_back: bool) -> bool:
 # an edge never loses its support or landing to rounding once reached.
 func _edge_floor_at(point: Vector2, ceiling: float = INF) -> Variant:
 	return terrain.floor_at(point.x, point.y, ceiling, _footprint.grow(-1.0))
+
+
+func _has_landing_near(point: Vector2) -> bool:
+	if _edge_floor_at(point) != null:
+		return true
+	for distance: int in range(2, int(terrain.landing_depth_assist) + 1, 2):
+		for direction: float in [-1.0, 1.0]:
+			var candidate := terrain.surface_at(point.x, point.y + float(distance) * direction, INF, _footprint.grow(-1.0))
+			if float(candidate.get("landing_depth_assist", 0.0)) >= float(distance):
+				return true
+	return false
+
+
+func _assisted_landing(ceiling: float) -> void:
+	# A belt-scroller's depth is hard to judge from a narrow slanted top.
+	# Catch only an actual descending height crossing, at the same x, then
+	# move the feet ONTO that top. Strict polygons/gaps remain unchanged.
+	if not jump.is_airborne or jump.jump_velocity > 0.0:
+		return
+	for distance: int in range(2, int(terrain.landing_depth_assist) + 1, 2):
+		for direction: float in [-1.0, 1.0]:
+			var motion := Vector2(0, float(distance) * direction)
+			var point := body.global_position + motion
+			var surface := terrain.surface_at(point.x, point.y, ceiling, _footprint)
+			if surface.is_empty() or float(surface.get("landing_depth_assist", 0.0)) < float(distance):
+				continue
+			var floor := float(surface["height"])
+			if floor < elevation() or body.test_move(body.global_transform, motion):
+				continue
+			body.global_position = point
+			jump.ground_elevation = float(floor)
+			_ledge_grace_frames = 0
+			jump.land_immediately()
+			return
 
 
 func after_move() -> void:
@@ -178,6 +216,8 @@ func _update_player_support() -> void:
 		_ledge_grace_frames = 0
 		jump.ground_elevation = float(floor)
 		jump.land_immediately()
+	elif jump.is_airborne:
+		_assisted_landing(elevation() + landing_sweep + 0.5)
 
 
 func _update_enemy_support() -> void:

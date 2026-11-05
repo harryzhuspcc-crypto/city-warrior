@@ -27,6 +27,9 @@ TESTS = (
     "tools/smoke_test_hair_grab.gd",
     "tools/smoke_test_encounter.gd",
     "tools/smoke_test_stage_two.gd",
+    "tools/smoke_test_industrial_terrain.gd",
+    "tools/smoke_test_industrial_opening.gd",
+    "tools/smoke_test_industrial_no_falls.gd",
     "tools/smoke_test_ladder.gd",
     "tools/smoke_test_combo.gd",
     "tools/smoke_test_music.gd",
@@ -37,6 +40,8 @@ TESTS = (
 # 135 px at Billy's own 48 px/s several times over, which is most of a minute
 # on its own; the rest finish in a few seconds each.
 SUITE_TIMEOUT_SECONDS = 120
+# The no-falls sweep walks and jumps off ~110 Stage 2 edges at real speed.
+SUITE_TIMEOUT_OVERRIDES = {"tools/smoke_test_industrial_no_falls.gd": 300}
 DIAGNOSTIC_MARKERS = (
     "ERROR:",
     "WARNING:",
@@ -78,11 +83,11 @@ def main() -> int:
                 capture_output=True,
                 check=False,
                 text=True,
-                timeout=SUITE_TIMEOUT_SECONDS,
+                timeout=SUITE_TIMEOUT_OVERRIDES.get(test_path, SUITE_TIMEOUT_SECONDS),
             )
         except subprocess.TimeoutExpired:
             print(
-                f"FAIL {test_path}: timed out after {SUITE_TIMEOUT_SECONDS} seconds",
+                f"FAIL {test_path}: timed out after {SUITE_TIMEOUT_OVERRIDES.get(test_path, SUITE_TIMEOUT_SECONDS)} seconds",
                 file=sys.stderr,
             )
             failed = True

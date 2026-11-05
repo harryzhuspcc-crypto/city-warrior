@@ -57,6 +57,8 @@ func try_start(candidate: Player) -> bool:
 	):
 		return false
 	var gap := candidate.global_position - actor.global_position
+	if absf(candidate.combat_elevation() - actor.combat_elevation()) > 16.0:
+		return false
 	if absf(gap.x) > reach or absf(gap.y) > depth_tolerance:
 		return false
 	facing = signf(gap.x) if not is_zero_approx(gap.x) else actor.ai_component.facing

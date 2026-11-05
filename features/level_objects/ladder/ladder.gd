@@ -16,6 +16,9 @@ extends Area2D
 ## Levels close their ladders during an encounter so the fight cannot be
 ## sat out on an invulnerable rung.
 @export var is_climbable: bool = true
+## Optional floor at the base in terrain-aware stages. Prevents grabbing the
+## bottom of a ladder while already standing on the roof above it.
+@export var base_elevation: float = -1.0
 
 
 func _ready() -> void:

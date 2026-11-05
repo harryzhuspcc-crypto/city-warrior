@@ -30,6 +30,8 @@ var platform: ClimbPlatform
 var _climb_speed: float = 0.0
 var _pose_pixels: float = 8.0
 var _grounded_visual_position: Vector2 = Vector2.ZERO
+## Optional terrain floor beneath a ladder; zero preserves Stage 1.
+var ground_elevation: float = 0.0
 
 
 func _ready() -> void:
@@ -63,6 +65,19 @@ func try_grab() -> bool:
 	_apply_visual_height()
 	climb_started.emit(found)
 	return true
+
+
+## Enter a ladder from a terrain-supported roof rather than an abstract ledge.
+func start_descent(next_ladder: Ladder) -> void:
+	ladder = next_ladder
+	platform = null
+	is_on_platform = false
+	is_climbing = true
+	climb_height = next_ladder.top_height()
+	body.global_position = next_ladder.global_position
+	_leave_the_ground_plane()
+	_apply_visual_height()
+	climb_started.emit(next_ladder)
 
 
 ## Climbs by the vertical input (negative y is up) at the configured speed.
@@ -203,9 +218,12 @@ func _ladder_at_feet() -> Ladder:
 	for result: Dictionary in space.intersect_point(query, 8):
 		var candidate := result.get("collider") as Ladder
 		if candidate != null and candidate.is_climbable:
+			if not is_elevated() and candidate.base_elevation >= 0.0 and body.has_method(&"combat_elevation"):
+				if absf(float(body.call(&"combat_elevation")) - candidate.base_elevation) > 1.0:
+					continue
 			return candidate
 	return null
 
 
 func _apply_visual_height() -> void:
-	visual_target.position = _grounded_visual_position + Vector2.UP * climb_height
+	visual_target.position = _grounded_visual_position + Vector2.UP * (ground_elevation + climb_height)

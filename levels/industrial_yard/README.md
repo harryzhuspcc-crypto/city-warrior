@@ -1,96 +1,144 @@
-# Stage 2 — Industrial Yard
+# Stage 2 — Original Industrial Yard Picture
 
-Run `res://levels/industrial_yard/industrial_yard.tscn` directly, or finish Stage
-1 normally. The playable character is **Billy Lee**, as shown by the HUD.
+Run `res://levels/industrial_yard/industrial_yard.tscn` directly, or finish
+Stage 1. Billy still walks off Stage 1, fades out, and enters Stage 2 at
+**(56,192)** with full health and a fresh camera/input state.
 
-## Getting here
+## Artwork is unchanged
 
-Stage 1 still requires all its fights, including Linda and Abobo, and reaching
-the exit at x=1192. It then shows its clear banner for 60 physics frames, walks
-Billy right for 78 frames at 90 px/s, and fades to black over 24 frames. He
-actually walks past the right screen/world edge rather than sticking against
-its collision wall. No keypress is required and held attack/jump/direction
-inputs cannot interrupt the cinematic. Stage 1's old post-clear restart prompt
-is replaced by this automatic progression; defeat still offers restart.
+`assets/stages/industrial_yard.png` is a **1056×576**, native-resolution,
+RGBA-exact crop of `assets/source_sheets/new-york-20xx.png` at **(1232,0)**.
+It is displayed at **(0,-264)** with nearest filtering and no scaling.
+This includes the lower yard and the entire front ladder, not just the roof.
 
-The next scene fades in over 24 frames and holds a **STAGE 2 / INDUSTRIAL YARD**
-title for 45 more. Billy enters at **(56,192)** with full health, normal body
-collisions and fresh input/combat state. The camera starts at **(192,108)**.
-The top-right HUD permanently identifies the current stage. The old level and
-its actors/audio are freed; no global campaign singleton retains them.
+There are **no** rearranged/tiled panels, raised replacement streets, newly
+painted shafts, added signs, or conveyor overlays. The original transparent
+regions remain transparent. The one small blue conveyor stays where it was
+drawn. Collision metadata is separate and never paints into the picture.
+The third-party source remains prototype-only, not cleared for distribution.
 
-## Map
+The **image/layout** matches the source; collision heights, jump tuning and
+combat are this project's implementation, not original arcade game code.
 
-The new native-pixel map is **1536×272** (four 384-pixel screens wide), drawn at
-**(0,-56)**. Its continuous concrete apron matches the existing ground band:
-world y=152..216. World walls and moving screen-edge walls use the existing
-collision rules. Industrial gates, machinery, pipes and warehouse panels come
-from the supplied `assets/source_sheets/new-york-20xx.png`.
+## Physical route
 
-This is a newly composed **flat prototype layout**, not an arcade-exact
-reconstruction of the source map's stairs, pits, rooftop or river topology.
-Background ladders/stairs are decorative here; no invisible climbable objects
-or mismatched pit collisions are added. The original Stage 1 art is unchanged.
-The source-sheet prototype-only licensing warning still applies.
+- **WASD / arrows:** move across each actual platform top, including depth.
+- **K:** jump. Move up slightly before jumping onto the concrete block, then
+  jump the dark gap to the girder pile. Jump onto the lower red steps and
+  walk left up their higher tops; jump right to the warehouse loading roof.
+- The visible blue belt carries fighters right at **24 px/s**, only while
+  supported on its top. It does not move airborne fighters. No drawn belt
+  animation covers or replaces the source artwork.
+- **Up** at the rear ladder climbs to the original upper awning; **Down**
+  returns. This ladder closes during fights to prevent camping out of reach.
+- **Down** at the front roof ladder descends to the lower yard; **Up** climbs
+  back onto the fighting roof. This essential connection stays usable during
+  fights. Reaching its top hands control back to normal combat immediately.
+- **J/L:** existing punch/kick; airborne attacks remain available.
+- After Abobo, approach the **green door** at **(800,176)**. The HUD identifies
+  this exit. Being far right, airborne, or on the awning does not clear it.
 
-Regenerate the map (requires Pillow):
+Billy's Stage-2-only jump takeoff is **360 px/s** at the existing **600 px/s²**
+gravity, enough for the drawn platforms. Stage 1's stats are unchanged.
+Sixteen-pixel step-ups are automatic; tall girder faces require a jump.
+A **K** pressed up to **8 frames** after walking off an edge still jumps from
+that edge, so a slightly late press at the red steps reaches the olive roof.
+Unsupported feet fall. A missed jump costs **20 HP**, recovers to nearby
+supported ground and grants **45 frames** of protection; lethal falls use
+the existing defeat/replay flow. The lower yard is supported ground, not a pit.
+How far up (back) fighters can walk follows the drawn floor, so it varies:
+the lower yard stops at the warehouse wall, but its narrow side alley
+(x≈994–1020, between the wall and the brick pillar) runs about **80 px**
+further back. The opening street also reaches a little higher beside the lamp.
+Only the **opening gap** (picture x ≤ **420**, `fall_zone_max_x` in the layout)
+is a real pit. Past it, every red girder, step, tower and roof edge holds
+fighters in like a wall: walking only steps down 18 px or less, and jumps
+can't carry anyone over empty space. Bigger drops need a jump onto a lower
+top, or the ladders. The pit recovery remains as a safety net.
+
+## Collision implementation
+
+`assets/stages/industrial_layout.json` traces **13 actual surface polygons**
+in native picture coordinates: ground, concrete block, girder pile, four lower
+steps, two tower tops, loading roof, blue conveyor, awning, and lower yard.
+It also traces crate footprints. No vertical girder faces are treated as
+walkable surfaces.
+
+`BeltTerrainMap` builds real **Area2D/CollisionPolygon2D** support shapes on
+layer 11 and **StaticBody2D/CollisionPolygon2D** crate obstacles on layer 10.
+The solid rear factory wall uses layer 13, including during rooftop jumps.
+Support selection tests both x and depth against these same traced outlines;
+it is no longer an x-only height strip. Back edges stop movement into walls;
+front/side edges and the slanted roof outline permit genuine falls.
+
+Opening-route correction: the concrete block's right outline reaches **x=368**
+at its front corner (the former trace omitted a 16 px strip). The road and the
+rubble in front of the block are ground right up to the block's base, and its
+top face starts at **x=272** like the art, so jumping from against its front lands
+on top instead of dropping through a sliver of pit. Actor support
+uses the actual **BodyCollision** footprint, not just the root point: positive
+foot/platform overlap keeps Billy standing at seams and slanted edges. Point
+queries remain strict for authoring and safe-checkpoint margins. Cached polygon
+bounds reject distant platforms before overlap tests; real gaps stay empty.
+The opening road's lower crop edge has a solid world-boundary polygon so
+walking past its grates cannot send Billy into the blank area below the map.
+
+`BeltTerrainMotor` separates actor depth from elevation, sweeps movement against
+tall faces, resolves landings across gravity ticks, handles belt velocity and
+safe recovery, and filters crate collisions by floor. Ladder heights include
+the supporting roof. The camera follows elevation and the lower yard without
+bobbing with jumps. Existing height-aware combat and raised Abobo throws remain.
+These adapters are attached only in Stage 2; Stage 1 behavior is unchanged.
+
+Regenerate the unmodified crop and its export-safe manifest (requires Pillow):
 
 ```sh
-python3 -m venv /tmp/stage-map
-/tmp/stage-map/bin/pip install Pillow
-/tmp/stage-map/bin/python tools/build_stage_two_map.py
+python3 tools/build_stage_two_map.py
 ```
 
-The generator preserves native pixels, tiles a clear concrete apron, and
-avoids the raw composite's white/green empty regions. Its output is
-`assets/stages/industrial_yard.png`.
+The generator writes `industrial_yard.png` and `industrial_layout.tres`.
+The `.tres` dependency ensures terrain metadata survives selected-resource
+exports; JSON is only the authoring source.
 
-## Encounters
+## Encounters and progression
 
-| Arena | Trigger x | Enemies |
-| --- | ---: | --- |
-| Gate | 160 | 3 Williams |
-| Loading bay | 640 | Williams, Linda, Williams |
-| Warehouse | 1088 | Williams, Linda, Williams, Linda |
-| Boss | 1400 | 1 Abobo |
+| Arena | Trigger x | Enemies | Spawn floor |
+| --- | ---: | --- | ---: |
+| Gate | 160 | 3 Williams | 0 |
+| Girders | 464 | Williams, Linda, Williams | 80 |
+| Warehouse | 720 | Williams, Linda, Williams, Linda | 208 |
+| Boss | 880 | 1 Abobo at (704,208) | 208 |
 
-Encounters are sequential prerequisites with the existing 45-frame spawn
-spacing. They lock the forward-scrolling camera, target Billy, and require
-every enemy to leave before clearing. Abobo appears at **(1224,184)** inside
-the final clamped view. Exit **(1496,184)** only clears after all four arenas.
-Enemy behavior/stats are reused, not copied or secretly increased.
+Sequential prerequisites, camera locks and 45-frame spawn spacing remain.
+Spawns are on their real fight decks. Jumping over a trigger arms it on landing.
+All four fights and safely reaching the door are required to clear.
 
-`06_industrial_area.mp3` loops on Music at -6 dB. Boss activation replaces it
-with `03_abobo_entrance.mp3`; the exit replaces gameplay music with the existing
-mission-complete cue. Stage 2 is the current final stage: it shows **STAGE 2
-CLEAR**, then offers J to replay Stage 2. Defeat/J also reloads Stage 2, never
-the project's Stage 1 main scene. No nonexistent Stage 3 is requested.
+`06_industrial_area.mp3` loops on Music at -6 dB; boss activation switches to
+`03_abobo_entrance.mp3`, and clear uses the mission-complete cue. Stage 2 is
+terminal: clear/defeat offer **J** to replay this stage, never request Stage 3.
 
-## Implementation / verification
-
-`PrototypeAlley` is reused as the common level orchestrator (despite its
-original prototype name). The optional `StageTransition` child owns cutscene
-control, the existing movement/visual workers, fullscreen CanvasLayer fade,
-and a deferred scene change. Its optional next-stage path is populated only
-on Stage 1. Intro cleanup restores saved collisions, vulnerability and input;
-the normal level clear/restart path remains available when there is no next
-stage. Scene-change failures return to a visible restart prompt.
+## Verification
 
 ```sh
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --editor --import --quit
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_stage_two.gd
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_terrain.gd
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_opening.gd
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_no_falls.gd
 python3 tools/run_smoke_tests.py
+git diff --check
 ```
 
-The Stage 2 suite checks intro/overlay/control restoration, art/camera/floor
-alignment, music routing, every exact mixed roster, physical walking through
-the real map boundaries and all triggers to the exit, early-exit/death guards,
-terminal clear/replay messaging, and a real Stage 1 → Stage 2 scene replacement.
-It verifies Billy visibly walks fully offscreen despite held inputs, a single
-transition request frees Stage 1, fresh health/input/camera arrive in Stage 2,
-and dying/restarting there reloads the industrial scene with a fresh intro.
-Assets are also checked for byte-identical regeneration and no sheet matte.
-No browser/desktop automation or interactive playtest was used.
+Tests compare **every raw RGBA pixel** with the original crop, verify actual
+physics-server support shapes and crate blocking, native belt carry/airborne
+exclusion, both ladders in both directions, front-ladder combat handoff, falling,
+recovery and defeat. The stage suite traverses the block/gap/steps/roof using
+real buffered jumps and movement, clears every exact roster, and reaches the
+green door without fall damage. It also checks intro, audio, early-exit guards,
+replay, and actual Stage 1 → Stage 2 replacement/restart. No browser/desktop
+automation or interactive playtest is used.
 
-Verified with Godot **4.7.2**: clean headless import, **15/15 smoke suites pass
-without diagnostics**, deterministic map regeneration, and `git diff --check`.
+The opening regression covers the previously unsupported concrete strip,
+diagonal edge walking, partial foot contact on girders, a buffered jump from
+the block's real edge, decorative street grates and the opening road boundary.
+It also verifies that stepping into the actual gap still starts a fall.

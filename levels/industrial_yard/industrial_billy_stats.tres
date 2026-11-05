@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="FighterStats" format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/fighter_stats.gd" id="stats"]
+
+[resource]
+script = ExtResource("stats")
+jump_takeoff_speed = 360.0
+hurt_pose_starts = null
+knockdown_pose_starts = null
+death_pose_starts = null

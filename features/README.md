@@ -24,6 +24,9 @@ Gameplay is organized by feature rather than file type:
   Stage 2, plus the next stage's title/fade-in and input restoration.
 - `level_objects/ladder` — passive climbable ladder areas queried by the player's climb component.
 - `level_objects/ledge` — the elevated surfaces those ladders lead to: a height above the ground plane plus the span of stage x it covers.
+- `level_objects/terrain` — native-picture polygon collision tracing and an
+  optional Stage 2 actor motor: actual girder tops, slanted roof, original blue
+  conveyor, lower yard and fall recovery. No replacement artwork or overlays.
 
 Child components emit past-tense signals upward. Actor roots issue commands to components through typed methods.
 

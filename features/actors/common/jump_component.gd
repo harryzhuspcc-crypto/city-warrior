@@ -11,6 +11,8 @@ var ground_position: Vector2 = Vector2.ZERO
 var jump_height: float = 0.0
 var jump_velocity: float = 0.0
 var is_airborne: bool = false
+var ground_elevation: float = 0.0
+var terrain_motor: BeltTerrainMotor
 
 var _takeoff_speed: float = 0.0
 var _gravity: float = 0.0
@@ -31,7 +33,9 @@ func configure(stats: FighterStats) -> void:
 
 
 func try_jump(apex_scale: float = 1.0) -> bool:
-	if is_airborne or _takeoff_speed <= 0.0 or _gravity <= 0.0:
+	if _takeoff_speed <= 0.0 or _gravity <= 0.0:
+		return false
+	if is_airborne and not (terrain_motor != null and terrain_motor.consume_ledge_grace()):
 		return false
 
 	is_airborne = true
@@ -42,6 +46,9 @@ func try_jump(apex_scale: float = 1.0) -> bool:
 
 func physics_tick(delta: float) -> void:
 	sync_ground_position()
+	if terrain_motor != null:
+		terrain_motor.physics_jump(delta)
+		return
 	if not is_airborne:
 		_apply_visual_height()
 		return
@@ -75,7 +82,19 @@ func land_immediately() -> void:
 
 
 func _apply_visual_height() -> void:
-	visual_target.position = _grounded_visual_position + Vector2.UP * jump_height
+	visual_target.position = _grounded_visual_position + Vector2.UP * (ground_elevation + jump_height)
+
+
+func has_ledge_grace() -> bool:
+	return terrain_motor != null and terrain_motor.has_ledge_grace()
+
+
+func gravity() -> float:
+	return _gravity
+
+
+func sync_visual_height() -> void:
+	_apply_visual_height()
 
 
 func _takeoff_speed_for_apex_scale(apex_scale: float) -> float:

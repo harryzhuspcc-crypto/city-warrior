@@ -35,6 +35,7 @@ var kick_chain: Array[AttackData] = []
 
 var _runtime_stats: FighterStats
 var throw_owner: EnemyThrowComponent
+var terrain_motor: BeltTerrainMotor
 
 
 func _ready() -> void:
@@ -88,10 +89,14 @@ func _physics_process(delta: float) -> void:
 		combat_component.set_facing(input_component.movement_direction.x)
 
 	var reaction_ticked := false
+	var terrain_jump_ticked := false
 	if health_component.is_dead():
 		if hit_reaction_component.current_reaction != HitReactionComponent.DEATH:
 			hit_reaction_component.begin_death()
-		jump_component.land_immediately()
+		if terrain_motor != null:
+			jump_component.physics_tick(delta)
+		else:
+			jump_component.land_immediately()
 		hit_reaction_component.physics_tick()
 		input_component.clear_buffered_actions()
 		_sync_visuals()
@@ -101,7 +106,11 @@ func _physics_process(delta: float) -> void:
 	if hit_reaction_component.is_incapacitated():
 		# Hitstun and knockdown own movement (knockback slide) and block every
 		# command until the reaction recovers. Buffered inputs decay normally.
-		jump_component.land_immediately()
+		if terrain_motor != null:
+			jump_component.physics_tick(delta)
+			terrain_jump_ticked = true
+		else:
+			jump_component.land_immediately()
 		hit_reaction_component.physics_tick()
 		reaction_ticked = true
 		if hit_reaction_component.is_incapacitated():
@@ -132,7 +141,8 @@ func _physics_process(delta: float) -> void:
 		_process_elevated(delta)
 		return
 
-	jump_component.physics_tick(delta)
+	if not terrain_jump_ticked:
+		jump_component.physics_tick(delta)
 	var attack_existed_at_tick_start := combat_component.is_attacking
 	if attack_existed_at_tick_start:
 		_process_existing_attack()
@@ -202,6 +212,8 @@ func _try_start_buffered_action() -> bool:
 	if jump_component.is_airborne:
 		if input_component.consume_back_kick_chord() or input_component.consume_kick():
 			return _start_attack(jump_kick_attack_data)
+		if jump_component.has_ledge_grace() and input_component.consume_ready_jump():
+			return jump_component.try_jump()
 		return false
 
 	if input_component.consume_elbow_chord():
@@ -421,11 +433,14 @@ func _on_hit_received(attack_data: AttackData, knockback: Vector2, _source: Node
 			return
 		thrown_fall = throw_owner.has_launched()
 		throw_owner.release(false)
-	# Airborne hits always floor Billy: the jump is visual height only, so the
-	# body is already on the ground plane and can start its knockdown slide.
+	# Airborne hits force a knockdown. Stage 1 settles onto its flat ground;
+	# terrain stages retain gravity, so a shaft cannot be cancelled by a hit.
 	var was_airborne := jump_component.is_airborne
 	if was_airborne:
-		jump_component.land_immediately()
+		if terrain_motor != null:
+			jump_component.jump_velocity = minf(jump_component.jump_velocity, 0.0)
+		else:
+			jump_component.land_immediately()
 	# Start the reaction before cancelling so an interrupted attack finishes
 	# straight into the reaction state with no intermediate locomotion state.
 	hit_reaction_component.apply_hit(
@@ -499,17 +514,20 @@ func is_dead() -> bool:
 	return health_component.is_dead()
 
 
-## True while Billy is off the ground plane on a rung or a ledge. Encounters
-## read it so a crossing made along a ledge passes over the arena.
+## Off the fight surface on a ladder/ledge or during a terrain jump/fall.
+## Encounters wait for safe footing; a raised but supported deck still arms.
 func is_elevated() -> bool:
-	return climb_component.is_elevated()
+	return climb_component.is_elevated() or (terrain_motor != null and terrain_motor.is_falling())
 
 
-## Pixels Billy's sprite stands above the ground plane because of a climb. The
-## camera raises its band by this; a jump is deliberately left out, since the
-## view must not bob on every hop.
+## Stable floor/climb elevation for the camera. The jump arc is deliberately
+## excluded so the view does not bob on every hop or chase Billy into a shaft.
 func visual_elevation() -> float:
-	return climb_component.elevation()
+	return climb_component.elevation() + (terrain_motor.camera_elevation() if terrain_motor != null else 0.0)
+
+
+func combat_elevation() -> float:
+	return terrain_motor.elevation() if terrain_motor != null else 0.0
 
 
 func _on_reaction_started(reaction: StringName, _attack_data: AttackData) -> void:

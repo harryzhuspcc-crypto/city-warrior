@@ -5,6 +5,7 @@ extends Node
 
 var _horizontal_speed: float = 0.0
 var _depth_speed: float = 0.0
+var terrain_motor: BeltTerrainMotor
 
 
 func _ready() -> void:
@@ -34,5 +35,9 @@ func stop() -> void:
 
 
 func _move_with_velocity(next_velocity: Vector2) -> void:
+	if terrain_motor != null:
+		next_velocity = terrain_motor.resolve_velocity(next_velocity)
 	body.velocity = next_velocity
 	body.move_and_slide()
+	if terrain_motor != null:
+		terrain_motor.after_move()

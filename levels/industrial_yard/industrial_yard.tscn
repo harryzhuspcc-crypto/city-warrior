@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://levels/prototype_alley/prototype_alley.gd" id="stage"]
+[ext_resource type="Script" path="res://levels/industrial_yard/industrial_yard.gd" id="stage"]
 [ext_resource type="Texture2D" path="res://assets/stages/industrial_yard.png" id="background"]
 [ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="player"]
 [ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="williams"]
@@ -14,14 +14,18 @@
 [ext_resource type="AudioStream" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="boss_music"]
 [ext_resource type="AudioStream" path="res://assets/audio/bgm/04_mission_complete.mp3" id="clear_music"]
 [ext_resource type="Script" path="res://features/stage_flow/stage_transition.gd" id="transition"]
+[ext_resource type="Script" path="res://features/level_objects/terrain/belt_terrain_map.gd" id="terrain"]
+[ext_resource type="Resource" path="res://levels/industrial_yard/industrial_billy_stats.tres" id="industrial_stats"]
+[ext_resource type="PackedScene" path="res://features/level_objects/ladder/ladder.tscn" id="ladder"]
+[ext_resource type="PackedScene" path="res://features/level_objects/ledge/climb_platform.tscn" id="ledge"]
 
 [sub_resource type="RectangleShape2D" id="horizontal_boundary"]
-size = Vector2(1568, 16)
+size = Vector2(1088, 16)
 
 [sub_resource type="RectangleShape2D" id="vertical_boundary"]
-size = Vector2(16, 288)
+size = Vector2(16, 640)
 
-[node name="IndustrialYard" type="Node2D" node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "boss_encounter", "stage_clear_music", "stage_transition")]
+[node name="IndustrialYard" type="Node2D" node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "boss_encounter", "stage_clear_music", "stage_transition", "terrain")]
 script = ExtResource("stage")
 actors = NodePath("Actors")
 player = NodePath("Actors/Player")
@@ -38,24 +42,28 @@ stage_clear_music = NodePath("StageClearMusic")
 stage_transition = NodePath("StageTransition")
 stage_name = "STAGE 2 - INDUSTRIAL YARD"
 stage_clear_message = "STAGE 2 CLEAR"
+terrain = NodePath("Terrain")
 
 [node name="Background" type="Sprite2D" parent="."]
-position = Vector2(0, -56)
+position = Vector2(0, -264)
 texture = ExtResource("background")
 centered = false
 texture_filter = 1
 
+[node name="Terrain" type="Node2D" parent="."]
+script = ExtResource("terrain")
+
 [node name="WorldGeometry" type="Node2D" parent="."]
 
 [node name="TopBoundary" type="StaticBody2D" parent="WorldGeometry"]
-position = Vector2(768, 144)
+position = Vector2(528, 112)
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/TopBoundary"]
 shape = SubResource("horizontal_boundary")
 
 [node name="BottomBoundary" type="StaticBody2D" parent="WorldGeometry"]
-position = Vector2(768, 224)
+position = Vector2(528, 320)
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/BottomBoundary"]
@@ -69,7 +77,7 @@ collision_mask = 0
 shape = SubResource("vertical_boundary")
 
 [node name="RightBoundary" type="StaticBody2D" parent="WorldGeometry"]
-position = Vector2(1544, 80)
+position = Vector2(1064, 80)
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/RightBoundary"]
@@ -77,11 +85,32 @@ shape = SubResource("vertical_boundary")
 
 [node name="Ladders" type="Node2D" parent="."]
 
+[node name="AwningLadder" parent="Ladders" node_paths=PackedStringArray("platform") instance=ExtResource("ladder")]
+position = Vector2(736, 168)
+platform = NodePath("../../Awning")
+base_elevation = 208.0
+
+[node name="FrontLadder" parent="Ladders" node_paths=PackedStringArray("platform") instance=ExtResource("ladder")]
+position = Vector2(888, 232)
+platform = NodePath("../../FrontRoofLanding")
+base_elevation = 0.0
+
+[node name="FrontRoofLanding" parent="." instance=ExtResource("ledge")]
+position = Vector2(816, 232)
+height = 208.0
+walkable_width = 336.0
+
+[node name="Awning" parent="." instance=ExtResource("ledge")]
+position = Vector2(800, 168)
+height = 128.0
+walkable_width = 208.0
+
 [node name="Actors" type="Node2D" parent="."]
 y_sort_enabled = true
 
 [node name="Player" parent="Actors" instance=ExtResource("player")]
 position = Vector2(56, 192)
+fighter_stats = ExtResource("industrial_stats")
 
 [node name="Encounters" type="Node2D" parent="."]
 
@@ -97,13 +126,13 @@ lock_x = 160.0
 [node name="SpawnPoints" type="Node2D" parent="Encounters/GateEncounter"]
 
 [node name="GateRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
-position = Vector2(408, 184)
+position = Vector2(192, 192)
 
 [node name="GateLeft" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
-position = Vector2(20, 200)
+position = Vector2(48, 208)
 
 [node name="GateFarRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
-position = Vector2(424, 168)
+position = Vector2(240, 176)
 
 [node name="LoadingBayEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("encounter")
@@ -114,18 +143,19 @@ player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../GateEncounter")
-lock_x = 640.0
+lock_x = 464.0
+metadata/terrain_height = 80.0
 
 [node name="SpawnPoints" type="Node2D" parent="Encounters/LoadingBayEncounter"]
 
 [node name="BayRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
-position = Vector2(864, 184)
+position = Vector2(568, 184)
 
 [node name="BayLeft" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
-position = Vector2(416, 200)
+position = Vector2(440, 184)
 
 [node name="BayUpperRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
-position = Vector2(880, 168)
+position = Vector2(512, 176)
 
 [node name="WarehouseEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("encounter")
@@ -137,21 +167,22 @@ player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../LoadingBayEncounter")
-lock_x = 1088.0
+lock_x = 720.0
+metadata/terrain_height = 208.0
 
 [node name="SpawnPoints" type="Node2D" parent="Encounters/WarehouseEncounter"]
 
 [node name="WarehouseRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
-position = Vector2(1312, 184)
+position = Vector2(864, 208)
 
 [node name="WarehouseLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
-position = Vector2(864, 200)
+position = Vector2(656, 216)
 
 [node name="WarehouseUpperRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
-position = Vector2(1328, 168)
+position = Vector2(824, 200)
 
 [node name="WarehouseUpperLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
-position = Vector2(848, 176)
+position = Vector2(688, 208)
 
 [node name="BossEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("encounter")
@@ -162,22 +193,23 @@ player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../WarehouseEncounter")
-lock_x = 1400.0
+lock_x = 880.0
+metadata/terrain_height = 208.0
 
 [node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter"]
 
 [node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints"]
-position = Vector2(1224, 184)
+position = Vector2(704, 208)
 
 [node name="Exit" type="Marker2D" parent="."]
-position = Vector2(1496, 184)
+position = Vector2(800, 176)
 
 [node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("target")]
 position = Vector2(192, 108)
 limit_left = 0
-limit_top = -56
-limit_right = 1536
-limit_bottom = 216
+limit_top = -264
+limit_right = 1056
+limit_bottom = 312
 script = ExtResource("camera")
 target = NodePath("../Actors/Player")
 

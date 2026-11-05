@@ -52,9 +52,9 @@ func _test_intro_and_walkable_map() -> void:
 	_check(yard.music.bus == &"Music" and yard.music.volume_db == -6.0, "Industrial track routing/volume")
 	_check(yard.actors.y_sort_enabled and yard.camera.target == yard.player, "Normal actor sorting/camera")
 	var background := yard.get_node("Background") as Sprite2D
-	_check(background.texture.get_size() == Vector2(1536, 272), "Four-screen industrial map")
-	_check(background.position == Vector2(0, -56), "Art floor aligns to world y=216")
-	_check(yard.camera.limit_right == 1536 and yard.camera.limit_top == -56, "Camera uses new map bounds")
+	_check(background.texture.get_size() == Vector2(1056, 576), "Complete original industrial picture dimensions")
+	_check(background.position == Vector2(0, -264), "Original picture floor alignment")
+	_check(yard.camera.limit_right == 1056 and yard.camera.limit_top == -264, "Camera frames the original picture")
 	_check(yard.player.position == Vector2(56, 192), "Safe left-side entry")
 	_check(await _wait_until(func() -> bool: return not flow.is_busy(), 100), "Intro finishes")
 	_check(not flow.fade_rect.visible and not yard.hud.message_label.visible, "Intro cleans its overlay/title")
@@ -63,9 +63,8 @@ func _test_intro_and_walkable_map() -> void:
 	_check(not yard.player.hurtbox.is_invulnerable, "Intro restores vulnerability")
 	_check(not flow.has_next_stage() and not flow.begin_outro(), "Stage two is a terminal stage for now")
 
-	# Physically walk Billy through all four triggers with actual screen/world
-	# walls. Only combat is bypassed; wave spawning, counting and gating are real.
-	yard.player.set_physics_process(false)
+	# Real controls, stairs, conveyors and required jumps. Only combat is
+	# bypassed; physics, camera, terrain support and encounter gating are real.
 	var encounters := yard.encounter_controllers()
 	_check(encounters.size() == 4, "Four industrial encounters")
 	var expected_williams := [3, 2, 2, 0]
@@ -79,11 +78,29 @@ func _test_intro_and_walkable_map() -> void:
 		encounter.enemy_spawned.connect(func(enemy: Node2D) -> void: enemy.set_physics_process(false))
 		if index > 0:
 			_check(encounter.prerequisite == encounters[index - 1], "Sequential yard prerequisites")
+		if index == 1:
+			await _walk_to_x(yard, 232)
+			Input.action_press(&"move_up")
+			await _wait_until(func() -> bool: return yard.player.position.y <= 160, 50)
+			Input.action_release(&"move_up")
+			await _jump_to_surface(yard, 48)
+			await _walk_to_x(yard, 332)
+			await _jump_to_surface(yard, 80)
+		elif index == 2:
+			Input.action_press(&"move_down")
+			await _wait_until(func() -> bool: return yard.player.position.y >= 192, 50)
+			Input.action_release(&"move_down")
+			await _walk_to_x(yard, 484)
+			await _jump_to_surface(yard, 136)
+			await _walk_to_x(yard, 500)
+			_check(is_equal_approx(yard.player.jump_component.ground_elevation, 168.0), "Actual stair tops step up towards the tower")
+			await _jump_to_surface(yard, 208)
 		for tick: int in range(600):
 			if encounter.state == EncounterController.ACTIVE:
 				break
-			yard.player.movement_component.move(Vector2.RIGHT)
+			Input.action_press(&"move_right")
 			await physics_frame
+		Input.action_release(&"move_right")
 		_check(encounter.state == EncounterController.ACTIVE and yard.camera.is_locked, "Walking reaches/locks %s" % encounter.name)
 		_check(yard.state == PrototypeAlley.PLAYING, "Cannot clear before all yard waves")
 		_check(await _wait_until(func() -> bool: return encounter.spawned_count == encounter.enemy_count, 160), "Complete yard wave spawns")
@@ -106,12 +123,15 @@ func _test_intro_and_walkable_map() -> void:
 		_check(yard.music.stream.resource_path == track, "Only boss activation replaces industrial music")
 		_check(await _wait_until(func() -> bool: return encounter.is_cleared(), 5), "Yard wave clears")
 		_check(not yard.camera.is_locked, "Yard clear unlocks camera")
-	for tick: int in range(150):
+	await _walk_to_x(yard, 800)
+	for tick: int in range(120):
 		if yard.state == PrototypeAlley.CLEARED:
 			break
-		yard.player.movement_component.move(Vector2.RIGHT)
+		Input.action_press(&"move_up")
 		await physics_frame
+	Input.action_release(&"move_up")
 	_check(yard.state == PrototypeAlley.CLEARED, "Stage two exit is physically reachable")
+	_check(yard.player.health_component.current_health == 100, "Original plinth/girder/deck route is crossable without fall damage")
 	_check(starts.size() == 4 and starts == clears, "Each yard wave starts/clears once in order")
 	_check(yard.hud.message_label.text == "STAGE 2 CLEAR", "Terminal stage-two clear banner")
 	_check(not yard.music.playing and yard.stage_clear_music.playing, "Yard clear replaces gameplay music")
@@ -119,6 +139,33 @@ func _test_intro_and_walkable_map() -> void:
 		await physics_frame
 	_check(yard.hud.message_label.text.contains("PRESS J TO RESTART"), "Stage two offers replay, not an invalid stage three")
 	await AudioSettle.free_level(self, yard)
+
+
+func _walk_to_x(stage: PrototypeAlley, x: float) -> void:
+	var action: StringName = &"move_right" if x > stage.player.position.x else &"move_left"
+	Input.action_press(action)
+	for tick: int in range(300):
+		if absf(stage.player.position.x - x) <= 1.6:
+			break
+		await physics_frame
+	Input.action_release(action)
+	_check(absf(stage.player.position.x - x) <= 2.0, "Walking reaches original route x=%s (got %s)" % [x, stage.player.position])
+
+
+func _jump_to_surface(stage: PrototypeAlley, height: float) -> void:
+	stage.player.input_component.queue_jump()
+	Input.action_press(&"move_right")
+	var took_off := false
+	var landed := false
+	for tick: int in range(130):
+		await physics_frame
+		if stage.player.jump_component.is_airborne:
+			took_off = true
+		elif took_off:
+			landed = is_equal_approx(stage.player.jump_component.ground_elevation, height)
+			break
+	Input.action_release(&"move_right")
+	_check(landed, "Buffered K lands on traced original surface %s (at %s, floor %s)" % [height, stage.player.position, stage.player.jump_component.ground_elevation])
 
 
 func _test_no_skipping_fights() -> void:

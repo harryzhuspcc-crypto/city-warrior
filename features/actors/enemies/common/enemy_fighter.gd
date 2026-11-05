@@ -25,6 +25,7 @@ signal defeated
 var grab_owner: HairGrabComponent
 var _runtime_stats: FighterStats
 var _has_reported_defeat: bool = false
+var terrain_motor: BeltTerrainMotor
 
 
 func _ready() -> void:
@@ -64,6 +65,13 @@ func _physics_process(_delta: float) -> void:
 			_has_reported_defeat = true
 			defeated.emit()
 			queue_free()
+		return
+
+	if terrain_motor != null and terrain_motor.is_falling():
+		_cancel_throw()
+		combat_component.cancel_attack()
+		movement_component.stop()
+		visuals.sync_scheduled_pose(&"knockdown", 0, PackedInt32Array([0]), ai_component.facing)
 		return
 
 	if throw_component != null and throw_component.is_active():
@@ -208,7 +216,12 @@ func can_be_hair_grabbed() -> bool:
 		and not health_component.is_dead() and not is_instance_valid(grab_owner)
 		and hit_reaction_component.current_reaction == HitReactionComponent.STATUS2
 		and not hurtbox.is_invulnerable
+		and (terrain_motor == null or not terrain_motor.is_falling())
 	)
+
+
+func combat_elevation() -> float:
+	return terrain_motor.elevation() if terrain_motor != null else 0.0
 
 
 func claim_hair_grab(owner_component: HairGrabComponent) -> void:

@@ -212,6 +212,7 @@ script = ExtResource("transition")
 player = NodePath("../Actors/Player")
 hud = NodePath("../HUD")
 fade_rect = NodePath("../TransitionOverlay/Fade")
+next_stage_path = "res://levels/headquarters/headquarters.tscn"
 show_intro = true
 intro_title = "STAGE 3\nWOODS"
 

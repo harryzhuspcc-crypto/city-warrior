@@ -28,6 +28,7 @@ TESTS = (
     "tools/smoke_test_encounter.gd",
     "tools/smoke_test_stage_two.gd",
     "tools/smoke_test_stage_three.gd",
+    "tools/smoke_test_stage_four.gd",
     "tools/smoke_test_industrial_terrain.gd",
     "tools/smoke_test_industrial_opening.gd",
     "tools/smoke_test_industrial_accessibility.gd",

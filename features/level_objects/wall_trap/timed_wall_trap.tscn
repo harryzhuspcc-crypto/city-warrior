@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://features/level_objects/wall_trap/timed_wall_trap.gd" id="script"]
+[ext_resource type="Texture2D" path="res://assets/stages/headquarters_wall_block_1.png" id="stone"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_17_final_stage_wall_brick_thrust.wav" id="thrust"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_06_signal.wav" id="warning"]
+
+[node name="TimedWallTrap" type="Node2D" node_paths=PackedStringArray("thrust_audio", "warning_audio")]
+texture_filter = 1
+script = ExtResource("script")
+face_texture = ExtResource("stone")
+thrust_audio = NodePath("ThrustAudio")
+warning_audio = NodePath("WarningAudio")
+
+[node name="ThrustAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("thrust")
+volume_db = -8.0
+bus = &"SFX"
+
+[node name="WarningAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("warning")
+volume_db = -20.0
+bus = &"SFX"

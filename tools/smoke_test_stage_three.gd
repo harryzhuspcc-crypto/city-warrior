@@ -40,6 +40,9 @@ func _run() -> void:
 
 func _walk(stage: PrototypeAlley, destination: Vector2, budget: int = 900) -> void:
 	for tick: int in range(budget):
+		if stage.state == PrototypeAlley.CLEARED:
+			_release_inputs()
+			return
 		var difference := destination - stage.player.position
 		if absf(difference.x) <= 1.6 and absf(difference.y) <= 1.0:
 			_release_inputs()
@@ -109,7 +112,7 @@ func _test_shapes_and_route() -> void:
 	_check(stage.get_world_2d().direct_space_state.intersect_point(query).is_empty(), "Broken bridge has a real gap, not a hidden floor")
 	_check(terrain.floor_at(1036, 284, 96) == null, "Support agrees with bridge gap")
 	_check(terrain.floor_at(2250, 304) == 0.0 and terrain.floor_at(2784, 304) == 224.0, "Lower deck and cliff terrace have separate heights")
-	_check(not stage.stage_transition.has_next_stage(), "Stage 3 remains terminal until a further stage exists")
+	_check(stage.stage_transition.next_stage_path == "res://levels/headquarters/headquarters.tscn", "Stage 3 leads to the final headquarters")
 	# No encounter bypass: every wave really triggers/spawns/clears while Billy
 	# walks. Only the enemies' fighting is replaced by deterministic removal.
 	var spawned: Array[StringName] = []
@@ -151,7 +154,7 @@ func _test_shapes_and_route() -> void:
 	_check(await _wait_until(func() -> bool: return stage.state == PrototypeAlley.CLEARED, 20), "All waves and the cliff door clear Stage 3")
 	_check(spawned.size() == 11 and stage._all_encounters_cleared(), "All eleven enemies spawned across four sequential arenas")
 	_check(stage.player.health_component.current_health == 100, "Full original woods/bridge/cliff route takes no fall damage")
-	_check(await _wait_until(func() -> bool: return stage.hud.message_label.text.contains("PRESS J TO RESTART")), "Terminal woods clear offers replay")
+	_check(stage.stage_transition.is_busy(), "Woods clear begins the final-stage cinematic")
 	await AudioSettle.free_level(self, stage)
 
 

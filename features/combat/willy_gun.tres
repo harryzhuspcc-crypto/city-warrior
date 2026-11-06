@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://features/actors/common/attack_data.gd" id="attack"]
+
+[resource]
+script = ExtResource("attack")
+attack_name = &"willy_gun"
+animation_name = &"shoot"
+startup_frames = 30
+active_frames = 1
+recovery_frames = 30
+damage = 0
+hitbox_rect = Rect2(0, -500, 1, 1)
+animation_frame_starts = PackedInt32Array(0, 24, 30, 35)

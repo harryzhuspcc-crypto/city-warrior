@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="base"]
+[ext_resource type="Script" path="res://features/actors/enemies/willy/willy.gd" id="script"]
+[ext_resource type="Resource" path="res://features/actors/enemies/willy/willy_stats.tres" id="stats"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/willy/willy_sprite_frames.tres" id="frames"]
+[ext_resource type="Resource" path="res://features/combat/willy_gun.tres" id="gun"]
+[ext_resource type="Resource" path="res://features/combat/willy_bullet.tres" id="bullet"]
+[ext_resource type="Resource" path="res://features/combat/willy_kick.tres" id="kick"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sfx_27_willy_machine_gun_firing.wav" id="gun_sound"]
+
+[node name="Willy" node_paths=PackedStringArray("gun_audio") instance=ExtResource("base")]
+script = ExtResource("script")
+fighter_stats = ExtResource("stats")
+gun_attack = ExtResource("gun")
+bullet_attack = ExtResource("bullet")
+gun_audio = NodePath("GunAudio")
+
+[node name="AnimatedSprite2D" parent="Visuals" index="0"]
+sprite_frames = ExtResource("frames")
+animation = &"idle"
+frame = 0
+frame_progress = 0.0
+
+[node name="CombatComponent" parent="." index="6"]
+attack_data = ExtResource("kick")
+
+[node name="AIComponent" parent="." index="8"]
+attack_range_x = 144.0
+depth_tolerance = 6.0
+attack_cooldown_frames = 54
+reaction_delay_frames = 45
+retreat_probability = 0.15
+
+[node name="GunAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("gun_sound")
+bus = &"SFX"

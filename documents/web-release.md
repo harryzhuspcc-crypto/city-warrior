@@ -9,10 +9,10 @@ The Web preset produces a release build in `build/web/` (git-ignored), using
 Godot's single-threaded Compatibility template. Set `GODOT_BIN` if Godot is
 not on PATH or installed at `/Applications/Godot.app/Contents/MacOS/Godot`.
 Install matching export templates first.
-The builder also loads all three scenes from the exported PCK in a headless
+The builder also loads all four scenes from the exported PCK in a headless
 harness and rejects script/resource diagnostics before reporting success.
 
-All three stages and runtime GDScript classes are included. Raw source sheets,
+All four stages and runtime GDScript classes are included. Raw source sheets,
 reference assets, test tools, documentation and unused music are excluded.
 Using all runtime resources is intentional: several `class_name` workers are
 referenced only through GDScript types, not an explicit scene dependency.

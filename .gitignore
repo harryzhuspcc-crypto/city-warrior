@@ -4,3 +4,14 @@
 .pi
 /build/
 
+
+# Secrets & local files
+.env
+.env.*
+*.keystore
+*.jks
+*.pem
+*.p12
+export_credentials.cfg
+.godot/export_credentials.cfg
+.DS_Store

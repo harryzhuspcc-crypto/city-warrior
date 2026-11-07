@@ -1,169 +1,176 @@
-# Stage 2 — Original Industrial Yard Picture
+# Industrial yard
 
-Run `res://levels/industrial_yard/industrial_yard.tscn` directly, or finish
-Stage 1. Billy still walks off Stage 1, fades out, and enters Stage 2 at
-**(56,192)** with full health and a fresh camera/input state.
+Run `res://levels/industrial_yard/industrial_yard.tscn` directly or enter from
+Stage 1. A single locked `Background` sprite displays the original industrial
+image. The game hides the collision outlines at startup. Press **B** to show
+or hide them during play without affecting the artwork or physics.
 
-## Artwork is unchanged
+## Geometry and movement
 
-`assets/stages/industrial_yard.png` is a **1056×576**, native-resolution,
-RGBA-exact crop of `assets/source_sheets/new-york-20xx.png` at **(1232,0)**.
-It is displayed at **(0,-264)** with nearest filtering and no scaling.
-This includes the lower yard and the entire front ladder, not just the roof.
+Open `industrial_blocks.tscn` in the 2D editor to edit the terrain over the
+fixed picture. The main stage instances this scene and reads its polygons at
+startup. The layout resource still supplies map-wide settings such as fall
+zones and the image offset.
 
-There are **no** rearranged/tiled panels, raised replacement streets, newly
-painted shafts, added signs, or conveyor overlays. The original transparent
-regions remain transparent. The one small blue conveyor stays where it was
-drawn. Collision metadata is separate and never paints into the picture.
-The third-party source remains prototype-only, not cleared for distribution.
+- **Surfaces** (light blue): trace the visible tops where Billy can stand. Select a
+  polygon under `CollisionOutlines/Surfaces` and edit its vertices. `Height` is
+  the absolute floor elevation. `Solid` blocks approach below that height,
+  and `Fall From Edges` allows falling from exposed edges.
+- **Blockers** (orange): draw wall footprints under
+  `CollisionOutlines/Blockers`. `World Boundary` blocks at any height. A
+  `Solid Wall` blocks within its base height range, as on the loading deck.
 
-The **image/layout** matches the source; collision heights, jump tuning and
-combat are this project's implementation, not original arcade game code.
+For a new surface, duplicate a node under Surfaces or attach
+`../platform_simple_test/editable_platform.gd` to a `Polygon2D`. Use native
+vertices and `Height`; set fill alpha to zero and `Draw Side Faces` off over
+this fixed artwork. The simple scene keeps its filled side-face preview.
+`Rear Wall` and `Rear Edge` select the gold boundary; both adapters use the
+same method to project its 12 px outward blocker. Industrial platforms use
+`Rear Wall On Level Only`: per-actor collision exceptions enable each wall
+only at its authored base height, retaining that floor during a jump. A
+lower floor's wall must not block an actor standing on a higher floor.
+Independent Blockers still use `industrial_terrain_outline.gd`. Save `industrial_blocks.tscn` and restart `industrial_yard.tscn` to
+play the edits. For a surface the footprint is projected down by its `Height`,
+so neighboring visible tops at different heights can share a depth boundary.
 
-## Physical route
+For a quick movement test, run `industrial_blocks_test.tscn` as the current
+scene. It uses the same saved outlines and starts Billy on the street;
+the camera follows him so the spawn stays visible. Use WASD or the arrow keys to move, K to jump, B to toggle the outlines,
+and R to restart at the spawn point.
 
-- **WASD / arrows:** move across each actual platform top, including depth.
-- **K:** jump right onto the concrete block from the ordinary starting lane,
-  then jump the dark gap to the girder pile. From around **(420,156)**,
-  jump onto the lower marked steel platform (1), walk right along it,
-  jump onto the upper steel platform (2), then jump onto the warehouse roof. Raised faces block walking until a jump clears their tops.
-- The visible blue belt carries fighters right at **24 px/s**, only while
-  supported on its top. It does not move airborne fighters. No drawn belt
-  animation covers or replaces the source artwork.
-- **Up** at the rear ladder climbs to the original upper awning; **Down**
-  returns. This ladder closes during fights to prevent camping out of reach.
-- **Down** at the front roof ladder descends to the lower yard; **Up** climbs
-  back onto the fighting roof. This essential connection stays usable during
-  fights. Reaching its top hands control back to normal combat immediately.
-- **J/L:** existing punch/kick; airborne attacks remain available.
-- After Abobo, approach the **green door** at **(800,176)**. The HUD identifies
-  this exit. Being far right, airborne, or on the awning does not clear it.
+| Surface | Elevation | Behavior |
+| --- | ---: | --- |
+| Opening street / lower yard | 0 | Ground floors; original map limits |
+| Concrete plinth | 48 | Solid face; jump from street; front/side departures fall, rear wall protects back |
+| Level 1: girder pile | 80 | Exposed edges allow falls |
+| Level 2: three small steel plates | 104 | Connected left and front sections, all on the same floor |
+| Level 3: steel tower | 152 | One continuous top, 48 px above the lower steel platform |
+| Level 4: loading deck | 192 | Front/side falls; rear factory wall blocks movement |
+| Conveyor | 208 | Solid raised face; carries supported actors at 24 px/s |
+| Left crate tiers | 240, 264, 288 | Three solid volumes with individual top surfaces |
+| Right crate tiers | 216, 240, 264 | Three solid volumes with individual top surfaces |
+| Upper awning | 320 | Ladder access, walk/jump control, front/side drops, rear protection |
 
-Billy uses the same `billy_stats.tres` resource as Stage 1: **252.4 px/s**
-takeoff and **600 px/s²** gravity (about **51 px** of jump height).
-The girder is at 80 px, marked platform 1 at 128 px, platform 2 at 176 px,
-and the main deck at 208 px. The two 48 px rises and final 32 px rise are
-reachable with the normal jump; skipping a marked platform is too high.
-The artwork and traced top outlines are unchanged.
-Descending jumps can catch the concrete top within **32 px** of depth and
-the girder/roof within **16 px**. The actor is moved onto the real traced
-top, not left standing on invisible enlarged support. There is no horizontal
-snap, no filling of gaps, no magnetism onto the narrow tower tops, and no
-snapping through solid bodies. Ordinary walking still uses exact foot support.
-Sixteen-pixel step-ups are automatic; tall girder faces require a jump.
-A **K** pressed up to **8 frames** after leaving supported ground still jumps
-from that edge. Solid faces stop walking before higher platforms.
-Unsupported feet fall. A missed jump costs **20 HP**, recovers to nearby
-supported ground and grants **45 frames** of protection; lethal falls use
-the existing defeat/replay flow. The lower yard is supported ground, not a pit.
-How far up (back) fighters can walk follows the drawn floor, so it varies:
-the lower yard stops at the warehouse wall, but its narrow side alley
-(x≈994–1020, between the wall and the brick pillar) runs about **80 px**
-further back. The opening street also reaches a little higher beside the lamp.
-Only the **opening gap** (picture x ≤ **420**, `fall_zone_max_x` in the layout)
-is a real pit. Past it, every red girder, step, tower and roof edge holds
-fighters in like a wall: walking only steps down 18 px or less, and jumps
-can't carry anyone over empty space. Bigger drops need a jump onto a lower
-top, or the ladders. The pit recovery remains as a safety net.
+Raised faces require a jump high enough to clear them. A foot must retain
+positive overlap with the top to remain supported. Leaving a fallable edge
+starts gravity; land on the next real surface underneath or enter the existing
+pit/recovery flow if there is no floor. Landing assistance cannot pull a drop
+back onto its takeoff surface. No floors are added across the opening gap.
 
-## Collision implementation
+The roof's left edge can drop onto steel; the front above the lower yard drops
+to that yard. Other unsupported roof edges remain genuine falls. Walk in front
+of the crate stacks and conveyor or jump onto their tops. The awning ladder
+hands Billy to normal terrain movement instead of holding him on an invisible
+one-dimensional ledge. Down near either ladder starts descent to its base.
 
-`assets/stages/industrial_layout.json` traces **13 actual surface polygons**
-in native picture coordinates: ground, concrete block, girder pile, four lower
-steps, two tower tops, loading roof, blue conveyor, awning, and lower yard.
-It also traces crate footprints. The concrete plinth, girder pile, red steps,
-tower and loading roof are marked `solid`: their projected footprints block
-fighters below their top heights. No vertical face is a walkable surface.
+WASD/arrows move, K jumps, J/L attack. Enemy encounters default to enabled in the main industrial stage, including
+entry from the stage picker and Stage 1. The original four sequential waves
+remain intact. Use `industrial_blocks_test.tscn` for enemy-free platform testing;
+the main scene root also exposes `enemy_encounters_enabled` for explicit debugging.
+Music, camera, green-door exit and progression remain active.
 
-`BeltTerrainMap` builds real **Area2D/CollisionPolygon2D** support shapes on
-layer 11 and **StaticBody2D/CollisionPolygon2D** crate obstacles on layer 10.
-The solid rear factory wall uses layer 13, including during rooftop jumps.
-Raised platform blockers use layer 14, with actor-specific collision exceptions
-when a jump clears each top or a grounded fighter can step up 18 px. The same
-footprints participate in the terrain movement sweep, including where lower
-floor support overlaps a taller step. Landing assistance rejects paths through
-a taller face. The scene-wide TopBoundary has been removed: Up reaches each
-platform’s traced rear edge instead of an invisible horizontal wall.
-Support selection tests both x and depth against these same traced outlines;
-it is no longer an x-only height strip. Back edges stop movement into walls;
-front/side edges and the slanted roof outline permit genuine falls.
+## Regeneration
 
-Opening-route correction: the concrete block's right outline reaches **x=368**
-at its front corner (the former trace omitted a 16 px strip). The road and the
-rubble in front of the block are ground right up to the block's base, and its
-top face starts at **x=272** like the art, so jumping from against its front lands
-on top instead of dropping through a sliver of pit. Actor support
-uses the actual **BodyCollision** footprint, not just the root point: positive
-foot/platform overlap keeps Billy standing at seams and slanted edges. Point
-queries remain strict for authoring and safe-checkpoint margins. Cached polygon
-bounds reject distant platforms before overlap tests; real gaps stay empty.
-The opening road's lower crop edge has a solid world-boundary polygon so
-walking past its grates cannot send Billy into the blank area below the map.
+```sh
+python3 tools/build_industrial_blocks.py
+```
 
-`BeltTerrainMotor` separates actor depth from elevation, sweeps movement against
-tall faces, resolves landings across gravity ticks, handles belt velocity and
-safe recovery, and filters crate collisions by floor. Ladder heights include
-the supporting roof. The camera follows elevation and the lower yard without
-bobbing with jumps. Existing height-aware combat and raised Abobo throws remain.
-Stages 2 and 3 share these adapters with separate layouts; Stage 1 behavior
-is unchanged.
-
-Regenerate the unmodified crop and its export-safe manifest (requires Pillow):
+This seeds the editor scene if it is missing. It keeps existing saved edits.
+To re-extract the original image crop and refresh the map-wide layout settings:
 
 ```sh
 python3 tools/build_stage_two_map.py
 ```
 
-The generator writes `industrial_yard.png` and `industrial_layout.tres`.
-The `.tres` dependency ensures terrain metadata survives selected-resource
-exports; JSON is only the authoring source.
-
-## Encounters and progression
-
-| Arena | Trigger x | Enemies | Spawn floor |
-| --- | ---: | --- | ---: |
-| Gate | 160 | 3 Williams | 0 |
-| Girders | 420 | Williams, Linda, Williams | 80 |
-| Warehouse | 720 | Williams, Linda, Williams, Linda | 208 |
-| Boss | 880 | 1 Abobo at (704,208) | 208 |
-
-Sequential prerequisites, camera locks and 45-frame spawn spacing remain.
-Spawns are on their real fight decks. Jumping over a trigger arms it on landing.
-All four fights and safely reaching the door are required to clear.
-
-`06_industrial_area.mp3` loops on Music at -6 dB; boss activation switches to
-`03_abobo_entrance.mp3`, and clear uses the mission-complete cue. Clearing the
-green door starts the existing walk-off/fade into `levels/woods/woods.tscn`
-(Stage 3). Defeat still offers **J** to replay Stage 2.
+The picture uses native coordinates at offset `(0, -264)`. Edit terrain
+polygons in Godot. The image extraction command keeps those edits.
 
 ## Verification
 
-```sh
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --editor --import --quit
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_stage_two.gd
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_terrain.gd
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_opening.gd
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_accessibility.gd
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/smoke_test_industrial_no_falls.gd
-python3 tools/run_smoke_tests.py
-git diff --check
-```
+Headless tests include `smoke_test_industrial_blocks.gd` (outline visibility, edited support,
+crate clearance and landing, deck/awning drops and rear walls),
+`smoke_test_industrial_terrain.gd` (original pixels, physics shapes, conveyor,
+both ladders, pit recovery), `smoke_test_industrial_accessibility.gd` and
+`smoke_test_industrial_opening.gd` (real jump route),
+`smoke_test_industrial_no_falls.gd` (rear-wall protection),
+`smoke_test_industrial_platform_edges.gd` (steel drops), and
+`smoke_test_stage_two.gd` (complete stage progression).
 
-Tests compare **every raw RGBA pixel** with the original crop, verify actual
-physics-server support shapes and crate blocking, native belt carry/airborne
-exclusion, both ladders in both directions, front-ladder combat handoff, falling,
-recovery and defeat. The stage suite traverses the block/gap/steps/roof using
-real buffered jumps and movement, clears every exact roster, and reaches the
-green door without fall damage. It also checks intro, audio, early-exit guards,
-replay, and actual Stage 1 → Stage 2 replacement/restart. Automated checks use
-headless Godot.
+The two rows of beams on each large steel top are a single flat surface, not
+separate height bands. Their full drawn depth remains walkable and supports
+ordinary jumps across the platform width without increasing jump strength.
 
-The opening regression covers the previously unsupported concrete strip,
-diagonal edge walking, partial foot contact on girders, a buffered jump from
-the block's real edge, decorative street grates and the opening road boundary.
-It also verifies that stepping into the actual gap still starts a fall.
+Height correction: the small plates are 24 px above the 80 girder, not
+48 px. StepLanding's front vertices moved from `(544,320)/(464,320)` to
+`(536,312)/(456,312)` to follow the pictured top instead of its side face.
+Step1, Step2 and StepLanding share height 104; their shared edges have no
+rear walls. Walk diagonally around the tower along the pictured connected
+strip, then horizontally across the front pieces; the reverse route also
+remains grounded without jumping.
 
-The accessibility regression uses ordinary **Right + K**, from three initial
-depths and the marked steel-step route. It checks solid face blocking, upward
-movement to the true girder edge, concrete/girder landings, the three-jump stair
-route to the roof, no fall damage, and an unchanged real pit.
+The tower is 152 and the deck is 192. Their projected adjoining diagonals
+would overlap by 8 px after correcting heights, so the deck's left vertices
+are inset from x=560/640 to x=568/648. Its projected left edge starts at
+`(568,136)`, on the same line as the tower's right edge `(560,128)` to
+`(592,160)`. No global polygon inflation bridges unrelated gaps.
+The roof's front projects to ground y=216, matching picture y=480; ladders,
+crate/conveyor floors, exit, encounter spawn markers and handoffs moved with
+that correction. The independent factory wall remains the only deck rear
+wall; it is not duplicated by an automatic one.
+
+The tower allows up to 16 pixels of depth assistance only while descending
+through its actual top height. This catches near-front-corner jumps without
+raising jump strength or allowing movement through taller faces.
+
+Keyboard regression: `smoke_test_industrial_keyboard_jump.gd` sends real D/Right
+and K key events through the 104 → 152 → 192 route, including a preceding
+direction tap and either key order. K overrides a pending double-tap head
+attack within the three-frame chord window. Intentional double-tap attacks
+still work after that window.
+
+## Regression rules from this repair
+
+- Separate visible top coordinates, absolute height, and the projected ground
+  footprint (`picture_y + image_offset_y + height`). Screen overlap does not
+  imply that two floors share depth or elevation.
+- Diagnose a raised solid face separately from a rear boundary. A valid
+  24 px rise still needs K; never fix it by making every rise walkable.
+- Keep equal-height connected plates traversable in both directions,
+  including diagonal seams. Check support on every frame, not only endpoints.
+- Test the real 80 → jump → 104 landing → W route: feet must cross the lower
+  girder's gold screen line and stop only at the landing's own rear edge.
+  Test jumping against that edge too, and lower-floor collision exceptions.
+- Keep world boundaries independent; don't turn every wall into a platform
+  or activate all stacked rear walls with one global collision-layer switch.
+- Preserve background pixels and existing editor comments. Reuse the top
+  polygon for previews and runtime geometry; don't paint a second opaque
+  side over the fixed background.
+- Recheck the full 80 → 104 → 152 → 192 route, front drops, ladders and stage
+  exit after height edits. Update fixtures for saved scene changes rather
+  than preserving obsolete heights or teleporting to unsupported positions.
+
+`smoke_test_industrial_rear_edges.gd` covers the lower/upper gold-line route,
+rear walking/jumping, both same-height seams in both directions, diagonal
+walking, and per-floor wall exceptions. The simple scene side-drop fixture
+uses its outermost Level4: the user's added Level3 correctly blocks walking
+straight through it from Level2.
+
+## Concrete corner and pit lives
+
+ConcretePlinth has `Fall From Edges` enabled. Walking down from its right/front
+corner may land on the existing rubble before leaving that rubble for the real
+unsupported gap; the road/rubble polygon is not removed to create a new pit.
+The industrial layout starts with three pit lives. Each completed pit fall
+consumes one life, restores a supported checkpoint and briefly protects Billy;
+the third uses normal defeat behavior. Both the main stage HUD and the platform
+lab display the remaining lives (R restarts the lab).
+
+Landing-depth assistance only catches a higher floor than the takeoff/support
+floor. Previously ConcretePlinth had `drop_edges=false`, but its x position was
+inside the map's fall zone: leaving support initiated a fall and assistance
+immediately pulled Billy back to height 48. The repeated fall/land cycle looked
+like flickering or blocked Down input. The guard now also handles these legacy
+fall-zone departures, independently of the explicit per-platform switch.
+`smoke_test_industrial_plinth_pit.gd` walks down from `(360,168)` with the switch
+both enabled and disabled, checks for repeated re-landings, exactly one pit/life
+loss and a stable idle recovery. Real rises still use the original jump assist.

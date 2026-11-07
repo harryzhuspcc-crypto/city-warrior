@@ -1,0 +1,191 @@
+[gd_scene format=3 uid="uid://ca63hqgsb2b3a"]
+
+[ext_resource type="Texture2D" uid="uid://joxoxcrd6vq0" path="res://assets/stages/industrial_yard.png" id="art"]
+[ext_resource type="Script" uid="uid://bme076f8dpynd" path="res://levels/industrial_yard/industrial_terrain_outline.gd" id="outline"]
+[ext_resource type="Script" uid="uid://cc3dijh2pfoq7" path="res://levels/platform_simple_test/editable_platform.gd" id="platform"]
+
+[node name="PlatformBlocks" type="Node2D" unique_id=701850681]
+
+[node name="Background" type="Sprite2D" parent="." unique_id=2038139701]
+texture_filter = 1
+position = Vector2(0, -264)
+texture = ExtResource("art")
+centered = false
+metadata/_edit_lock_ = true
+
+[node name="CollisionOutlines" type="Node2D" parent="." unique_id=639559575]
+position = Vector2(0, -264)
+
+[node name="Surfaces" type="Node2D" parent="CollisionOutlines" unique_id=1123446958]
+
+[node name="Ground" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1280023806]
+position = Vector2(2, 2)
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(0, 388, 14, 388, 44, 400, 240, 400, 272, 432, 271, 432, 291, 452, 303, 463, 304, 462, 316, 480, 0, 480)
+script = ExtResource("platform")
+height = 0.0
+solid = false
+fall_from_edges = false
+rear_wall = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="ConcretePlinth" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=85800808]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(240, 352, 336, 352, 368, 384, 272, 384)
+script = ExtResource("platform")
+height = 48.0
+show_depth_footprint = true
+draw_side_faces = false
+rear_wall_on_level_only = true
+landing_depth_assist = 32.0
+
+[node name="GirderPile" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=2022612358]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(336, 304, 560, 304, 640, 384, 416, 384)
+script = ExtResource("platform")
+height = 80.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+landing_depth_assist = 16.0
+
+[node name="Step1" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=2032075333]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(560, 328, 608, 328, 624, 344, 576, 344)
+script = ExtResource("platform")
+height = 104.0
+rear_wall = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="Step2" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1509523069]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(512, 312, 592, 312, 608, 328, 528, 328)
+script = ExtResource("platform")
+height = 104.0
+rear_wall = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="StepLanding" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=71508497]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(432, 288, 512, 288, 536, 312, 456, 312)
+script = ExtResource("platform")
+height = 104.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="TowerTop" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1143447289]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(512, 240, 560, 240, 592, 272, 544, 272)
+script = ExtResource("platform")
+height = 152.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+landing_depth_assist = 16.0
+
+[node name="LoadingDeck" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=543796104]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(568, 208, 912, 208, 992, 288, 648, 288)
+script = ExtResource("platform")
+height = 192.0
+rear_wall = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+landing_depth_assist = 16.0
+
+[node name="Conveyor" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=99195200]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(848, 224, 928, 224, 944, 240, 864, 240)
+script = ExtResource("platform")
+height = 208.0
+rear_wall = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+belt_speed = 24.0
+
+[node name="UpperAwning" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1532883246]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(672, 80, 896, 80, 912, 96, 688, 96)
+script = ExtResource("platform")
+height = 320.0
+solid = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="LowerYard" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1048201554]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(816, 480, 992, 480, 994, 400, 1020, 400, 1022, 480, 1024, 480, 1056, 512, 1056, 576, 816, 576)
+script = ExtResource("platform")
+height = 0.0
+solid = false
+fall_from_edges = false
+rear_wall = false
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="LeftCrateTier1" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=271865160]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(600, 160, 624, 160, 640, 176, 616, 176)
+script = ExtResource("platform")
+height = 240.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="LeftCrateTier2" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1952958614]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(624, 136, 648, 136, 664, 152, 640, 152)
+script = ExtResource("platform")
+height = 264.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="LeftCrateTier3" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=188172062]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(648, 112, 672, 112, 688, 128, 664, 128)
+script = ExtResource("platform")
+height = 288.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="RightCrateTier1" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1272644593]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(840, 184, 864, 184, 880, 200, 856, 200)
+script = ExtResource("platform")
+height = 216.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="RightCrateTier2" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=1463069830]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(864, 160, 888, 160, 904, 176, 880, 176)
+script = ExtResource("platform")
+height = 240.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="RightCrateTier3" type="Polygon2D" parent="CollisionOutlines/Surfaces" unique_id=771366491]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(888, 136, 912, 136, 928, 152, 904, 152)
+script = ExtResource("platform")
+height = 264.0
+draw_side_faces = false
+rear_wall_on_level_only = true
+
+[node name="Blockers" type="Node2D" parent="CollisionOutlines" unique_id=829568896]
+
+[node name="OpeningStreetBoundary" type="Polygon2D" parent="CollisionOutlines/Blockers" unique_id=1095441149]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(0, 480, 336, 480, 336, 496, 0, 496)
+script = ExtResource("outline")
+outline_color = Color(1, 0.65, 0.23, 1)
+world_boundary = true
+
+[node name="RearFactoryWall" type="Polygon2D" parent="CollisionOutlines/Blockers" unique_id=1215822113]
+color = Color(0, 0, 0, 0)
+polygon = PackedVector2Array(560, 192, 928, 192, 928, 208, 560, 208)
+script = ExtResource("outline")
+height = 192.0
+outline_color = Color(1, 0.65, 0.23, 1)
+solid_wall = true
+max_base_height = 319.0

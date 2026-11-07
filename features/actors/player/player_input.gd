@@ -22,6 +22,7 @@ var _elbow_buffer_frames_remaining: int = 0
 var _back_kick_buffer_frames_remaining: int = 0
 var _head_attack_buffer_frames_remaining: int = 0
 var _head_attack_direction: float = 0.0
+var _head_attack_pressed_frame: int = -1000
 var _attack_pressed_frame: int = -1000
 var _kick_pressed_frame: int = -1000
 var _jump_pressed_frame: int = -1000
@@ -86,6 +87,11 @@ func queue_kick() -> void:
 
 
 func queue_jump() -> void:
+	# A directional jump overrides a pending double-tap attack.
+	_head_attack_buffer_frames_remaining = 0
+	_head_attack_direction = 0.0
+	_last_direction_tap = 0.0
+	_last_direction_tap_frame = -1000
 	jump_buffer_frames_remaining = attack_buffer_frames
 	_jump_pressed_frame = _input_frame
 	if _is_recent_attack_press():
@@ -95,13 +101,14 @@ func queue_jump() -> void:
 
 
 func queue_direction_tap(horizontal_direction: float) -> void:
-	if is_zero_approx(horizontal_direction):
+	if is_zero_approx(horizontal_direction) or _is_recent_jump_press():
 		return
 	var tap_direction := signf(horizontal_direction)
 	if (
 		tap_direction == _last_direction_tap
 		and _input_frame - _last_direction_tap_frame <= double_tap_window_frames
 	):
+		_head_attack_pressed_frame = _input_frame
 		_head_attack_direction = tap_direction
 		_head_attack_buffer_frames_remaining = attack_buffer_frames
 		_last_direction_tap = 0.0
@@ -144,7 +151,11 @@ func consume_back_kick_chord() -> bool:
 
 
 func consume_head_attack_direction() -> float:
-	if _head_attack_buffer_frames_remaining <= 0:
+	# Give K the same chord window as J/L, regardless of key event order.
+	if (
+		_head_attack_buffer_frames_remaining <= 0
+		or _input_frame - _head_attack_pressed_frame < chord_window_frames
+	):
 		return 0.0
 	var result := _head_attack_direction
 	_head_attack_buffer_frames_remaining = 0

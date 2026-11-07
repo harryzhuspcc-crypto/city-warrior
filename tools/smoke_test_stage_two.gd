@@ -27,6 +27,7 @@ func _wait_until(condition: Callable, budget: int) -> bool:
 
 func _run() -> void:
 	await _test_intro_and_walkable_map()
+	await _test_live_gate_combat()
 	await _test_no_skipping_fights()
 	await _test_real_scene_transition_and_restart()
 	await AudioSettle.settle(self)
@@ -41,6 +42,7 @@ func _run() -> void:
 
 func _test_intro_and_walkable_map() -> void:
 	var yard := YARD.instantiate() as PrototypeAlley
+	_check(yard.get("enemy_encounters_enabled"), "Industrial encounters default on for normal Stage 2 play")
 	root.add_child(yard)
 	await physics_frame
 	var flow := yard.stage_transition
@@ -51,7 +53,7 @@ func _test_intro_and_walkable_map() -> void:
 	_check(yard.music.stream.resource_path == INDUSTRIAL_TRACK and yard.music.loops(), "Industrial theme loops")
 	_check(yard.music.bus == &"Music" and yard.music.volume_db == -6.0, "Industrial track routing/volume")
 	_check(yard.actors.y_sort_enabled and yard.camera.target == yard.player, "Normal actor sorting/camera")
-	var background := yard.get_node("Background") as Sprite2D
+	var background := yard.get_node("PlatformBlocks/Background") as Sprite2D
 	_check(background.texture.get_size() == Vector2(1056, 576), "Complete original industrial picture dimensions")
 	_check(background.position == Vector2(0, -264), "Original picture floor alignment")
 	_check(yard.camera.limit_right == 1056 and yard.camera.limit_top == -264, "Camera frames the original picture")
@@ -91,10 +93,19 @@ func _test_intro_and_walkable_map() -> void:
 			Input.action_press(&"move_up")
 			await _wait_until(func() -> bool: return yard.player.position.y <= 156, 80)
 			Input.action_release(&"move_up")
-			await _jump_to_surface(yard, 128)
+			await _jump_to_surface(yard, 104)
 			await _walk_to_x(yard, 500)
-			await _jump_to_surface(yard, 176)
-			await _jump_to_surface(yard, 208)
+			await _jump_to_surface(yard, 152)
+			await _jump_to_surface(yard, 192)
+			# Walk in front of the newly traced, full-height crate stack.
+			Input.action_press(&"move_down")
+			await _wait_until(func() -> bool: return yard.player.position.y >= 184, 60)
+			Input.action_release(&"move_down")
+		if index == 3:
+			# The conveyor now has a solid raised face; use the front deck lane.
+			Input.action_press(&"move_down")
+			await _wait_until(func() -> bool: return yard.player.position.y >= 216, 60)
+			Input.action_release(&"move_down")
 		for tick: int in range(600):
 			if encounter.state == EncounterController.ACTIVE:
 				break
@@ -116,6 +127,7 @@ func _test_intro_and_walkable_map() -> void:
 				bosses += 1
 			if actor is EnemyFighter:
 				_check(actor.target == yard.player, "Yard enemies target Billy")
+				_check(actor.terrain_motor != null and actor.terrain_motor.terrain == yard.get_node("Terrain"), "Spawned enemy uses the industrial terrain motor")
 				actor.queue_free()
 		_check(williams == expected_williams[index] and lindas == expected_lindas[index], "Yard mixed roster %d" % index)
 		_check(bosses == (1 if index == 3 else 0), "Abobo only in final yard encounter")
@@ -166,6 +178,28 @@ func _jump_to_surface(stage: PrototypeAlley, height: float) -> void:
 			break
 	Input.action_release(&"move_right")
 	_check(landed, "Buffered K lands on traced original surface %s (at %s, floor %s)" % [height, stage.player.position, stage.player.jump_component.ground_elevation])
+
+
+func _test_live_gate_combat() -> void:
+	var yard := YARD.instantiate() as PrototypeAlley
+	root.add_child(yard)
+	await _wait_until(func() -> bool: return not yard.stage_transition.is_busy(), 100)
+	var gate := yard.encounter_controllers()[0]
+	var attacks: Array[int] = []
+	gate.enemy_spawned.connect(func(enemy: Node2D) -> void:
+		(enemy as EnemyFighter).combat_component.attack_started.connect(func() -> void: attacks.append(1)))
+	yard.player.position = Vector2(160, 192)
+	yard.player.hurtbox.is_invulnerable = true
+	_check(await _wait_until(func() -> bool: return not attacks.is_empty(), 360), "Default Stage 2 enemies actively approach and attack Billy")
+	_check(await _wait_until(func() -> bool: return gate.spawned_count == gate.enemy_count, 160), "Live gate wave finishes spawning")
+	_check(gate.state == EncounterController.ACTIVE and yard.camera.is_locked, "Live fight locks the camera until enemies are defeated")
+	# Use the real health/defeat path, rather than freeing live actors directly.
+	for actor: Node in yard.actors.get_children():
+		if actor is EnemyFighter:
+			actor.health_component.take_damage(999)
+	_check(await _wait_until(func() -> bool: return gate.is_cleared(), 240), "Defeating the live wave clears the encounter")
+	_check(not yard.camera.is_locked, "Defeating the live wave unlocks forward progress")
+	await AudioSettle.free_level(self, yard)
 
 
 func _test_no_skipping_fights() -> void:

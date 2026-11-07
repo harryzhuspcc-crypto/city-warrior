@@ -87,7 +87,7 @@ func _test_exact_original_pixels() -> void:
 func _test_traced_shapes_and_back_wall() -> void:
 	var stage := await _new_stage()
 	var terrain := stage.get_node("Terrain") as BeltTerrainMap
-	_check(terrain.surfaces.size() == 13, "Only the original visible surface tops are authored")
+	_check(terrain.surfaces.size() == 17, "Original platforms plus six separately traced crate tops are authored")
 	for surface: Dictionary in terrain.surfaces:
 		var name := String(surface["name"])
 		var area := terrain.get_node(name) as Area2D
@@ -126,16 +126,16 @@ func _test_traced_shapes_and_back_wall() -> void:
 	player.set_physics_process(false)
 	var saved_mask := player.collision_mask
 	var transform := player.global_transform
-	transform.origin = Vector2(420, 156)
+	transform.origin = Vector2(420, 140)
 	terrain.sync_platform_collisions(player, 80.0, 18.0, false)
 	player.collision_mask = BeltTerrainMap.PLATFORM_WALL_LAYER
 	_check(player.test_move(transform, Vector2(60, 0)), "Actual steel blocker stops a lower fighter even where girder support overlaps")
-	terrain.sync_platform_collisions(player, 128.0, 0.5, false)
+	terrain.sync_platform_collisions(player, 104.0, 0.5, false)
 	_check(not player.test_move(transform, Vector2(60, 0)), "The same steel blocker permits a fighter who clears its top")
 	player.collision_mask = saved_mask
 	player.set_physics_process(true)
 	_check(terrain.floor_at(368, 192, 80) == null, "The original dark gap is unsupported, not covered with an invented street")
-	_check(terrain.floor_at(1008, 208, 208) != 208.0, "The roof stops at its visible slanted edge")
+	_check(terrain.floor_at(1008, 192, 192) != 192.0, "The roof stops at its visible slanted edge")
 	await _place(stage, Vector2(96, 160), 0)
 	Input.action_press(&"move_up")
 	await _frames(50)
@@ -146,22 +146,22 @@ func _test_traced_shapes_and_back_wall() -> void:
 	await _frames(20)
 	_release()
 	_check(stage.player.position.x > 110 and stage.player.position.y >= 136, "Diagonal movement slides along the picture's back wall instead of sticking on both axes")
-	await _place(stage, Vector2(720, 224), 208)
+	await _place(stage, Vector2(720, 208), 192)
 	Input.action_press(&"move_down")
 	await _frames(7)
 	_release()
-	_check(stage.player.terrain_motor.checkpoint.y <= 224.01, "Depth-edge checkpoints retain room for the entire foot instead of saving the front roof lip")
+	_check(stage.player.terrain_motor.checkpoint.y <= 208.01, "Depth-edge checkpoints retain room for the entire foot instead of saving the front roof lip")
 	await AudioSettle.free_level(self, stage)
 
 
 func _test_native_conveyor_and_crates() -> void:
 	var stage := await _new_stage()
 	var player := stage.player
-	await _place(stage, Vector2(880, 192), 224)
+	await _place(stage, Vector2(880, 176), 208)
 	var start := player.position.x
 	await _frames(30)
 	_check(absf(player.position.x - start - 12.0) < 1.0, "Only the original small blue conveyor carries an idle fighter at 24 px/s")
-	_check(is_equal_approx(player.jump_component.ground_elevation, 224), "Conveyor top is sixteen pixels above the actual roof")
+	_check(is_equal_approx(player.jump_component.ground_elevation, 208), "Conveyor top is sixteen pixels above the actual roof")
 	Input.action_press(&"move_left")
 	start = player.position.x
 	await _frames(15)
@@ -172,7 +172,7 @@ func _test_native_conveyor_and_crates() -> void:
 	start = player.position.x
 	await _frames(12)
 	_check(absf(player.position.x - start) < 0.5, "Belt does not drag fighters through the air")
-	await _place(stage, Vector2(704, 168), 208)
+	await _place(stage, Vector2(704, 152), 192)
 	Input.action_press(&"move_left")
 	await _frames(40)
 	_release()
@@ -184,17 +184,18 @@ func _test_native_conveyor_and_crates() -> void:
 func _test_both_native_ladders() -> void:
 	var stage := await _new_stage()
 	var player := stage.player
-	await _place(stage, Vector2(736, 168), 208)
+	await _place(stage, Vector2(736, 152), 192)
 	Input.action_press(&"move_up")
-	_check(await _until(func() -> bool: return player.climb_component.is_on_platform, 190), "Actual upper ladder reaches its pictured awning")
+	_check(await _until(func() -> bool: return is_equal_approx(player.jump_component.ground_elevation, 320) and not player.climb_component.is_elevated(), 190), "Actual upper ladder reaches its pictured awning")
 	_release()
-	_check(is_equal_approx(player.combat_elevation(), 336), "Awning height includes the roof below, not just the ladder length")
-	_check(is_equal_approx(player.visuals.position.y, -376), "Feet line up with original awning at picture y=96")
+	_check(is_equal_approx(player.combat_elevation(), 320), "Awning height includes the roof below, not just the ladder length")
+	_check(is_equal_approx(player.visuals.position.y, -360), "Feet line up with original awning at picture y=96")
 	Input.action_press(&"move_down")
+	_check(await _until(func() -> bool: return player.climb_component.is_climbing, 30), "Awning descent starts from its walkable terrain top")
 	_check(await _until(func() -> bool: return not player.climb_component.is_elevated(), 190), "Upper ladder descends back onto the roof")
 	_release()
-	_check(is_equal_approx(player.jump_component.ground_elevation, 208), "Awning descent retains the loading roof as its floor")
-	await _place(stage, Vector2(888, 232), 208)
+	_check(is_equal_approx(player.jump_component.ground_elevation, 192), "Awning descent retains the loading roof as its floor")
+	await _place(stage, Vector2(888, 216), 192)
 	Input.action_press(&"move_down")
 	_check(await _until(func() -> bool: return player.climb_component.is_climbing, 8), "Down enters the pictured front ladder from the roof edge")
 	_check(await _until(func() -> bool: return not player.climb_component.is_elevated(), 290), "Front ladder reaches the original lower yard")
@@ -202,7 +203,7 @@ func _test_both_native_ladders() -> void:
 	_check(is_zero_approx(player.jump_component.ground_elevation), "Lower yard is a real ground floor")
 	_check(player.health_component.current_health == 100, "Descending the front ladder is not a pit fall")
 	Input.action_press(&"move_up")
-	_check(await _until(func() -> bool: return is_equal_approx(player.jump_component.ground_elevation, 208) and not player.climb_component.is_elevated(), 290), "Front ladder returns control to ordinary rooftop fighting, not an invulnerable decorative ledge")
+	_check(await _until(func() -> bool: return is_equal_approx(player.jump_component.ground_elevation, 192) and not player.climb_component.is_elevated(), 290), "Front ladder returns control to ordinary rooftop fighting, not an invulnerable decorative ledge")
 	_release()
 	_check(not player.hurtbox.is_invulnerable, "Front ladder handoff restores normal vulnerability")
 	await AudioSettle.free_level(self, stage)
@@ -211,25 +212,25 @@ func _test_both_native_ladders() -> void:
 func _test_falls_and_defeat() -> void:
 	var stage := await _new_stage()
 	var player := stage.player
-	await _place(stage, Vector2(720, 208), 208)
+	await _place(stage, Vector2(720, 192), 192)
 	player.terrain_motor.checkpoint = player.position
 	player.position = Vector2(1040, 208)
 	player.terrain_motor.after_move()
-	_check(await _until(func() -> bool: return player.health_component.current_health == 80, 130), "Falling past the actual roof lip costs 20 HP")
-	_check(player.position.distance_to(Vector2(720, 208)) < 1.0, "Recovery returns to supported original artwork")
+	_check(await _until(func() -> bool: return player.terrain_motor.remaining_lives == 2, 130), "Falling past the actual roof lip costs one life")
+	_check(player.position.distance_to(Vector2(720, 192)) < 1.0, "Recovery returns to supported original artwork")
 	_check(player.hurtbox.is_invulnerable, "Recovery grants temporary protection")
 	await _frames(55)
-	_check(not player.hurtbox.is_invulnerable and player.health_component.current_health == 80, "Recovery does not repeat the fall or leave permanent invulnerability")
+	_check(not player.hurtbox.is_invulnerable and player.health_component.current_health == 100 and player.terrain_motor.remaining_lives == 2, "Recovery does not repeat the fall or leave permanent invulnerability")
 	# A checkpoint can belong to a higher floor than the most recent launch.
 	# Recovery must retain that floor, not resample with the lower fall's ceiling.
 	player.jump_component.ground_elevation = 0.0
 	player.position = Vector2(1040, 208)
 	player.terrain_motor.after_move()
-	_check(await _until(func() -> bool: return player.health_component.current_health == 60, 130), "A fall from a lower floor still recovers to the saved rooftop checkpoint")
-	_check(is_equal_approx(player.jump_component.ground_elevation, 208), "Checkpoint stores elevation as well as x/depth")
+	_check(await _until(func() -> bool: return player.terrain_motor.remaining_lives == 1, 130), "A fall from a lower floor still recovers to the saved rooftop checkpoint")
+	_check(is_equal_approx(player.jump_component.ground_elevation, 192), "Checkpoint stores elevation as well as x/depth")
 	var enemy := WILLIAMS.instantiate() as EnemyFighter
 	enemy.position = Vector2(1040, 208)
-	enemy.set_meta(&"terrain_height", 208.0)
+	enemy.set_meta(&"terrain_height", 192.0)
 	enemy.death_linger_frames = 0
 	stage.actors.add_child(enemy)
 	(stage.get_node("Terrain") as BeltTerrainMap).attach_actor(enemy)
@@ -238,7 +239,7 @@ func _test_falls_and_defeat() -> void:
 	var enemy_ref: WeakRef = weakref(enemy)
 	_check(await _until(func() -> bool: return enemy_ref.get_ref() == null, 130), "Enemies also fall outside the traced deck")
 	_check(reports.size() == 1, "Enemy pit death reports exactly once even with zero death linger")
-	player.health_component.take_damage(40)
+	_check(player.health_component.current_health == 100, "Surviving pit recovery spends lives, not health")
 	player.position = Vector2(1040, 208)
 	player.terrain_motor.after_move()
 	_check(await _until(func() -> bool: return stage.state == PrototypeAlley.DEFEATED, 130), "Fatal falls use normal defeat/restart flow")

@@ -45,20 +45,20 @@ func _run() -> void:
 	Input.action_press(&"move_up")
 	await _frames(50)
 	_release()
-	_check(stage.player.position.y < 124.0 and not stage.player.jump_component.is_airborne, "Up reaches the girder's actual rear edge instead of the old global boundary")
+	_check(stage.player.position.y >= 127.9 and stage.player.position.y <= 128.1 and not stage.player.jump_component.is_airborne, "Up meets the selected girder rear wall with room for the feet")
 	# These raised tops overlap the girder's support polygon. The old
 	# floor-only check let Billy walk straight through their vertical faces.
-	await _place(stage, Vector2(420, 156), 80)
+	await _place(stage, Vector2(420, 140), 80)
 	Input.action_press(&"move_right")
 	await _frames(35)
 	_release()
-	_check(stage.player.position.x <= 425.1, "Red step face blocks walking even with lower floor underneath")
+	_check(stage.player.position.x <= 433.1, "Red step face blocks walking even with lower floor underneath")
 	_check(stage.player.jump_component.ground_elevation == 80.0, "Walking into a tall face never teleports Billy up")
-	await _place(stage, Vector2(420, 156), 80)
-	await _jump_right(stage, 128.0) # Marked platform 1.
+	await _place(stage, Vector2(420, 140), 80)
+	await _jump_right(stage, 104.0) # Marked platform 1.
 	await _walk_right(stage, 500)
-	await _jump_right(stage, 176.0) # Marked platform 2.
-	await _jump_right(stage, 208.0) # Main deck.
+	await _jump_right(stage, 152.0) # Marked platform 2.
+	await _jump_right(stage, 192.0) # Main deck.
 	_check(stage.player.health_component.current_health == 100, "Forgiving route never costs fall damage")
 	_check(terrain.floor_at(384, 192, 48) == null, "Landing assist does not fill the actual pit")
 	await AudioSettle.free_level(self, stage)

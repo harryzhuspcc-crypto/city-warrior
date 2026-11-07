@@ -8,7 +8,6 @@ signal fell_into_pit
 signal lives_changed(remaining: int)
 signal pit_impact(point: Vector2, height: float, kind: String)
 
-const STEP_HEIGHT := 18.0
 const GRAVITY := 600.0
 const PIT_BOTTOM := -112.0
 const PIT_DAMAGE := 20
@@ -33,6 +32,10 @@ var remaining_lives: int = 0
 var _pit_hazard: Dictionary = {}
 var _pit_impact_emitted: bool = false
 var _visual_scale := Vector2.ONE
+# Keep the takeoff surface policy throughout a fall/jump until landing.
+var _drop_edges: bool = false
+var _block_back_edge: bool = false
+var _support_elevation: float = 0.0
 
 
 func initialize() -> void:
@@ -50,6 +53,7 @@ func initialize() -> void:
 	checkpoint_elevation = _enemy_height
 	if jump != null:
 		jump.ground_elevation = _enemy_height
+	_remember_support()
 	_initialized = true
 	process_physics_priority = -10
 	_sync_platform_collisions()
@@ -119,11 +123,12 @@ func resolve_velocity(velocity: Vector2) -> Vector2:
 
 func _sync_platform_collisions() -> void:
 	if _initialized and body.is_physics_processing():
-		terrain.sync_platform_collisions(body, elevation(), 0.5 if is_falling() else STEP_HEIGHT, _paired())
+		terrain.sync_platform_collisions(body, elevation(), 0.5 if is_falling() else terrain.step_height, _paired())
+		terrain.sync_rear_wall_collisions(body, jump.ground_elevation if jump != null else _support_elevation, _paired())
 
 
 func _point_blocks(point: Vector2, toward_back: bool) -> bool:
-	var clearance := 0.5 if is_falling() else STEP_HEIGHT
+	var clearance := 0.5 if is_falling() else terrain.step_height
 	# Clip the requested axes before move_and_slide can deflect a fighter
 	# sideways off a sloping steel face into the opening pit.
 	if terrain.platform_blocks_at(point, elevation() + clearance, _footprint.grow(0.1)):
@@ -136,6 +141,12 @@ func _point_blocks(point: Vector2, toward_back: bool) -> bool:
 
 
 func _edge_blocks(point: Vector2, toward_back: bool) -> bool:
+	if _drop_edges:
+		if _block_back_edge and toward_back:
+			var rear_floor: Variant = _edge_floor_at(point, _support_elevation + terrain.step_height)
+			if rear_floor == null or float(rear_floor) < _support_elevation - terrain.step_height:
+				return true
+		return false # Solid faces still block in _point_blocks and physics.
 	# Real holes/water are not rear walls. Other back edges still hold the
 	# actor inside the pictured floor, including beside a hole's x column.
 	if not terrain.hazard_at(point, jump.ground_elevation if jump != null else _enemy_height).is_empty():
@@ -147,12 +158,12 @@ func _edge_blocks(point: Vector2, toward_back: bool) -> bool:
 		if toward_back:
 			return not terrain.allows_fall_at(point.x) and _edge_floor_at(point) == null
 		return not terrain.allows_fall_at(point.x) and not _has_landing_near(point)
-	var floor: Variant = _edge_floor_at(point, elevation() + STEP_HEIGHT)
-	if toward_back and (floor == null or float(floor) < elevation() - STEP_HEIGHT):
+	var floor: Variant = _edge_floor_at(point, elevation() + terrain.step_height)
+	if toward_back and (floor == null or float(floor) < elevation() - terrain.step_height):
 		return true
 	if terrain.allows_fall_at(point.x):
 		return false
-	return floor == null or float(floor) < elevation() - STEP_HEIGHT
+	return floor == null or float(floor) < elevation() - terrain.step_height
 
 
 # A slightly smaller foot than the support check uses, so a spot allowed by
@@ -197,12 +208,18 @@ func _assisted_landing(ceiling: float) -> void:
 			if surface.is_empty() or float(surface.get("landing_depth_assist", 0.0)) < float(distance):
 				continue
 			var floor := float(surface["height"])
+			# Assist only an ascent onto a higher floor. A surface can also
+			# drop through a map fall zone with drop_edges=false; pulling it
+			# back to its launch height makes an endless fall/land cycle.
+			if floor <= _support_elevation:
+				continue
 			if floor < elevation() or body.test_move(body.global_transform, motion):
 				continue
 			body.global_position = point
 			jump.ground_elevation = float(floor)
 			_ledge_grace_frames = 0
 			jump.land_immediately()
+			_remember_support()
 			return
 
 
@@ -247,23 +264,32 @@ func physics_jump(delta: float) -> void:
 		_pit_fall()
 
 
+func _remember_support() -> void:
+	var surface := terrain.surface_at(body.global_position.x, body.global_position.y, elevation() + 0.01, _footprint)
+	_drop_edges = bool(surface.get("drop_edges", false))
+	_block_back_edge = bool(surface.get("block_back_edge", false))
+	_support_elevation = float(surface.get("height", elevation()))
+
+
 func _update_player_support() -> void:
 	if not _pit_hazard.is_empty():
 		return # Walking onto the opposite rim cannot replace a missing jump.
 	var landing_sweep := maxf(0.0, -jump.jump_velocity * body.get_physics_process_delta_time())
-	var floor: Variant = _floor_at(body.global_position, elevation() + (landing_sweep + 0.5 if jump.is_airborne else STEP_HEIGHT))
+	var floor: Variant = _floor_at(body.global_position, elevation() + (landing_sweep + 0.5 if jump.is_airborne else terrain.step_height))
 	if not jump.is_airborne:
-		if floor == null or float(floor) < elevation() - STEP_HEIGHT:
+		if floor == null or float(floor) < elevation() - terrain.step_height:
 			jump.is_airborne = true
 			jump.jump_velocity = 0.0
 			_ledge_grace_frames = LEDGE_GRACE_FRAMES
 			_commit_pit_if_needed()
-		elif float(floor) <= elevation() + STEP_HEIGHT:
+		elif float(floor) <= elevation() + terrain.step_height:
 			jump.ground_elevation = float(floor)
+			_remember_support()
 	elif floor != null and jump.jump_velocity <= 0.0 and elevation() <= float(floor):
 		_ledge_grace_frames = 0
 		jump.ground_elevation = float(floor)
 		jump.land_immediately()
+		_remember_support()
 	elif jump.is_airborne:
 		if floor == null and jump.jump_velocity <= 0.0 and jump.jump_height <= 0.0:
 			_commit_pit_if_needed()
@@ -291,19 +317,30 @@ func _tick_pit_impact() -> void:
 	body.get(&"visuals").scale = _visual_scale * lerpf(0.6, 1.0, fade)
 
 
+## Starts a deliberate enemy jump; gravity/landing share the existing fall clock.
+func try_enemy_jump(takeoff_speed: float) -> bool:
+	if jump != null or _enemy_falling or _paired() or takeoff_speed <= 0.0:
+		return false
+	_enemy_falling = true
+	_enemy_velocity = takeoff_speed
+	return true
+
+
 func _update_enemy_support() -> void:
 	var landing_sweep := maxf(0.0, -_enemy_velocity * body.get_physics_process_delta_time())
-	var floor: Variant = _floor_at(body.global_position, _enemy_height + (landing_sweep + 0.5 if _enemy_falling else STEP_HEIGHT))
+	var floor: Variant = _floor_at(body.global_position, _enemy_height + (landing_sweep + 0.5 if _enemy_falling else terrain.step_height))
 	if not _enemy_falling:
-		if floor == null or float(floor) < _enemy_height - STEP_HEIGHT:
+		if floor == null or float(floor) < _enemy_height - terrain.step_height:
 			_enemy_falling = true
 			_enemy_velocity = 0.0
-		elif float(floor) <= _enemy_height + STEP_HEIGHT:
+		elif float(floor) <= _enemy_height + terrain.step_height:
 			_enemy_height = float(floor)
+			_remember_support()
 	elif floor != null and _enemy_velocity <= 0.0 and _enemy_height <= float(floor):
 		_enemy_height = float(floor)
 		_enemy_falling = false
 		_enemy_velocity = 0.0
+		_remember_support()
 
 
 func _physics_process(delta: float) -> void:
@@ -357,8 +394,11 @@ func _save_checkpoint() -> void:
 	# Billy's feet extend eight pixels BACK from his origin, not equally in
 	# both depth directions. Fit checkpoints onto the real narrow strip in
 	# front of Stage 3's holes without saving his toes over either rim.
-	var rear_margin := 10.0 if terrain.pit_lives > 0 else 8.0
-	var front_margin := 2.0 if terrain.pit_lives > 0 else 8.0
+	# Narrow planks around explicit hazards need asymmetric margins.
+	# A life counter alone must not loosen ordinary platform checkpoints.
+	var narrow_hazard_floor := not terrain.hazards.is_empty()
+	var rear_margin := 10.0 if narrow_hazard_floor else 8.0
+	var front_margin := 2.0 if narrow_hazard_floor else 8.0
 	for offset: Vector2 in [Vector2(-8, 0), Vector2(0, -rear_margin), Vector2(0, front_margin)]:
 		var floor: Variant = terrain.floor_at(x + offset.x, y + offset.y, height + 0.5)
 		if floor == null or not is_equal_approx(float(floor), height):
@@ -398,6 +438,7 @@ func _pit_fall() -> void:
 	body.velocity = Vector2.ZERO
 	jump.ground_elevation = checkpoint_elevation
 	jump.land_immediately()
+	_remember_support()
 	player.audio_component.play_ground_fall()
 	if terrain.pit_lives > 0:
 		remaining_lives = maxi(remaining_lives - 1, 0)

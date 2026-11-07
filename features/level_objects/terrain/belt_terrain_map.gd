@@ -14,6 +14,8 @@ var image_offset_y: float = -264.0
 var fall_zone_max_x: float = INF
 ## Optional depth correction on jump landings, never an expanded floor polygon.
 var landing_depth_assist: float = 0.0
+## Maximum automatic step; zero requires jumping onto every raised top.
+var step_height: float = 18.0
 var _fall_zones: Array = []
 var _polygons: Array[PackedVector2Array] = []
 var _bounds: Array[Rect2] = []
@@ -21,6 +23,7 @@ var hazards: Array = []
 var pit_lives: int = 0
 var _blockers: Array = []
 var _hazard_polygons: Array[PackedVector2Array] = []
+var _scoped_rear_walls: Array[StaticBody2D] = []
 var _platform_walls: Array[StaticBody2D] = []
 
 
@@ -30,6 +33,7 @@ func _ready() -> void:
 	image_offset_y = float(layout["image_offset_y"])
 	fall_zone_max_x = float(layout.get("fall_zone_max_x", INF))
 	landing_depth_assist = float(layout.get("landing_depth_assist", 0.0))
+	step_height = maxf(0.0, float(layout.get("step_height", 18.0)))
 	_fall_zones = layout.get("fall_zones", [])
 	hazards = layout.get("hazards", [])
 	pit_lives = int(layout.get("pit_lives", 0))
@@ -118,7 +122,7 @@ func blocker_mask_at(height: float, base_height: float) -> int:
 			continue
 		var bottom := float(blocker["height"]) - 16.0
 		if blocker.get("solid_wall", false):
-			if base_height >= bottom:
+			if base_height >= bottom and base_height <= float(blocker.get("max_base_height", INF)):
 				mask |= ROOF_WALL_LAYER
 		elif height >= bottom and height <= float(blocker["height"]) + 32.0:
 			mask |= OBSTACLE_LAYER
@@ -173,6 +177,15 @@ func sync_platform_collisions(actor: CharacterBody2D, height: float, clearance: 
 	actor.set_collision_mask_value(14, not bypass and not _platform_walls.is_empty())
 	for wall: StaticBody2D in _platform_walls:
 		if bypass or height + clearance >= float(wall.get_meta(&"top_height")):
+			actor.add_collision_exception_with(wall)
+		else:
+			actor.remove_collision_exception_with(wall)
+
+
+func sync_rear_wall_collisions(actor: CharacterBody2D, base_height: float, bypass: bool) -> void:
+	# Per-body exceptions: a global layer mask would activate every stacked wall.
+	for wall: StaticBody2D in _scoped_rear_walls:
+		if bypass or not is_equal_approx(base_height, float(wall.get_meta(&"base_height"))):
 			actor.add_collision_exception_with(wall)
 		else:
 			actor.remove_collision_exception_with(wall)
@@ -241,6 +254,9 @@ func _build_collision_shapes(layout: Dictionary) -> void:
 		if obstacle.get("world_boundary", false):
 			wall.collision_layer = 1
 		wall.collision_mask = 0
+		if obstacle.has("base_height"):
+			wall.set_meta(&"base_height", obstacle["base_height"])
+			_scoped_rear_walls.append(wall)
 		var shape := CollisionPolygon2D.new()
 		shape.name = "FootprintCollision"
 		var polygon := _polygon(obstacle)

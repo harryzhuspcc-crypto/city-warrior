@@ -213,16 +213,22 @@ func _test_input_recognition(input: PlayerInputComponent) -> String:
 	input.queue_direction_tap(-1.0)
 	input.end_physics_tick()
 	input.queue_direction_tap(-1.0)
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if input.consume_head_attack_direction() != -1.0:
 		return "Rapid LEFT LEFT did not queue a left head attack"
 	input.queue_direction_tap(1.0)
 	input.end_physics_tick()
 	input.queue_direction_tap(1.0)
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if input.consume_head_attack_direction() != 1.0:
 		return "Rapid RIGHT RIGHT did not queue a right head attack"
 
 	input.queue_direction_tap(-1.0)
 	input.queue_direction_tap(1.0)
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if not is_zero_approx(input.consume_head_attack_direction()):
 		return "Opposite direction taps incorrectly triggered head attack"
 
@@ -231,6 +237,8 @@ func _test_input_recognition(input: PlayerInputComponent) -> String:
 	for _frame: int in range(input.double_tap_window_frames):
 		input.end_physics_tick()
 	input.queue_direction_tap(-1.0)
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if input.consume_head_attack_direction() != -1.0:
 		return "LEFT LEFT rejected its inclusive 12-frame boundary"
 	input.clear_buffered_actions()
@@ -238,6 +246,8 @@ func _test_input_recognition(input: PlayerInputComponent) -> String:
 	for _frame: int in range(input.double_tap_window_frames + 1):
 		input.end_physics_tick()
 	input.queue_direction_tap(1.0)
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if not is_zero_approx(input.consume_head_attack_direction()):
 		return "RIGHT RIGHT triggered after its 12-frame window"
 
@@ -249,6 +259,8 @@ func _test_input_recognition(input: PlayerInputComponent) -> String:
 	Input.action_press(&"move_left")
 	input.physics_tick()
 	Input.action_release(&"move_left")
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if not is_zero_approx(input.consume_head_attack_direction()):
 		return "One direction press was double-counted by event plus polling"
 	input.end_physics_tick()
@@ -262,6 +274,8 @@ func _test_input_recognition(input: PlayerInputComponent) -> String:
 	arrow_press.pressed = true
 	input._unhandled_input(a_press)
 	input._unhandled_input(arrow_press)
+	for _frame: int in range(input.chord_window_frames):
+		input.end_physics_tick()
 	if not is_zero_approx(input.consume_head_attack_direction()):
 		return "Simultaneous A and Left Arrow falsely counted as LEFT LEFT"
 	var a_release := a_press.duplicate() as InputEventKey
@@ -441,6 +455,8 @@ func _test_player_specials(
 	player.input_component.queue_direction_tap(-1.0)
 	player.input_component.end_physics_tick()
 	player.input_component.queue_direction_tap(-1.0)
+	for _frame: int in range(player.input_component.chord_window_frames):
+		player._physics_process(DELTA)
 	player._physics_process(DELTA)
 	if player.combat_component.current_attack_data != head_attack:
 		return "Rapid LEFT LEFT did not start head attack"
@@ -487,6 +503,8 @@ func _test_player_specials(
 	player.input_component.queue_direction_tap(1.0)
 	player.input_component.end_physics_tick()
 	player.input_component.queue_direction_tap(1.0)
+	for _frame: int in range(player.input_component.chord_window_frames):
+		player._physics_process(DELTA)
 	player._physics_process(DELTA)
 	if player.combat_component.current_attack_data != head_attack:
 		return "Rapid RIGHT RIGHT did not start head attack"

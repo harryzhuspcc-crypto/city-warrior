@@ -1,0 +1,203 @@
+[gd_resource type="Resource" format=3]
+
+[resource]
+metadata/layout = {
+  "surfaces": [
+    {
+      "name": "Ground",
+      "height": 0,
+      "solid": false,
+      "drop_edges": false,
+      "polygon": [
+        [
+          -24,
+          65
+        ],
+        [
+          576,
+          65
+        ],
+        [
+          600,
+          355
+        ],
+        [
+          0,
+          355
+        ]
+      ]
+    },
+    {
+      "name": "Level1",
+      "height": 32,
+      "solid": true,
+      "drop_edges": true,
+      "polygon": [
+        [
+          86,
+          128
+        ],
+        [
+          496,
+          128
+        ],
+        [
+          520,
+          228
+        ],
+        [
+          110,
+          228
+        ]
+      ]
+    },
+    {
+      "name": "Level2",
+      "height": 64,
+      "solid": true,
+      "drop_edges": true,
+      "polygon": [
+        [
+          186,
+          96
+        ],
+        [
+          496,
+          96
+        ],
+        [
+          520,
+          196
+        ],
+        [
+          210,
+          196
+        ]
+      ]
+    },
+    {
+      "name": "Level3",
+      "height": 96,
+      "solid": true,
+      "drop_edges": true,
+      "polygon": [
+        [
+          286,
+          64
+        ],
+        [
+          496,
+          64
+        ],
+        [
+          520,
+          164
+        ],
+        [
+          310,
+          164
+        ]
+      ]
+    },
+    {
+      "name": "Block1",
+      "height": 52,
+      "solid": true,
+      "drop_edges": true,
+      "polygon": [
+        [
+          126,
+          138
+        ],
+        [
+          150,
+          138
+        ],
+        [
+          174,
+          160
+        ],
+        [
+          150,
+          160
+        ]
+      ]
+    },
+    {
+      "name": "Block2",
+      "height": 84,
+      "solid": true,
+      "drop_edges": true,
+      "polygon": [
+        [
+          226,
+          106
+        ],
+        [
+          250,
+          106
+        ],
+        [
+          274,
+          128
+        ],
+        [
+          250,
+          128
+        ]
+      ]
+    },
+    {
+      "name": "Block3",
+      "height": 116,
+      "solid": true,
+      "drop_edges": true,
+      "polygon": [
+        [
+          326,
+          74
+        ],
+        [
+          350,
+          74
+        ],
+        [
+          374,
+          96
+        ],
+        [
+          350,
+          96
+        ]
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "name": "UpperBoundary",
+      "height": 0,
+      "world_boundary": true,
+      "polygon": [
+        [
+          -1000,
+          -1000
+        ],
+        [
+          1000,
+          -1000
+        ],
+        [
+          1000,
+          160
+        ],
+        [
+          -1000,
+          160
+        ]
+      ]
+    }
+  ],
+  "image_offset_y": 0.0,
+  "step_height": 0.0,
+  "fall_zone_max_x": -1.0
+}

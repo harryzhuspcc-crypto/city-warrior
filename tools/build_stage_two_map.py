@@ -8,6 +8,7 @@ into the picture. No tiled panels, copied floor, new pits or conveyor overlay.
 import json
 from pathlib import Path
 from PIL import Image
+from build_industrial_blocks import manifest_text
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -23,8 +24,8 @@ def build() -> None:
     # Keep original RGBA, including the source's transparent unused regions.
     assert Image.open(output).convert("RGBA").tobytes() == picture.tobytes()
     (ROOT / "assets/stages/industrial_layout.tres").write_text(
-        '[gd_resource type="Resource" format=3]\n\n[resource]\nmetadata/layout = '
-        + json.dumps(layout, indent=2) + '\n'
+        '[gd_resource type="Resource" format=3 uid="uid://codfnlsrb6m6q"]\n\n[resource]\nmetadata/layout = '
+        + manifest_text(layout) + '\n'
     )
     print(f"Extracted unchanged industrial picture: {output} ({width}x{height})")
 

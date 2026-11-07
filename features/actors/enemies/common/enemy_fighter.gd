@@ -1,6 +1,11 @@
 class_name EnemyFighter
 extends CharacterBody2D
 
+const TerrainPursuit := preload("res://features/actors/enemies/common/enemy_terrain_pursuit.gd")
+
+@export var can_follow_platforms: bool = false
+var _terrain_pursuit: RefCounted
+
 signal defeated
 
 @export var fighter_stats: FighterStats
@@ -29,6 +34,7 @@ var terrain_motor: BeltTerrainMotor
 
 
 func _ready() -> void:
+	_terrain_pursuit = TerrainPursuit.new(self)
 	_validate_dependencies()
 	_runtime_stats = fighter_stats.duplicate(true) as FighterStats
 	health_component.configure(_runtime_stats)
@@ -70,8 +76,16 @@ func _physics_process(_delta: float) -> void:
 	if terrain_motor != null and terrain_motor.is_falling():
 		_cancel_throw()
 		combat_component.cancel_attack()
-		movement_component.stop()
-		visuals.sync_scheduled_pose(&"knockdown", 0, PackedInt32Array([0]), ai_component.facing)
+		if can_follow_platforms and not hit_reaction_component.is_incapacitated() and not is_instance_valid(grab_owner):
+			var direction: Vector2 = _terrain_pursuit.direction()
+			movement_component.move(direction)
+			if not is_zero_approx(direction.x):
+				ai_component.facing = signf(direction.x)
+			# These sheets have no jump animation; hold a locomotion pose.
+			visuals.sync_scheduled_pose(&"walk", 0, PackedInt32Array([0]), ai_component.facing)
+		else:
+			movement_component.stop()
+			visuals.sync_scheduled_pose(&"knockdown", 0, PackedInt32Array([0]), ai_component.facing)
 		return
 
 	if throw_component != null and throw_component.is_active():
@@ -95,6 +109,19 @@ func _physics_process(_delta: float) -> void:
 		global_position,
 		not combat_component.is_attacking and not _target_is_dead()
 	)
+	if can_follow_platforms and terrain_motor != null and ai_component.has_target() and not _target_is_dead() and not combat_component.is_attacking:
+		var target_height: float = target.visual_elevation() if target is Player else 0.0
+		if absf(target_height - combat_elevation()) > 8.0 or global_position.distance_to(target.global_position) > 36.0:
+			ai_component.consume_attack_request()
+			var direction: Vector2 = _terrain_pursuit.direction()
+			ai_component.movement_direction = direction
+			ai_component.intent = EnemyAIComponent.APPROACH
+			if not is_zero_approx(direction.x):
+				ai_component.facing = signf(direction.x)
+			movement_component.move(direction)
+			_apply_locomotion_state()
+			_sync_visuals()
+			return
 	if not combat_component.is_attacking:
 		combat_component.set_facing(ai_component.facing)
 

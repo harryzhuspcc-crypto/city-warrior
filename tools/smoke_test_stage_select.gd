@@ -52,6 +52,10 @@ func _run() -> void:
 		var stage := current_scene as PrototypeAlley
 		_check(stage.scene_file_path == path and instance_from_id(menu_id) == null, "Selection starts the exact chosen stage and frees menu")
 		_check(stage.player.health_component.current_health == 100, "Selected stage has fresh combat health")
+		if index == 1:
+			_check(stage.get("enemy_encounters_enabled"), "Stage 2 selection enables combat by default")
+			for encounter: EncounterController in stage.encounter_controllers():
+				_check(encounter.enabled, "Stage 2 selection arms " + str(encounter.name))
 		stage.set_encounters_enabled(false)
 		var stage_id := stage.get_instance_id()
 		if index % 2 == 0:

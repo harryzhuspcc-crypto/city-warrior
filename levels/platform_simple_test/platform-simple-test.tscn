@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://dovftup35yuf6"]
+
+[ext_resource type="Script" uid="uid://cc3dijh2pfoq7" path="res://levels/platform_simple_test/editable_platform.gd" id="platform"]
+[ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="player"]
+[ext_resource type="Script" uid="uid://dvhwsisv2ixxy" path="res://levels/platform_simple_test/platform_simple_test.gd" id="scene"]
+[ext_resource type="Script" uid="uid://b07atjjad81ni" path="res://levels/platform_simple_test/editor_terrain.gd" id="terrain"]
+
+[node name="PlatformSimpleTest" type="Node2D" unique_id=918529837]
+script = ExtResource("scene")
+
+[node name="Platforms" type="Node2D" parent="." unique_id=378711016]
+
+[node name="Ground" type="Polygon2D" parent="Platforms" unique_id=1658959673]
+color = Color(0.075, 0.105, 0.15, 1)
+polygon = PackedVector2Array(-300, -100, 900, -100, 900, 650, -300, 650)
+script = ExtResource("platform")
+height = 0.0
+solid = false
+fall_from_edges = false
+rear_wall = false
+
+[node name="Level4" type="Polygon2D" parent="Platforms" unique_id=798934872]
+position = Vector2(1, 0)
+polygon = PackedVector2Array(620, 54, 740, 54, 780, 114, 660, 114)
+script = ExtResource("platform")
+height = 128.0
+show_depth_footprint = true
+
+[node name="Level3" type="Polygon2D" parent="Platforms" unique_id=940179253]
+position = Vector2(170, -32)
+color = Color(0.3, 0.59, 0.65, 1)
+polygon = PackedVector2Array(280, 118, 450, 118, 490, 178, 320, 178)
+script = ExtResource("platform")
+height = 96.0
+show_depth_footprint = true
+
+[node name="Level2" type="Polygon2D" parent="Platforms" unique_id=454042122]
+color = Color(0.3, 0.59, 0.65, 1)
+polygon = PackedVector2Array(280, 118, 450, 118, 490, 178, 320, 178)
+script = ExtResource("platform")
+height = 64.0
+show_depth_footprint = true
+
+[node name="Level1" type="Polygon2D" parent="Platforms" unique_id=941186249]
+color = Color(0.24, 0.42, 0.57, 1)
+polygon = PackedVector2Array(100, 150, 280, 150, 320, 210, 140, 210)
+script = ExtResource("platform")
+
+[node name="Terrain" type="Node2D" parent="." unique_id=935874182]
+script = ExtResource("terrain")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=602305032]
+position = Vector2(330, 155)
+zoom = Vector2(0.5, 0.5)
+
+[node name="Actors" type="Node2D" parent="." unique_id=745773662]
+y_sort_enabled = true
+
+[node name="Player" parent="Actors" unique_id=426030983 instance=ExtResource("player")]
+position = Vector2(210, 180)
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1939412792]
+
+[node name="Instructions" type="Label" parent="HUD" unique_id=1879071651]
+offset_left = 8.0
+offset_top = 5.0
+theme_override_font_sizes/font_size = 9
+text = "TWO PLATFORMS / EDITABLE BOUNDARIES
+WASD / arrows: move   K: jump   R: reset
+0: ground   1: lower   2: upper   |   Gold edge = wall"
+
+[node name="Status" type="Label" parent="HUD" unique_id=92252648]
+offset_left = 8.0
+offset_top = 198.0
+theme_override_font_sizes/font_size = 9
+text = "HEIGHT 32 | GROUNDED"

@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://sklax4g62lf1"]
+
+[ext_resource type="PackedScene" path="res://levels/industrial_yard/industrial_blocks.tscn" id="blocks"]
+[ext_resource type="Script" uid="uid://0kkdfjl8q51p" path="res://features/camera/belt_scroll_camera.gd" id="camera"]
+[ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="player"]
+[ext_resource type="Script" uid="uid://gw126gqbdlbk" path="res://levels/industrial_yard/industrial_terrain.gd" id="terrain"]
+[ext_resource type="Script" uid="uid://hckjvepyu3y3" path="res://levels/industrial_yard/industrial_blocks_test.gd" id="test"]
+
+[node name="IndustrialBlocksTest" type="Node2D" unique_id=1968039147]
+script = ExtResource("test")
+
+[node name="PlatformBlocks" parent="." unique_id=393671767 instance=ExtResource("blocks")]
+
+[node name="Player" parent="." unique_id=1745718409 instance=ExtResource("player")]
+position = Vector2(175, 172)
+
+[node name="Terrain" type="Node2D" parent="." unique_id=321022009 node_paths=PackedStringArray("outlines")]
+script = ExtResource("terrain")
+outlines = NodePath("../PlatformBlocks/CollisionOutlines")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1676850235 node_paths=PackedStringArray("target")]
+position = Vector2(465, -6)
+limit_left = 0
+limit_top = -264
+limit_right = 1056
+limit_bottom = 312
+script = ExtResource("camera")
+target = NodePath("../Player")
+scroll_forward_only = false
+band_center_y = 122.0
+catch_up_speed = 0.0
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=269382903]
+
+[node name="Instructions" type="Label" parent="HUD" unique_id=911598112]
+offset_left = 8.0
+offset_top = 5.0
+theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.1, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 9
+text = "INDUSTRIAL BLOCKS TEST
+WASD / arrows: move   K: jump
+B: outlines   R: restart\nGold: rear wall   Blue: top / drop edge"
+
+[node name="Status" type="Label" parent="HUD" unique_id=309588503]
+offset_left = 8.0
+offset_top = 185.0
+theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.1, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 9
+text = "HEIGHT 128  |  GROUNDED"

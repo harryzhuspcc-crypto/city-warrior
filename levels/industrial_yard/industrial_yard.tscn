@@ -1,23 +1,22 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cttulvnvsqa5r"]
 
-[ext_resource type="Script" path="res://levels/industrial_yard/industrial_yard.gd" id="stage"]
-[ext_resource type="Texture2D" path="res://assets/stages/industrial_yard.png" id="background"]
-[ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="player"]
-[ext_resource type="PackedScene" path="res://features/actors/enemies/williams/williams.tscn" id="williams"]
-[ext_resource type="PackedScene" path="res://features/actors/enemies/linda/linda.tscn" id="linda"]
 [ext_resource type="PackedScene" path="res://features/actors/enemies/abobo/abobo.tscn" id="abobo"]
-[ext_resource type="Script" path="res://features/encounters/encounter_controller.gd" id="encounter"]
-[ext_resource type="Script" path="res://features/camera/belt_scroll_camera.gd" id="camera"]
+[ext_resource type="Texture2D" uid="uid://joxoxcrd6vq0" path="res://assets/stages/industrial_yard.png" id="background"]
+[ext_resource type="AudioStream" uid="uid://c75k15otyr87y" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="boss_music"]
+[ext_resource type="Script" uid="uid://0kkdfjl8q51p" path="res://features/camera/belt_scroll_camera.gd" id="camera"]
+[ext_resource type="AudioStream" uid="uid://ct0ga3qwe8lhv" path="res://assets/audio/bgm/04_mission_complete.mp3" id="clear_music"]
+[ext_resource type="Script" uid="uid://caxf6uge8dkvp" path="res://features/encounters/encounter_controller.gd" id="encounter"]
 [ext_resource type="PackedScene" path="res://features/hud/hud.tscn" id="hud"]
-[ext_resource type="Script" path="res://features/audio/music_player.gd" id="music"]
-[ext_resource type="AudioStream" path="res://assets/audio/bgm/06_industrial_area.mp3" id="industrial_music"]
-[ext_resource type="AudioStream" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="boss_music"]
-[ext_resource type="AudioStream" path="res://assets/audio/bgm/04_mission_complete.mp3" id="clear_music"]
-[ext_resource type="Script" path="res://features/stage_flow/stage_transition.gd" id="transition"]
-[ext_resource type="Script" path="res://features/level_objects/terrain/belt_terrain_map.gd" id="terrain"]
-[ext_resource type="Resource" path="res://levels/industrial_yard/industrial_billy_stats.tres" id="industrial_stats"]
+[ext_resource type="AudioStream" uid="uid://dwy73dduy8f8f" path="res://assets/audio/bgm/06_industrial_area.mp3" id="industrial_music"]
 [ext_resource type="PackedScene" path="res://features/level_objects/ladder/ladder.tscn" id="ladder"]
 [ext_resource type="PackedScene" path="res://features/level_objects/ledge/climb_platform.tscn" id="ledge"]
+[ext_resource type="PackedScene" path="res://features/actors/enemies/linda/linda.tscn" id="linda"]
+[ext_resource type="Script" uid="uid://ds3dw6xruoedq" path="res://features/audio/music_player.gd" id="music"]
+[ext_resource type="PackedScene" path="res://features/actors/player/player.tscn" id="player"]
+[ext_resource type="Script" uid="uid://bojc5s5q2ht2q" path="res://levels/industrial_yard/industrial_yard.gd" id="stage"]
+[ext_resource type="Script" uid="uid://d02nympt3yeg1" path="res://features/level_objects/terrain/belt_terrain_map.gd" id="terrain"]
+[ext_resource type="Script" uid="uid://dm10lqtecltkp" path="res://features/stage_flow/stage_transition.gd" id="transition"]
+[ext_resource type="PackedScene" uid="uid://b3e0bic7twsdo" path="res://features/actors/enemies/williams/williams.tscn" id="williams"]
 
 [sub_resource type="RectangleShape2D" id="horizontal_boundary"]
 size = Vector2(1088, 16)
@@ -25,8 +24,9 @@ size = Vector2(1088, 16)
 [sub_resource type="RectangleShape2D" id="vertical_boundary"]
 size = Vector2(16, 640)
 
-[node name="IndustrialYard" type="Node2D" node_paths=PackedStringArray("actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "boss_encounter", "stage_clear_music", "stage_transition", "terrain")]
+[node name="IndustrialYard" type="Node2D" unique_id=1404606871 node_paths=PackedStringArray("terrain", "actors", "player", "camera", "encounters", "encounter_controller", "hud", "exit", "ladders", "music", "boss_encounter", "stage_clear_music", "stage_transition")]
 script = ExtResource("stage")
+terrain = NodePath("Terrain")
 actors = NodePath("Actors")
 player = NodePath("Actors/Player")
 camera = NodePath("Camera2D")
@@ -42,79 +42,70 @@ stage_clear_music = NodePath("StageClearMusic")
 stage_transition = NodePath("StageTransition")
 stage_name = "STAGE 2 - INDUSTRIAL YARD"
 stage_clear_message = "STAGE 2 CLEAR"
-terrain = NodePath("Terrain")
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="Background" type="Sprite2D" parent="." unique_id=1091202857]
+texture_filter = 1
 position = Vector2(0, -264)
 texture = ExtResource("background")
 centered = false
-texture_filter = 1
 
-[node name="Terrain" type="Node2D" parent="."]
+[node name="Terrain" type="Node2D" parent="." unique_id=37471833]
 script = ExtResource("terrain")
 
-[node name="WorldGeometry" type="Node2D" parent="."]
+[node name="WorldGeometry" type="Node2D" parent="." unique_id=142597045]
 
-[node name="TopBoundary" type="StaticBody2D" parent="WorldGeometry"]
-position = Vector2(528, 112)
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/TopBoundary"]
-shape = SubResource("horizontal_boundary")
-
-[node name="BottomBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="BottomBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=789369338]
 position = Vector2(528, 320)
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/BottomBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/BottomBoundary" unique_id=330819262]
 shape = SubResource("horizontal_boundary")
 
-[node name="LeftBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="LeftBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=2144264561]
 position = Vector2(-8, 80)
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/LeftBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/LeftBoundary" unique_id=1880184442]
 shape = SubResource("vertical_boundary")
 
-[node name="RightBoundary" type="StaticBody2D" parent="WorldGeometry"]
+[node name="RightBoundary" type="StaticBody2D" parent="WorldGeometry" unique_id=1390054610]
 position = Vector2(1064, 80)
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/RightBoundary"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldGeometry/RightBoundary" unique_id=396208569]
 shape = SubResource("vertical_boundary")
 
-[node name="Ladders" type="Node2D" parent="."]
+[node name="Ladders" type="Node2D" parent="." unique_id=724023322]
 
-[node name="AwningLadder" parent="Ladders" node_paths=PackedStringArray("platform") instance=ExtResource("ladder")]
+[node name="AwningLadder" parent="Ladders" unique_id=524037351 node_paths=PackedStringArray("platform") instance=ExtResource("ladder")]
 position = Vector2(736, 168)
 platform = NodePath("../../Awning")
 base_elevation = 208.0
 
-[node name="FrontLadder" parent="Ladders" node_paths=PackedStringArray("platform") instance=ExtResource("ladder")]
+[node name="FrontLadder" parent="Ladders" unique_id=1785629202 node_paths=PackedStringArray("platform") instance=ExtResource("ladder")]
 position = Vector2(888, 232)
 platform = NodePath("../../FrontRoofLanding")
 base_elevation = 0.0
 
-[node name="FrontRoofLanding" parent="." instance=ExtResource("ledge")]
+[node name="FrontRoofLanding" parent="." unique_id=152589852 instance=ExtResource("ledge")]
 position = Vector2(816, 232)
 height = 208.0
 walkable_width = 336.0
 
-[node name="Awning" parent="." instance=ExtResource("ledge")]
+[node name="Awning" parent="." unique_id=1343336309 instance=ExtResource("ledge")]
 position = Vector2(800, 168)
 height = 128.0
 walkable_width = 208.0
 
-[node name="Actors" type="Node2D" parent="."]
+[node name="Actors" type="Node2D" parent="." unique_id=1271728481]
 y_sort_enabled = true
 
-[node name="Player" parent="Actors" instance=ExtResource("player")]
+[node name="Player" parent="Actors" unique_id=2143178404 instance=ExtResource("player")]
 position = Vector2(56, 192)
-fighter_stats = ExtResource("industrial_stats")
 
-[node name="Encounters" type="Node2D" parent="."]
+[node name="Encounters" type="Node2D" parent="." unique_id=1043240012]
 
-[node name="GateEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points")]
+[node name="GateEncounter" type="Node2D" parent="Encounters" unique_id=136762872 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points")]
 script = ExtResource("encounter")
 enemy_scene = ExtResource("williams")
 actors = NodePath("../../Actors")
@@ -123,18 +114,18 @@ camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 lock_x = 160.0
 
-[node name="SpawnPoints" type="Node2D" parent="Encounters/GateEncounter"]
+[node name="SpawnPoints" type="Node2D" parent="Encounters/GateEncounter" unique_id=966817200]
 
-[node name="GateRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
+[node name="GateRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints" unique_id=1894775101]
 position = Vector2(192, 192)
 
-[node name="GateLeft" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
+[node name="GateLeft" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints" unique_id=450240515]
 position = Vector2(48, 208)
 
-[node name="GateFarRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints"]
+[node name="GateFarRight" type="Marker2D" parent="Encounters/GateEncounter/SpawnPoints" unique_id=417299824]
 position = Vector2(240, 176)
 
-[node name="LoadingBayEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+[node name="LoadingBayEncounter" type="Node2D" parent="Encounters" unique_id=605945787 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("encounter")
 enemy_scene = ExtResource("williams")
 enemy_sequence = Array[PackedScene]([ExtResource("williams"), ExtResource("linda"), ExtResource("williams")])
@@ -143,68 +134,68 @@ player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../GateEncounter")
-lock_x = 464.0
+lock_x = 420.0
 metadata/terrain_height = 80.0
 
-[node name="SpawnPoints" type="Node2D" parent="Encounters/LoadingBayEncounter"]
+[node name="SpawnPoints" type="Node2D" parent="Encounters/LoadingBayEncounter" unique_id=265948436]
 
-[node name="BayRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
-position = Vector2(568, 184)
+[node name="BayRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints" unique_id=1376020119]
+position = Vector2(540, 128)
 
-[node name="BayLeft" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
-position = Vector2(440, 184)
+[node name="BayLeft" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints" unique_id=246652054]
+position = Vector2(440, 128)
 
-[node name="BayUpperRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints"]
-position = Vector2(512, 176)
+[node name="BayUpperRight" type="Marker2D" parent="Encounters/LoadingBayEncounter/SpawnPoints" unique_id=856388269]
+position = Vector2(480, 128)
 
-[node name="WarehouseEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+[node name="WarehouseEncounter" type="Node2D" parent="Encounters" unique_id=1097052646 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("encounter")
 enemy_scene = ExtResource("williams")
 enemy_sequence = Array[PackedScene]([ExtResource("williams"), ExtResource("linda"), ExtResource("williams"), ExtResource("linda")])
-enemy_count = 4
 actors = NodePath("../../Actors")
 player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../LoadingBayEncounter")
+enemy_count = 4
 lock_x = 720.0
 metadata/terrain_height = 208.0
 
-[node name="SpawnPoints" type="Node2D" parent="Encounters/WarehouseEncounter"]
+[node name="SpawnPoints" type="Node2D" parent="Encounters/WarehouseEncounter" unique_id=444136910]
 
-[node name="WarehouseRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+[node name="WarehouseRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints" unique_id=1132026694]
 position = Vector2(864, 208)
 
-[node name="WarehouseLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+[node name="WarehouseLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints" unique_id=1162607910]
 position = Vector2(656, 216)
 
-[node name="WarehouseUpperRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+[node name="WarehouseUpperRight" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints" unique_id=42770496]
 position = Vector2(824, 200)
 
-[node name="WarehouseUpperLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints"]
+[node name="WarehouseUpperLeft" type="Marker2D" parent="Encounters/WarehouseEncounter/SpawnPoints" unique_id=666392253]
 position = Vector2(688, 208)
 
-[node name="BossEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+[node name="BossEncounter" type="Node2D" parent="Encounters" unique_id=1054795357 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("encounter")
 enemy_scene = ExtResource("abobo")
-enemy_count = 1
 actors = NodePath("../../Actors")
 player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../WarehouseEncounter")
+enemy_count = 1
 lock_x = 880.0
 metadata/terrain_height = 208.0
 
-[node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter"]
+[node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter" unique_id=1745099556]
 
-[node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints"]
+[node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints" unique_id=507609263]
 position = Vector2(704, 208)
 
-[node name="Exit" type="Marker2D" parent="."]
+[node name="Exit" type="Marker2D" parent="." unique_id=1540155607]
 position = Vector2(800, 176)
 
-[node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("target")]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=596171344 node_paths=PackedStringArray("target")]
 position = Vector2(192, 108)
 limit_left = 0
 limit_top = -264
@@ -213,37 +204,38 @@ limit_bottom = 312
 script = ExtResource("camera")
 target = NodePath("../Actors/Player")
 
-[node name="ScreenEdges" type="Node2D" parent="Camera2D"]
+[node name="ScreenEdges" type="Node2D" parent="Camera2D" unique_id=1999993463]
 
-[node name="LeftEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges"]
+[node name="LeftEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges" unique_id=1347969799]
 position = Vector2(-200, 0)
 collision_layer = 128
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/LeftEdge"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/LeftEdge" unique_id=921137105]
 shape = SubResource("vertical_boundary")
 
-[node name="RightEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges"]
+[node name="RightEdge" type="StaticBody2D" parent="Camera2D/ScreenEdges" unique_id=1328515706]
 position = Vector2(200, 0)
 collision_layer = 128
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/RightEdge"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/ScreenEdges/RightEdge" unique_id=1397456723]
+position = Vector2(-4, 81)
 shape = SubResource("vertical_boundary")
 
-[node name="HUD" parent="." instance=ExtResource("hud")]
+[node name="HUD" parent="." unique_id=222653280 instance=ExtResource("hud")]
 
-[node name="Music" type="AudioStreamPlayer" parent="."]
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=992142114]
 stream = ExtResource("industrial_music")
-bus = &"Music"
 volume_db = -6.0
+bus = &"Music"
 script = ExtResource("music")
 
-[node name="StageClearMusic" type="AudioStreamPlayer" parent="."]
+[node name="StageClearMusic" type="AudioStreamPlayer" parent="." unique_id=587579659]
 stream = ExtResource("clear_music")
 bus = &"Music"
 
-[node name="StageTransition" type="Node" parent="." node_paths=PackedStringArray("player", "hud", "fade_rect")]
+[node name="StageTransition" type="Node" parent="." unique_id=1674755933 node_paths=PackedStringArray("player", "hud", "fade_rect")]
 script = ExtResource("transition")
 player = NodePath("../Actors/Player")
 hud = NodePath("../HUD")
@@ -251,13 +243,17 @@ fade_rect = NodePath("../TransitionOverlay/Fade")
 next_stage_path = "res://levels/woods/woods.tscn"
 show_intro = true
 
-[node name="TransitionOverlay" type="CanvasLayer" parent="."]
+[node name="TransitionOverlay" type="CanvasLayer" parent="." unique_id=291630942]
 layer = 100
 
-[node name="Fade" type="ColorRect" parent="TransitionOverlay"]
+[node name="Fade" type="ColorRect" parent="TransitionOverlay" unique_id=775728644]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -3.0
+offset_top = -1.0
+offset_right = -3.0
+offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

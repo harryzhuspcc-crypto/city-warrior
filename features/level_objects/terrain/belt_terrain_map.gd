@@ -7,6 +7,7 @@ extends Node2D
 const SUPPORT_LAYER := 1024
 const OBSTACLE_LAYER := 512
 const ROOF_WALL_LAYER := 4096
+const PLATFORM_WALL_LAYER := 8192
 var surfaces: Array = []
 var image_offset_y: float = -264.0
 ## Legacy single pit extent for Stage 2; layouts may instead list fall_zones.
@@ -16,6 +17,11 @@ var landing_depth_assist: float = 0.0
 var _fall_zones: Array = []
 var _polygons: Array[PackedVector2Array] = []
 var _bounds: Array[Rect2] = []
+var hazards: Array = []
+var pit_lives: int = 0
+var _blockers: Array = []
+var _hazard_polygons: Array[PackedVector2Array] = []
+var _platform_walls: Array[StaticBody2D] = []
 
 
 func _ready() -> void:
@@ -25,6 +31,12 @@ func _ready() -> void:
 	fall_zone_max_x = float(layout.get("fall_zone_max_x", INF))
 	landing_depth_assist = float(layout.get("landing_depth_assist", 0.0))
 	_fall_zones = layout.get("fall_zones", [])
+	hazards = layout.get("hazards", [])
+	pit_lives = int(layout.get("pit_lives", 0))
+	_blockers = layout["blockers"]
+	for hazard: Dictionary in hazards:
+		var polygon := _polygon(hazard)
+		_hazard_polygons.append(polygon)
 	for surface: Dictionary in surfaces:
 		var polygon := _polygon(surface)
 		_polygons.append(polygon)
@@ -51,6 +63,9 @@ func surface_at(x: float, ground_y: float = 192.0, ceiling: float = INF, footpri
 		if elevation > ceiling + 0.01 or elevation < highest:
 			continue
 		var picture_point := Vector2(x, ground_y - elevation - image_offset_y)
+		var hazard := hazard_at(Vector2(x, ground_y), elevation)
+		if hazard.get("kind", "") == "hole":
+			continue # Even a toe on the rim cannot provide a floor inside a hole.
 		if Geometry2D.is_point_in_polygon(picture_point, _polygons[index]) or _foot_overlaps(picture_point, footprint, index):
 			result = entry
 			highest = elevation
@@ -62,6 +77,18 @@ func floor_at(x: float, ground_y: float = 192.0, ceiling: float = INF, footprint
 	return null if surface.is_empty() else float(surface["height"])
 
 
+func platform_blocks_at(point: Vector2, ceiling: float, footprint: Rect2) -> bool:
+	for index: int in range(surfaces.size()):
+		var surface: Dictionary = surfaces[index]
+		var height := float(surface["height"])
+		if not surface.get("solid", false) or height <= ceiling:
+			continue
+		var picture_point := Vector2(point.x, point.y - height - image_offset_y)
+		if _foot_overlaps(picture_point, footprint, index):
+			return true
+	return false
+
+
 func allows_fall_at(x: float) -> bool:
 	if not _fall_zones.is_empty():
 		for zone: Array in _fall_zones:
@@ -69,6 +96,33 @@ func allows_fall_at(x: float) -> bool:
 				return true
 		return false
 	return x <= fall_zone_max_x
+
+
+func hazard_at(point: Vector2, height: float) -> Dictionary:
+	for index: int in range(hazards.size()):
+		var hazard: Dictionary = hazards[index]
+		if not is_equal_approx(float(hazard["height"]), height):
+			continue
+		var picture_point := Vector2(point.x, point.y - height - image_offset_y)
+		if Geometry2D.is_point_in_polygon(picture_point, _hazard_polygons[index]):
+			return hazard
+	return {}
+
+
+func blocker_mask_at(height: float, base_height: float) -> int:
+	# The manifest owns blocker elevations. Never enable another stage's
+	# crate/wall layers using hard-coded industrial-yard world heights.
+	var mask := 0
+	for blocker: Dictionary in _blockers:
+		if blocker.get("world_boundary", false):
+			continue
+		var bottom := float(blocker["height"]) - 16.0
+		if blocker.get("solid_wall", false):
+			if base_height >= bottom:
+				mask |= ROOF_WALL_LAYER
+		elif height >= bottom and height <= float(blocker["height"]) + 32.0:
+			mask |= OBSTACLE_LAYER
+	return mask
 
 
 func belt_at(x: float, ground_y: float = 192.0, ceiling: float = INF, footprint: Rect2 = Rect2()) -> float:
@@ -113,6 +167,17 @@ func attach_actor(actor: Node2D) -> void:
 	motor.initialize()
 
 
+func sync_platform_collisions(actor: CharacterBody2D, height: float, clearance: float, bypass: bool) -> void:
+	# Each raised top has its own solid footprint. One shared mask cannot
+	# distinguish a 16 px step from a tall tower at the same depth.
+	actor.set_collision_mask_value(14, not bypass and not _platform_walls.is_empty())
+	for wall: StaticBody2D in _platform_walls:
+		if bypass or height + clearance >= float(wall.get_meta(&"top_height")):
+			actor.add_collision_exception_with(wall)
+		else:
+			actor.remove_collision_exception_with(wall)
+
+
 func _build_collision_shapes(layout: Dictionary) -> void:
 	for surface: Dictionary in surfaces:
 		var area := Area2D.new()
@@ -124,11 +189,51 @@ func _build_collision_shapes(layout: Dictionary) -> void:
 		var shape := CollisionPolygon2D.new()
 		shape.name = "SurfaceCollision"
 		var polygon := _polygon(surface)
-		for index: int in range(polygon.size()):
-			polygon[index].y += image_offset_y
-		shape.polygon = polygon
-		area.add_child(shape)
+		var pieces: Array[PackedVector2Array] = [polygon]
+		for hazard: Dictionary in hazards:
+			if hazard.get("kind", "") != "hole" or float(hazard["height"]) != float(surface["height"]):
+				continue
+			# Split at the hole's middle before subtracting: Godot collision
+			# polygons cannot represent an enclosed clockwise inner contour.
+			var hole := _polygon(hazard)
+			var left := hole[0].x
+			var right := left
+			for point: Vector2 in hole:
+				left = minf(left, point.x)
+				right = maxf(right, point.x)
+			var center_x := (left + right) * 0.5
+			var clipped: Array[PackedVector2Array] = []
+			for piece: PackedVector2Array in pieces:
+				for slab: PackedVector2Array in [
+					PackedVector2Array([Vector2(-10000,-10000), Vector2(center_x,-10000), Vector2(center_x,10000), Vector2(-10000,10000)]),
+					PackedVector2Array([Vector2(center_x,-10000), Vector2(10000,-10000), Vector2(10000,10000), Vector2(center_x,10000)])
+				]:
+					for half: PackedVector2Array in Geometry2D.intersect_polygons(piece, slab):
+						clipped.append_array(Geometry2D.clip_polygons(half, hole))
+			pieces = clipped
+		for index: int in range(pieces.size()):
+			var piece := pieces[index]
+			for vertex: int in range(piece.size()):
+				piece[vertex].y += image_offset_y
+			var collision := shape if index == 0 else CollisionPolygon2D.new()
+			collision.polygon = piece
+			area.add_child(collision)
 		add_child(area)
+		if surface.get("solid", false):
+			var wall := StaticBody2D.new()
+			wall.name = String(surface["name"]) + "Blocker"
+			wall.collision_layer = PLATFORM_WALL_LAYER
+			wall.collision_mask = 0
+			wall.set_meta(&"top_height", surface["height"])
+			var footprint := CollisionPolygon2D.new()
+			footprint.name = "FootprintCollision"
+			var vertices := _polygon(surface)
+			for index: int in range(vertices.size()):
+				vertices[index].y += image_offset_y + float(surface["height"])
+			footprint.polygon = vertices
+			wall.add_child(footprint)
+			add_child(wall)
+			_platform_walls.append(wall)
 	for obstacle: Dictionary in layout["blockers"]:
 		var wall := StaticBody2D.new()
 		wall.name = String(obstacle["name"])

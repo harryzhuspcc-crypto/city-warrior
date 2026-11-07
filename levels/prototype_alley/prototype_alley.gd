@@ -52,6 +52,7 @@ var state: StringName = PLAYING
 var _prompt_countdown: int = 0
 var _prompt_message: String = ""
 var _restart_armed: bool = false
+var _stage_select_queued: bool = false
 
 
 func _ready() -> void:
@@ -61,11 +62,31 @@ func _ready() -> void:
 	hud.set_health(health.current_health, health.maximum_health())
 	health.health_changed.connect(hud.set_health)
 	health.died.connect(_on_player_died)
+	hud.stage_selection_requested.connect(request_stage_select)
 	if stage_transition != null:
 		stage_transition.transition_failed.connect(_on_transition_failed)
 	for encounter: EncounterController in encounter_controllers():
 		encounter.encounter_started.connect(_on_encounter_started.bind(encounter))
 		encounter.encounter_cleared.connect(_on_encounter_cleared)
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"ui_cancel") and not event.is_echo():
+		get_viewport().set_input_as_handled()
+		request_stage_select()
+
+
+func request_stage_select() -> void:
+	if get_tree().current_scene == self and not _stage_select_queued:
+		_stage_select_queued = true
+		_open_stage_select.call_deferred()
+
+
+func _open_stage_select() -> void:
+	var error := get_tree().change_scene_to_file("res://features/stage_flow/stage_select.tscn")
+	if error != OK:
+		_stage_select_queued = false
+		hud.show_message("COULD NOT OPEN STAGE SELECT")
 
 
 func _physics_process(_delta: float) -> void:

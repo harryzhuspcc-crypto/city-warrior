@@ -4,11 +4,22 @@ extends PrototypeAlley
 @export var terrain: BeltTerrainMap
 @export var cliff_ladder: Ladder
 @export var cliff_landing: ClimbPlatform
+const PitRipple = preload("res://features/level_objects/terrain/pit_ripple.gd")
+var pit_ripple: Node2D
 
 
 func _ready() -> void:
 	super._ready()
 	terrain.attach_actor(player)
+	hud.set_lives(player.terrain_motor.remaining_lives)
+	player.terrain_motor.lives_changed.connect(hud.set_lives)
+	pit_ripple = PitRipple.new()
+	pit_ripple.name = "PitRipple"
+	pit_ripple.z_index = 5
+	pit_ripple.hide()
+	pit_ripple.set_process(false)
+	add_child(pit_ripple)
+	player.terrain_motor.pit_impact.connect(pit_ripple.play)
 	player.climb_component.platform_entered.connect(_on_platform_entered)
 	for encounter: EncounterController in encounter_controllers():
 		encounter.enemy_spawned.connect(_attach_enemy.bind(float(encounter.get_meta(&"terrain_height", 96.0))))

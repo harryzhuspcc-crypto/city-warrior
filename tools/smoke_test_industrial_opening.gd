@@ -18,7 +18,7 @@ func _run() -> void:
 		_check(is_equal_approx(player.jump_component.ground_elevation, 48), "Concrete path retains its floor height")
 	# A foot still on the sloping girder top must not become a pit fall just
 	# because the actor's origin is a few pixels beyond the polygon edge.
-	for point: Vector2 in [Vector2(404, 192), Vector2(450, 204)]:
+	for point: Vector2 in [Vector2(404, 192), Vector2(450, 180)]:
 		await _place(stage, point, 80)
 		await _frames(8)
 		_check(not player.jump_component.is_airborne, "Girder path supports the whole foot at %s" % point)
@@ -67,7 +67,7 @@ func _run() -> void:
 	Input.action_press(&"move_up")
 	await _frames(40)
 	_release()
-	_check(not player.jump_component.is_airborne and player.position.y <= 169.0, "The block's front face stops walking at its base (at %s)" % player.position)
+	_check(not player.jump_component.is_airborne and player.position.y >= 176.0 and player.position.y <= 178.0, "The solid block's front face stops Billy's whole foot at its base (at %s)" % player.position)
 	player.input_component.queue_jump()
 	var reached_top := false
 	for tick: int in range(120):
@@ -76,21 +76,23 @@ func _run() -> void:
 			reached_top = true
 			break
 	_check(reached_top, "A straight jump from the block's base lands on the concrete top")
-	# Recorded playtest: walking right off the red steps towards the olive
-	# roof and pressing K a moment late must still jump from that edge.
-	await _place(stage, Vector2(575, 186), 136)
-	Input.action_press(&"move_right")
-	_check(await _until(func() -> bool: return player.jump_component.is_airborne, 60), "Walking right leaves the red step")
+	# Exercise ledge grace in the real opening gap. The old roof fixture
+	# walked through a raised face that is now correctly solid.
+	await _place(stage, Vector2(336, 160), 48)
+	player.position = Vector2(384, 192)
+	player.terrain_motor.after_move()
+	_check(player.jump_component.is_airborne, "Unsupported feet start a fall in the opening gap")
 	await _frames(2)
 	player.input_component.queue_jump()
-	var reached_roof := false
+	Input.action_press(&"move_right")
+	var reached_girder := false
 	for tick: int in range(120):
 		await physics_frame
 		if not player.jump_component.is_airborne:
-			reached_roof = is_equal_approx(player.jump_component.ground_elevation, 208)
+			reached_girder = is_equal_approx(player.jump_component.ground_elevation, 80)
 			break
 	_release()
-	_check(reached_roof, "A late K at the red step's edge still lands on the olive roof (floor %s)" % player.jump_component.ground_elevation)
+	_check(reached_girder, "A late K at the concrete edge still lands on the girder (floor %s)" % player.jump_component.ground_elevation)
 	# How far up Billy can walk follows the floor: the lower yard stops at the
 	# warehouse wall, but its side alley runs much further back.
 	await _place(stage, Vector2(900, 260), 0)

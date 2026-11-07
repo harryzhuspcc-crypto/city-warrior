@@ -12,11 +12,10 @@
 [ext_resource type="Script" uid="uid://ds3dw6xruoedq" path="res://features/audio/music_player.gd" id="10_music"]
 [ext_resource type="AudioStream" uid="uid://dwglc43xn6e4e" path="res://assets/audio/bgm/02_slums.mp3" id="11_slums"]
 [ext_resource type="AudioStream" uid="uid://ct0ga3qwe8lhv" path="res://assets/audio/bgm/04_mission_complete.mp3" id="12_mission_complete"]
-
 [ext_resource type="PackedScene" path="res://features/actors/enemies/abobo/abobo.tscn" id="13_abobo"]
-[ext_resource type="AudioStream" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="14_boss_music"]
+[ext_resource type="AudioStream" uid="uid://c75k15otyr87y" path="res://assets/audio/bgm/03_abobo_entrance.mp3" id="14_boss_music"]
 [ext_resource type="PackedScene" path="res://features/actors/enemies/linda/linda.tscn" id="15_linda"]
-[ext_resource type="Script" path="res://features/stage_flow/stage_transition.gd" id="16_transition"]
+[ext_resource type="Script" uid="uid://dm10lqtecltkp" path="res://features/stage_flow/stage_transition.gd" id="16_transition"]
 
 [sub_resource type="RectangleShape2D" id="HorizontalBoundaryShape"]
 size = Vector2(1264, 16)
@@ -44,7 +43,7 @@ stage_clear_music = NodePath("StageClearMusic")
 stage_transition = NodePath("StageTransition")
 
 [node name="Background" type="Sprite2D" parent="." unique_id=2116658790]
-position = Vector2(0, -56)
+position = Vector2(-17, -54)
 texture = ExtResource("2_street")
 centered = false
 
@@ -145,12 +144,12 @@ position = Vector2(880, 168)
 script = ExtResource("5_encounter")
 enemy_scene = ExtResource("4_williams")
 enemy_sequence = Array[PackedScene]([ExtResource("4_williams"), ExtResource("4_williams"), ExtResource("4_williams"), ExtResource("15_linda")])
-enemy_count = 4
 actors = NodePath("../../Actors")
 player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../MiddleEncounter")
+enemy_count = 4
 lock_x = 1040.0
 
 [node name="SpawnPoints" type="Node2D" parent="Encounters/EndingEncounter" unique_id=38298049]
@@ -164,23 +163,23 @@ position = Vector2(800, 176)
 [node name="EndingUpperLeft" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints" unique_id=550651391]
 position = Vector2(780, 168)
 
-[node name="LindaEntrance" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints"]
+[node name="LindaEntrance" type="Marker2D" parent="Encounters/EndingEncounter/SpawnPoints" unique_id=648447794]
 position = Vector2(1184, 184)
 
-[node name="BossEncounter" type="Node2D" parent="Encounters" node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
+[node name="BossEncounter" type="Node2D" parent="Encounters" unique_id=1404436380 node_paths=PackedStringArray("actors", "player", "camera", "spawn_points", "prerequisite")]
 script = ExtResource("5_encounter")
 enemy_scene = ExtResource("13_abobo")
-enemy_count = 1
 actors = NodePath("../../Actors")
 player = NodePath("../../Actors/Player")
 camera = NodePath("../../Camera2D")
 spawn_points = NodePath("SpawnPoints")
 prerequisite = NodePath("../EndingEncounter")
+enemy_count = 1
 lock_x = 1120.0
 
-[node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter"]
+[node name="SpawnPoints" type="Node2D" parent="Encounters/BossEncounter" unique_id=1364815049]
 
-[node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints"]
+[node name="BossEntrance" type="Marker2D" parent="Encounters/BossEncounter/SpawnPoints" unique_id=1331725519]
 position = Vector2(928, 184)
 
 [node name="Exit" type="Marker2D" parent="." unique_id=25816701]
@@ -217,25 +216,25 @@ shape = SubResource("ScreenEdgeShape")
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=482398331]
 stream = ExtResource("11_slums")
-bus = &"Music"
 volume_db = -6.0
+bus = &"Music"
 script = ExtResource("10_music")
 
 [node name="StageClearMusic" type="AudioStreamPlayer" parent="." unique_id=882957593]
 stream = ExtResource("12_mission_complete")
 bus = &"Music"
 
-[node name="StageTransition" type="Node" parent="." node_paths=PackedStringArray("player", "hud", "fade_rect")]
+[node name="StageTransition" type="Node" parent="." unique_id=186392769 node_paths=PackedStringArray("player", "hud", "fade_rect")]
 script = ExtResource("16_transition")
 player = NodePath("../Actors/Player")
 hud = NodePath("../HUD")
 fade_rect = NodePath("../TransitionOverlay/Fade")
 next_stage_path = "res://levels/industrial_yard/industrial_yard.tscn"
 
-[node name="TransitionOverlay" type="CanvasLayer" parent="."]
+[node name="TransitionOverlay" type="CanvasLayer" parent="." unique_id=317236197]
 layer = 100
 
-[node name="Fade" type="ColorRect" parent="TransitionOverlay"]
+[node name="Fade" type="ColorRect" parent="TransitionOverlay" unique_id=1601260306]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0

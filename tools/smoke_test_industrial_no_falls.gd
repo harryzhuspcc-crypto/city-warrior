@@ -13,9 +13,9 @@ func _run() -> void:
 	# Past the opening gap nothing is a pit: walking or jumping off any red
 	# girder, step, tower or roof edge is held back by that edge instead.
 	var edge_spots: Array[Vector3] = [
-		Vector3(500, 156, 80), Vector3(600, 198, 80), Vector3(630, 196, 80),
-		Vector3(600, 186, 120), Vector3(610, 196, 120), Vector3(590, 186, 136),
-		Vector3(585, 206, 208), Vector3(560, 204, 224),
+		Vector3(500, 128, 80), Vector3(426, 176, 80), Vector3(426, 204, 80),
+		Vector3(570, 174, 96), Vector3(480, 156, 128), Vector3(550, 160, 176),
+		Vector3(585, 166, 160), Vector3(560, 164, 176),
 		Vector3(575, 172, 208), Vector3(720, 229, 208), Vector3(985, 226, 208),
 	]
 	var directions: Array = [

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="city-warrior"
-run/main_scene=&"res://levels/prototype_alley/prototype_alley.tscn"
+run/main_scene=&"res://features/stage_flow/stage_select.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 

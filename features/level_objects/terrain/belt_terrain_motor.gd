@@ -5,6 +5,8 @@ extends Node
 ## step clearance, environmental velocity and pit recovery only.
 
 signal fell_into_pit
+signal lives_changed(remaining: int)
+signal pit_impact(point: Vector2, height: float, kind: String)
 
 const STEP_HEIGHT := 18.0
 const GRAVITY := 600.0
@@ -27,6 +29,10 @@ var invulnerability_frames: int = 0
 var _initialized: bool = false
 var _footprint := Rect2()
 var _ledge_grace_frames: int = 0
+var remaining_lives: int = 0
+var _pit_hazard: Dictionary = {}
+var _pit_impact_emitted: bool = false
+var _visual_scale := Vector2.ONE
 
 
 func initialize() -> void:
@@ -35,6 +41,8 @@ func initialize() -> void:
 	assert(rectangle != null, "Terrain support requires the fighter's rectangular foot shape")
 	_footprint = Rect2(collision.position - rectangle.size * 0.5, rectangle.size)
 	_visual_baseline = body.get(&"visuals").position
+	_visual_scale = body.get(&"visuals").scale
+	remaining_lives = terrain.pit_lives
 	checkpoint = body.global_position
 	var initial_height := float(body.get_meta(&"terrain_height", 0.0))
 	var floor: Variant = _floor_at(body.global_position, initial_height)
@@ -44,6 +52,7 @@ func initialize() -> void:
 		jump.ground_elevation = _enemy_height
 	_initialized = true
 	process_physics_priority = -10
+	_sync_platform_collisions()
 	_apply_visual_height()
 
 
@@ -73,6 +82,9 @@ func _paired() -> bool:
 func resolve_velocity(velocity: Vector2) -> Vector2:
 	if not _initialized or _paired() or not body.is_physics_processing():
 		return velocity
+	_sync_platform_collisions()
+	if not _pit_hazard.is_empty():
+		return Vector2.ZERO # Sink at the opening, not across intact planks.
 	var result := velocity
 	if not is_falling() and not body.get(&"health_component").is_dead():
 		result.x += terrain.belt_at(body.global_position.x, body.global_position.y, elevation() + 0.5, _footprint)
@@ -89,20 +101,15 @@ func resolve_velocity(velocity: Vector2) -> Vector2:
 	for index: int in range(1, steps + 1):
 		var step := distance * float(index) / float(steps)
 		var next := origin + step
-		var clearance := 0.5 if is_falling() else STEP_HEIGHT
-		var floor: Variant = _floor_at(next, elevation() + clearance)
-		var higher: Variant = _floor_at(next)
-		if floor == null and higher != null and float(higher) > elevation() + clearance:
-			break
 		# Back edges meet the pictured wall, not an invisible fall behind it.
 		# Outside fall zones every other edge does too. Preserve sideways or
 		# depth movement along such an edge: clipping both axes makes
 		# diagonal movement stick to the scenery.
-		if _edge_blocks(next, step.y < 0.0):
-			if not _edge_blocks(Vector2(next.x, origin.y + allowed.y), false):
+		if _point_blocks(next, step.y < 0.0):
+			if not _point_blocks(Vector2(next.x, origin.y + allowed.y), false):
 				allowed.x = step.x
 				continue
-			if not _edge_blocks(Vector2(origin.x + allowed.x, next.y), step.y < 0.0):
+			if not _point_blocks(Vector2(origin.x + allowed.x, next.y), step.y < 0.0):
 				allowed.y = step.y
 				continue
 			break
@@ -110,7 +117,29 @@ func resolve_velocity(velocity: Vector2) -> Vector2:
 	return allowed / delta
 
 
+func _sync_platform_collisions() -> void:
+	if _initialized and body.is_physics_processing():
+		terrain.sync_platform_collisions(body, elevation(), 0.5 if is_falling() else STEP_HEIGHT, _paired())
+
+
+func _point_blocks(point: Vector2, toward_back: bool) -> bool:
+	var clearance := 0.5 if is_falling() else STEP_HEIGHT
+	# Clip the requested axes before move_and_slide can deflect a fighter
+	# sideways off a sloping steel face into the opening pit.
+	if terrain.platform_blocks_at(point, elevation() + clearance, _footprint.grow(0.1)):
+		return true
+	var floor: Variant = _floor_at(point, elevation() + clearance)
+	var higher: Variant = _floor_at(point)
+	if floor == null and higher != null and float(higher) > elevation() + clearance:
+		return true
+	return _edge_blocks(point, toward_back)
+
+
 func _edge_blocks(point: Vector2, toward_back: bool) -> bool:
+	# Real holes/water are not rear walls. Other back edges still hold the
+	# actor inside the pictured floor, including beside a hole's x column.
+	if not terrain.hazard_at(point, jump.ground_elevation if jump != null else _enemy_height).is_empty():
+		return false
 	if is_falling():
 		# Airborne actors may cross gaps only where a surface lies below.
 		# The rear wall is never an assisted landing corridor: allowing Up
@@ -137,10 +166,21 @@ func _has_landing_near(point: Vector2) -> bool:
 		return true
 	for distance: int in range(2, int(terrain.landing_depth_assist) + 1, 2):
 		for direction: float in [-1.0, 1.0]:
-			var candidate := terrain.surface_at(point.x, point.y + float(distance) * direction, INF, _footprint.grow(-1.0))
-			if float(candidate.get("landing_depth_assist", 0.0)) >= float(distance):
+			var landing := point + Vector2(0, float(distance) * direction)
+			var candidate := terrain.surface_at(landing.x, landing.y, INF, _footprint.grow(-1.0))
+			if float(candidate.get("landing_depth_assist", 0.0)) >= float(distance) and _landing_corridor_clear(point, landing, float(candidate["height"])):
 				return true
 	return false
+
+
+func _landing_corridor_clear(from: Vector2, to: Vector2, floor_height: float) -> bool:
+	# A nearby lower floor cannot catch a jump through a taller steel face.
+	# Check at landing height, even while the current jump clears that face.
+	var steps := maxi(1, int(ceilf(from.distance_to(to) / 2.0)))
+	for index: int in range(steps + 1):
+		if terrain.platform_blocks_at(from.lerp(to, float(index) / float(steps)), floor_height + 0.5, _footprint):
+			return false
+	return true
 
 
 func _assisted_landing(ceiling: float) -> void:
@@ -186,6 +226,10 @@ func consume_ledge_grace() -> bool:
 	if not has_ledge_grace():
 		return false
 	_ledge_grace_frames = 0
+	_pit_hazard = {}
+	_pit_impact_emitted = false
+	body.get(&"visuals").scale = _visual_scale
+	body.get(&"visuals").modulate.a = 1.0
 	jump.jump_height = 0.0
 	return true
 
@@ -198,18 +242,22 @@ func physics_jump(delta: float) -> void:
 		jump.jump_height += jump.jump_velocity * delta
 		_update_player_support()
 	_apply_visual_height()
+	_tick_pit_impact()
 	if elevation() < PIT_BOTTOM:
 		_pit_fall()
 
 
 func _update_player_support() -> void:
+	if not _pit_hazard.is_empty():
+		return # Walking onto the opposite rim cannot replace a missing jump.
 	var landing_sweep := maxf(0.0, -jump.jump_velocity * body.get_physics_process_delta_time())
 	var floor: Variant = _floor_at(body.global_position, elevation() + (landing_sweep + 0.5 if jump.is_airborne else STEP_HEIGHT))
 	if not jump.is_airborne:
-		if floor == null or float(floor) < elevation() - 1.0:
+		if floor == null or float(floor) < elevation() - STEP_HEIGHT:
 			jump.is_airborne = true
 			jump.jump_velocity = 0.0
 			_ledge_grace_frames = LEDGE_GRACE_FRAMES
+			_commit_pit_if_needed()
 		elif float(floor) <= elevation() + STEP_HEIGHT:
 			jump.ground_elevation = float(floor)
 	elif floor != null and jump.jump_velocity <= 0.0 and elevation() <= float(floor):
@@ -217,14 +265,37 @@ func _update_player_support() -> void:
 		jump.ground_elevation = float(floor)
 		jump.land_immediately()
 	elif jump.is_airborne:
-		_assisted_landing(elevation() + landing_sweep + 0.5)
+		if floor == null and jump.jump_velocity <= 0.0 and jump.jump_height <= 0.0:
+			_commit_pit_if_needed()
+		if _pit_hazard.is_empty():
+			_assisted_landing(elevation() + landing_sweep + 0.5)
+
+
+func _commit_pit_if_needed() -> void:
+	if terrain.pit_lives > 0:
+		_pit_hazard = terrain.hazard_at(body.global_position, jump.ground_elevation)
+		_pit_impact_emitted = false
+
+
+func _tick_pit_impact() -> void:
+	if _pit_hazard.is_empty():
+		return
+	var impact_height := float(_pit_hazard["impact_height"])
+	if not _pit_impact_emitted and elevation() <= impact_height:
+		_pit_impact_emitted = true
+		pit_impact.emit(body.global_position, impact_height, String(_pit_hazard["kind"]))
+	# Sink through the opening instead of drawing Billy over the foreground
+	# below the rim. Restore these presentation values on recovery/death.
+	var fade := clampf((elevation() - impact_height + 40.0) / 40.0, 0.0, 1.0)
+	body.get(&"visuals").modulate.a = fade
+	body.get(&"visuals").scale = _visual_scale * lerpf(0.6, 1.0, fade)
 
 
 func _update_enemy_support() -> void:
 	var landing_sweep := maxf(0.0, -_enemy_velocity * body.get_physics_process_delta_time())
 	var floor: Variant = _floor_at(body.global_position, _enemy_height + (landing_sweep + 0.5 if _enemy_falling else STEP_HEIGHT))
 	if not _enemy_falling:
-		if floor == null or float(floor) < _enemy_height - 1.0:
+		if floor == null or float(floor) < _enemy_height - STEP_HEIGHT:
 			_enemy_falling = true
 			_enemy_velocity = 0.0
 		elif float(floor) <= _enemy_height + STEP_HEIGHT:
@@ -240,9 +311,11 @@ func _physics_process(delta: float) -> void:
 		return
 	# Crate footprints collide only on the pictured loading deck. The upper
 	# awning passes above them; Stage 1 never enables this additional layer.
-	body.set_collision_mask_value(10, elevation() >= 192.0 and elevation() <= 240.0 and not _paired())
 	var base_height := jump.ground_elevation if jump != null else _enemy_height
-	body.set_collision_mask_value(13, base_height >= 192.0 and not _paired())
+	var blocker_mask := 0 if _paired() else terrain.blocker_mask_at(elevation(), base_height)
+	body.set_collision_mask_value(10, (blocker_mask & BeltTerrainMap.OBSTACLE_LAYER) != 0)
+	body.set_collision_mask_value(13, (blocker_mask & BeltTerrainMap.ROOF_WALL_LAYER) != 0)
+	_sync_platform_collisions()
 	if not body.is_physics_processing() or _paired():
 		return
 	if invulnerability_frames > 0:
@@ -281,7 +354,12 @@ func _save_checkpoint() -> void:
 	var y := body.global_position.y
 	var height := elevation()
 	var forward_margin := 20.0 if terrain.belt_at(x, y, height + 0.5) > 0.0 else 8.0
-	for offset: Vector2 in [Vector2(-8, 0), Vector2(0, -8), Vector2(0, 8)]:
+	# Billy's feet extend eight pixels BACK from his origin, not equally in
+	# both depth directions. Fit checkpoints onto the real narrow strip in
+	# front of Stage 3's holes without saving his toes over either rim.
+	var rear_margin := 10.0 if terrain.pit_lives > 0 else 8.0
+	var front_margin := 2.0 if terrain.pit_lives > 0 else 8.0
+	for offset: Vector2 in [Vector2(-8, 0), Vector2(0, -rear_margin), Vector2(0, front_margin)]:
 		var floor: Variant = terrain.floor_at(x + offset.x, y + offset.y, height + 0.5)
 		if floor == null or not is_equal_approx(float(floor), height):
 			return
@@ -295,8 +373,10 @@ func _save_checkpoint() -> void:
 
 
 func _pit_fall() -> void:
-	fell_into_pit.emit()
 	var fighter_health := body.get(&"health_component") as HealthComponent
+	if fighter_health.is_dead():
+		return
+	fell_into_pit.emit()
 	if jump == null:
 		fighter_health.take_damage(1000)
 		body.set_physics_process(false)
@@ -310,12 +390,22 @@ func _pit_fall() -> void:
 	player.hit_reaction_component.reset()
 	player.input_component.clear_buffered_actions()
 	_ledge_grace_frames = 0
+	_pit_hazard = {}
+	_pit_impact_emitted = false
+	player.visuals.modulate.a = 1.0
+	player.visuals.scale = _visual_scale
 	body.global_position = checkpoint
 	body.velocity = Vector2.ZERO
 	jump.ground_elevation = checkpoint_elevation
 	jump.land_immediately()
 	player.audio_component.play_ground_fall()
-	fighter_health.take_damage(PIT_DAMAGE)
+	if terrain.pit_lives > 0:
+		remaining_lives = maxi(remaining_lives - 1, 0)
+		lives_changed.emit(remaining_lives)
+		if remaining_lives == 0:
+			fighter_health.take_damage(fighter_health.current_health)
+	else:
+		fighter_health.take_damage(PIT_DAMAGE)
 	if not fighter_health.is_dead():
 		invulnerability_frames = 45
 		player.hurtbox.is_invulnerable = true

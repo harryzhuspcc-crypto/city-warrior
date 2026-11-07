@@ -112,6 +112,28 @@ func _test_traced_shapes_and_back_wall() -> void:
 			if hit["collider"] == area:
 				found = true
 		_check(found, name + " has a real physics-server CollisionPolygon2D")
+		if surface.get("solid", false):
+			query.position = center + Vector2(0, height)
+			query.collision_mask = BeltTerrainMap.PLATFORM_WALL_LAYER
+			query.collide_with_areas = false
+			query.collide_with_bodies = true
+			var wall := terrain.get_node(name + "Blocker") as StaticBody2D
+			found = false
+			for hit: Dictionary in stage.get_world_2d().direct_space_state.intersect_point(query, 32):
+				found = found or hit["collider"] == wall
+			_check(found, name + " has a solid raised-face footprint in the physics server")
+	var player := stage.player
+	player.set_physics_process(false)
+	var saved_mask := player.collision_mask
+	var transform := player.global_transform
+	transform.origin = Vector2(420, 156)
+	terrain.sync_platform_collisions(player, 80.0, 18.0, false)
+	player.collision_mask = BeltTerrainMap.PLATFORM_WALL_LAYER
+	_check(player.test_move(transform, Vector2(60, 0)), "Actual steel blocker stops a lower fighter even where girder support overlaps")
+	terrain.sync_platform_collisions(player, 128.0, 0.5, false)
+	_check(not player.test_move(transform, Vector2(60, 0)), "The same steel blocker permits a fighter who clears its top")
+	player.collision_mask = saved_mask
+	player.set_physics_process(true)
 	_check(terrain.floor_at(368, 192, 80) == null, "The original dark gap is unsupported, not covered with an invented street")
 	_check(terrain.floor_at(1008, 208, 208) != 208.0, "The roof stops at its visible slanted edge")
 	await _place(stage, Vector2(96, 160), 0)

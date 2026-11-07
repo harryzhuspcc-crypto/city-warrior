@@ -1,450 +1,98 @@
-[gd_resource type="Resource" format=3]
+[gd_resource type="Resource" format=3 uid="uid://codfnlsrb6m6q"]
 
 [resource]
 metadata/layout = {
-  "source_crop": [
-    1232,
-    0,
-    1056,
-    576
-  ],
-  "width": 1056,
-  "height": 576,
-  "image_offset_y": -264,
-  "lane_top": 128,
-  "lane_bottom": 312,
-  "fall_zone_max_x": 420,
-  "landing_depth_assist": 32,
-  "surfaces": [
-    {
-      "name": "Ground",
-      "height": 0,
-      "polygon": [
-        [
-          0,
-          388
-        ],
-        [
-          14,
-          388
-        ],
-        [
-          44,
-          400
-        ],
-        [
-          240,
-          400
-        ],
-        [
-          272,
-          432
-        ],
-        [
-          366,
-          432
-        ],
-        [
-          366,
-          446
-        ],
-        [
-          348,
-          458
-        ],
-        [
-          304,
-          462
-        ],
-        [
-          316,
-          480
-        ],
-        [
-          0,
-          480
-        ]
-      ]
-    },
-    {
-      "name": "ConcretePlinth",
-      "height": 48,
-      "landing_depth_assist": 32,
-      "polygon": [
-        [
-          240,
-          352
-        ],
-        [
-          336,
-          352
-        ],
-        [
-          368,
-          384
-        ],
-        [
-          272,
-          384
-        ]
-      ]
-    },
-    {
-      "name": "GirderPile",
-      "height": 80,
-      "landing_depth_assist": 16,
-      "polygon": [
-        [
-          336,
-          304
-        ],
-        [
-          560,
-          304
-        ],
-        [
-          640,
-          384
-        ],
-        [
-          416,
-          384
-        ]
-      ]
-    },
-    {
-      "name": "Step1",
-      "height": 120,
-      "polygon": [
-        [
-          560,
-          328
-        ],
-        [
-          608,
-          328
-        ],
-        [
-          624,
-          344
-        ],
-        [
-          576,
-          344
-        ]
-      ]
-    },
-    {
-      "name": "Step2",
-      "height": 136,
-      "polygon": [
-        [
-          512,
-          312
-        ],
-        [
-          592,
-          312
-        ],
-        [
-          608,
-          328
-        ],
-        [
-          528,
-          328
-        ]
-      ]
-    },
-    {
-      "name": "Step3",
-      "height": 152,
-      "polygon": [
-        [
-          448,
-          300
-        ],
-        [
-          528,
-          300
-        ],
-        [
-          544,
-          316
-        ],
-        [
-          464,
-          316
-        ]
-      ]
-    },
-    {
-      "name": "StepLanding",
-      "height": 168,
-      "polygon": [
-        [
-          432,
-          284
-        ],
-        [
-          512,
-          284
-        ],
-        [
-          528,
-          300
-        ],
-        [
-          448,
-          300
-        ]
-      ]
-    },
-    {
-      "name": "TowerStep",
-      "height": 208,
-      "polygon": [
-        [
-          528,
-          256
-        ],
-        [
-          576,
-          256
-        ],
-        [
-          592,
-          272
-        ],
-        [
-          544,
-          272
-        ]
-      ]
-    },
-    {
-      "name": "TowerTop",
-      "height": 224,
-      "polygon": [
-        [
-          512,
-          240
-        ],
-        [
-          560,
-          240
-        ],
-        [
-          576,
-          256
-        ],
-        [
-          528,
-          256
-        ]
-      ]
-    },
-    {
-      "name": "LoadingDeck",
-      "height": 208,
-      "landing_depth_assist": 16,
-      "polygon": [
-        [
-          560,
-          224
-        ],
-        [
-          928,
-          224
-        ],
-        [
-          992,
-          288
-        ],
-        [
-          640,
-          288
-        ]
-      ]
-    },
-    {
-      "name": "Conveyor",
-      "height": 224,
-      "belt_speed": 24,
-      "polygon": [
-        [
-          848,
-          224
-        ],
-        [
-          928,
-          224
-        ],
-        [
-          944,
-          240
-        ],
-        [
-          864,
-          240
-        ]
-      ]
-    },
-    {
-      "name": "UpperAwning",
-      "height": 336,
-      "polygon": [
-        [
-          672,
-          80
-        ],
-        [
-          896,
-          80
-        ],
-        [
-          912,
-          96
-        ],
-        [
-          688,
-          96
-        ]
-      ]
-    },
-    {
-      "name": "LowerYard",
-      "height": 0,
-      "polygon": [
-        [
-          816,
-          480
-        ],
-        [
-          992,
-          480
-        ],
-        [
-          994,
-          400
-        ],
-        [
-          1020,
-          400
-        ],
-        [
-          1022,
-          480
-        ],
-        [
-          1024,
-          480
-        ],
-        [
-          1056,
-          512
-        ],
-        [
-          1056,
-          576
-        ],
-        [
-          816,
-          576
-        ]
-      ]
-    }
-  ],
-  "blockers": [
-    {
-      "name": "OpeningStreetBoundary",
-      "height": 0,
-      "world_boundary": true,
-      "polygon": [
-        [
-          0,
-          480
-        ],
-        [
-          336,
-          480
-        ],
-        [
-          336,
-          496
-        ],
-        [
-          0,
-          496
-        ]
-      ]
-    },
-    {
-      "name": "LeftCrates",
-      "height": 208,
-      "polygon": [
-        [
-          600,
-          208
-        ],
-        [
-          672,
-          208
-        ],
-        [
-          688,
-          224
-        ],
-        [
-          616,
-          224
-        ]
-      ]
-    },
-    {
-      "name": "RightCrates",
-      "height": 208,
-      "polygon": [
-        [
-          840,
-          208
-        ],
-        [
-          912,
-          208
-        ],
-        [
-          928,
-          224
-        ],
-        [
-          856,
-          224
-        ]
-      ]
-    },
-    {
-      "name": "RearFactoryWall",
-      "height": 208,
-      "solid_wall": true,
-      "polygon": [
-        [
-          560,
-          200
-        ],
-        [
-          928,
-          200
-        ],
-        [
-          928,
-          216
-        ],
-        [
-          560,
-          216
-        ]
-      ]
-    }
-  ]
+"blockers": [{
+"height": 0,
+"name": "OpeningStreetBoundary",
+"polygon": [[0, 480], [336, 480], [336, 496], [0, 496]],
+"world_boundary": true
+}, {
+"height": 208,
+"name": "LeftCrates",
+"polygon": [[600, 208], [672, 208], [688, 224], [616, 224]]
+}, {
+"height": 208,
+"name": "RightCrates",
+"polygon": [[840, 208], [912, 208], [928, 224], [856, 224]]
+}, {
+"height": 208,
+"name": "RearFactoryWall",
+"polygon": [[560, 200], [928, 200], [928, 216], [560, 216]],
+"solid_wall": true
+}],
+"fall_zone_max_x": 420,
+"height": 576,
+"image_offset_y": -264,
+"landing_depth_assist": 32,
+"lane_bottom": 312,
+"lane_top": 128,
+"source_crop": [1232, 0, 1056, 576],
+"surfaces": [{
+"height": 0,
+"name": "Ground",
+"polygon": [[0, 388], [14, 388], [44, 400], [240, 400], [272, 432], [366, 432], [366, 446], [348, 458], [304, 462], [316, 480], [0, 480]]
+}, {
+"height": 48,
+"landing_depth_assist": 32,
+"name": "ConcretePlinth",
+"polygon": [[240, 352], [336, 352], [368, 384], [272, 384]],
+"solid": true
+}, {
+"height": 80,
+"landing_depth_assist": 16,
+"name": "GirderPile",
+"polygon": [[336, 304], [560, 304], [640, 384], [416, 384]],
+"solid": true
+}, {
+"height": 96,
+"name": "Step1",
+"polygon": [[560, 328], [608, 328], [624, 344], [576, 344]],
+"solid": true
+}, {
+"height": 96,
+"name": "Step2",
+"polygon": [[512, 312], [592, 312], [608, 328], [528, 328]],
+"solid": true
+}, {
+"height": 112,
+"name": "Step3",
+"polygon": [[448, 300], [528, 300], [544, 316], [464, 316]],
+"solid": true
+}, {
+"height": 128,
+"name": "StepLanding",
+"polygon": [[432, 284], [512, 284], [528, 300], [448, 300]],
+"solid": true
+}, {
+"height": 160,
+"name": "TowerStep",
+"polygon": [[528, 256], [576, 256], [592, 272], [544, 272]],
+"solid": true
+}, {
+"height": 176,
+"name": "TowerTop",
+"polygon": [[512, 240], [560, 240], [576, 256], [528, 256]],
+"solid": true
+}, {
+"height": 208,
+"landing_depth_assist": 16,
+"name": "LoadingDeck",
+"polygon": [[560, 224], [928, 224], [992, 288], [640, 288]],
+"solid": true
+}, {
+"belt_speed": 24,
+"height": 224,
+"name": "Conveyor",
+"polygon": [[848, 224], [928, 224], [944, 240], [864, 240]]
+}, {
+"height": 336,
+"name": "UpperAwning",
+"polygon": [[672, 80], [896, 80], [912, 96], [688, 96]]
+}, {
+"height": 0,
+"name": "LowerYard",
+"polygon": [[816, 480], [992, 480], [994, 400], [1020, 400], [1022, 480], [1024, 480], [1056, 512], [1056, 576], [816, 576]]
+}],
+"width": 1056
 }

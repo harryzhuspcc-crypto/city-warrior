@@ -4,6 +4,12 @@
   "height": 496,
   "image_offset_y": -112,
   "fall_zones": [[784, 1184], [2080, 2560]],
+  "pit_lives": 3,
+  "hazards": [
+    {"name": "WestHole", "height": 96, "impact_height": 92, "kind": "hole", "polygon": [[724,340],[736,336],[756,338],[768,344],[760,352],[736,352],[724,346]]},
+    {"name": "EastHole", "height": 96, "impact_height": 92, "kind": "hole", "polygon": [[1316,340],[1328,336],[1348,338],[1360,344],[1352,352],[1328,352],[1316,346]]},
+    {"name": "River", "height": 96, "impact_height": 48, "kind": "water", "polygon": [[784,288],[1184,288],[1184,384],[784,384]]}
+  ],
   "surfaces": [
     {"name": "WestBank", "height": 96, "polygon": [[0,272],[272,272],[272,288],[464,288],[464,272],[880,272],[880,288],[848,288],[832,304],[800,352],[784,368],[0,368]]},
     {"name": "BrokenBridgeWest", "height": 96, "polygon": [[864,288],[1032,288],[1008,312],[840,312]]},

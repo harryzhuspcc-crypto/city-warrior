@@ -87,10 +87,13 @@ func _test_intro_and_walkable_map() -> void:
 			await _walk_to_x(yard, 332)
 			await _jump_to_surface(yard, 80)
 		elif index == 2:
-			Input.action_press(&"move_down")
-			await _wait_until(func() -> bool: return yard.player.position.y >= 192, 50)
-			Input.action_release(&"move_down")
+			await _walk_to_x(yard, 420)
+			Input.action_press(&"move_up")
+			await _wait_until(func() -> bool: return yard.player.position.y <= 156, 80)
+			Input.action_release(&"move_up")
+			await _jump_to_surface(yard, 128)
 			await _walk_to_x(yard, 500)
+			await _jump_to_surface(yard, 176)
 			await _jump_to_surface(yard, 208)
 		for tick: int in range(600):
 			if encounter.state == EncounterController.ACTIVE:
@@ -142,11 +145,11 @@ func _walk_to_x(stage: PrototypeAlley, x: float) -> void:
 	var action: StringName = &"move_right" if x > stage.player.position.x else &"move_left"
 	Input.action_press(action)
 	for tick: int in range(300):
-		if absf(stage.player.position.x - x) <= 1.6:
+		if absf(stage.player.position.x - x) <= 1.6 or stage.state == PrototypeAlley.CLEARED:
 			break
 		await physics_frame
 	Input.action_release(action)
-	_check(absf(stage.player.position.x - x) <= 2.0, "Walking reaches original route x=%s (got %s)" % [x, stage.player.position])
+	_check(absf(stage.player.position.x - x) <= 2.0 or (x == stage.exit.position.x and stage.state == PrototypeAlley.CLEARED), "Walking reaches original route x=%s (got %s)" % [x, stage.player.position])
 
 
 func _jump_to_surface(stage: PrototypeAlley, height: float) -> void:

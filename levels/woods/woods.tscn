@@ -139,7 +139,7 @@ metadata/terrain_height = 96.0
 position = Vector2(1584, 320)
 
 [node name="Left" type="Marker2D" parent="Encounters/EastForestEncounter/SpawnPoints"]
-position = Vector2(1344, 336)
+position = Vector2(1296, 336)
 
 [node name="FrontRight" type="Marker2D" parent="Encounters/EastForestEncounter/SpawnPoints"]
 position = Vector2(1600, 336)

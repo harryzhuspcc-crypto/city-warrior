@@ -24,9 +24,9 @@ combat are this project's implementation, not original arcade game code.
 
 - **WASD / arrows:** move across each actual platform top, including depth.
 - **K:** jump right onto the concrete block from the ordinary starting lane,
-  then jump the dark gap to the girder pile. From around **(500,192)**,
-  jump right onto the warehouse roof. The red steps remain usable, but the
-  old mandatory backwards zigzag is no longer required.
+  then jump the dark gap to the girder pile. From around **(420,156)**,
+  jump onto the lower marked steel platform (1), walk right along it,
+  jump onto the upper steel platform (2), then jump onto the warehouse roof. Raised faces block walking until a jump clears their tops.
 - The visible blue belt carries fighters right at **24 px/s**, only while
   supported on its top. It does not move airborne fighters. No drawn belt
   animation covers or replaces the source artwork.
@@ -39,18 +39,20 @@ combat are this project's implementation, not original arcade game code.
 - After Abobo, approach the **green door** at **(800,176)**. The HUD identifies
   this exit. Being far right, airborne, or on the awning does not clear it.
 
-Billy's Stage-2-only jump takeoff is **420 px/s** at the existing **600 px/s²**
-gravity (a discrete apex of about **143 px**, previously only **105 px**).
-This comfortably clears the **128 px** girder-to-roof rise. Stages 1 and 3
-keep their previous jump tuning; Stage 3 now owns a separate stats resource.
+Billy uses the same `billy_stats.tres` resource as Stage 1: **252.4 px/s**
+takeoff and **600 px/s²** gravity (about **51 px** of jump height).
+The girder is at 80 px, marked platform 1 at 128 px, platform 2 at 176 px,
+and the main deck at 208 px. The two 48 px rises and final 32 px rise are
+reachable with the normal jump; skipping a marked platform is too high.
+The artwork and traced top outlines are unchanged.
 Descending jumps can catch the concrete top within **32 px** of depth and
 the girder/roof within **16 px**. The actor is moved onto the real traced
 top, not left standing on invisible enlarged support. There is no horizontal
 snap, no filling of gaps, no magnetism onto the narrow tower tops, and no
 snapping through solid bodies. Ordinary walking still uses exact foot support.
 Sixteen-pixel step-ups are automatic; tall girder faces require a jump.
-A **K** pressed up to **8 frames** after walking off an edge still jumps from
-that edge, so a slightly late press at the red steps reaches the olive roof.
+A **K** pressed up to **8 frames** after leaving supported ground still jumps
+from that edge. Solid faces stop walking before higher platforms.
 Unsupported feet fall. A missed jump costs **20 HP**, recovers to nearby
 supported ground and grants **45 frames** of protection; lethal falls use
 the existing defeat/replay flow. The lower yard is supported ground, not a pit.
@@ -69,12 +71,19 @@ top, or the ladders. The pit recovery remains as a safety net.
 `assets/stages/industrial_layout.json` traces **13 actual surface polygons**
 in native picture coordinates: ground, concrete block, girder pile, four lower
 steps, two tower tops, loading roof, blue conveyor, awning, and lower yard.
-It also traces crate footprints. No vertical girder faces are treated as
-walkable surfaces.
+It also traces crate footprints. The concrete plinth, girder pile, red steps,
+tower and loading roof are marked `solid`: their projected footprints block
+fighters below their top heights. No vertical face is a walkable surface.
 
 `BeltTerrainMap` builds real **Area2D/CollisionPolygon2D** support shapes on
 layer 11 and **StaticBody2D/CollisionPolygon2D** crate obstacles on layer 10.
 The solid rear factory wall uses layer 13, including during rooftop jumps.
+Raised platform blockers use layer 14, with actor-specific collision exceptions
+when a jump clears each top or a grounded fighter can step up 18 px. The same
+footprints participate in the terrain movement sweep, including where lower
+floor support overlaps a taller step. Landing assistance rejects paths through
+a taller face. The scene-wide TopBoundary has been removed: Up reaches each
+platform’s traced rear edge instead of an invisible horizontal wall.
 Support selection tests both x and depth against these same traced outlines;
 it is no longer an x-only height strip. Back edges stop movement into walls;
 front/side edges and the slanted roof outline permit genuine falls.
@@ -114,7 +123,7 @@ exports; JSON is only the authoring source.
 | Arena | Trigger x | Enemies | Spawn floor |
 | --- | ---: | --- | ---: |
 | Gate | 160 | 3 Williams | 0 |
-| Girders | 464 | Williams, Linda, Williams | 80 |
+| Girders | 420 | Williams, Linda, Williams | 80 |
 | Warehouse | 720 | Williams, Linda, Williams, Linda | 208 |
 | Boss | 880 | 1 Abobo at (704,208) | 208 |
 
@@ -146,8 +155,8 @@ exclusion, both ladders in both directions, front-ladder combat handoff, falling
 recovery and defeat. The stage suite traverses the block/gap/steps/roof using
 real buffered jumps and movement, clears every exact roster, and reaches the
 green door without fall damage. It also checks intro, audio, early-exit guards,
-replay, and actual Stage 1 → Stage 2 replacement/restart. No browser/desktop
-automation or interactive playtest is used.
+replay, and actual Stage 1 → Stage 2 replacement/restart. Automated checks use
+headless Godot.
 
 The opening regression covers the previously unsupported concrete strip,
 diagonal edge walking, partial foot contact on girders, a buffered jump from
@@ -155,5 +164,6 @@ the block's real edge, decorative street grates and the opening road boundary.
 It also verifies that stepping into the actual gap still starts a fall.
 
 The accessibility regression uses ordinary **Right + K**, from three initial
-depths and three roof takeoff positions. It checks concrete/girder landings,
-the direct forward roof route, no fall damage, and an unchanged real pit.
+depths and the marked steel-step route. It checks solid face blocking, upward
+movement to the true girder edge, concrete/girder landings, the three-jump stair
+route to the roof, no fall damage, and an unchanged real pit.

@@ -128,6 +128,9 @@ func _test_shapes_and_route() -> void:
 	await _jump_right(stage, 96.0)
 	_check(stage.player.position.x > 1056, "Jump crosses the actual missing bridge planks")
 	await _walk(stage, Vector2(1220, 288))
+	await _walk(stage, Vector2(1288, 328))
+	await _jump_right(stage, 96.0)
+	_check(stage.player.position.x > 1360, "Route jumps the east bank's dark hole")
 	await _walk(stage, Vector2(1720, 320))
 	await _walk(stage, Vector2(2110, 304))
 	await _jump_right(stage, 0.0)
@@ -178,15 +181,17 @@ func _test_pits_and_edges() -> void:
 	stage.player.jump_component.ground_elevation = 96.0
 	stage.player.jump_component.land_immediately()
 	_check(await _wait_until(func() -> bool: return stage.player.jump_component.is_airborne, 10), "Unsupported feet fall through actual missing bridge planks")
-	_check(await _wait_until(func() -> bool: return stage.player.health_component.current_health == 80, 100), "River fall costs exactly 20 HP")
+	_check(await _wait_until(func() -> bool: return stage.player.terrain_motor.remaining_lives == 2, 100), "River fall costs exactly one life")
+	_check(stage.player.health_component.current_health == 100, "A lost fall life does not also remove combat HP")
 	_check(stage.player.position.x < 784 and not stage.player.jump_component.is_airborne, "River recovery returns to supported bank")
 	_check(stage.player.hurtbox.is_invulnerable, "Recovery grants temporary protection")
 	_check(await _wait_until(func() -> bool: return not stage.player.hurtbox.is_invulnerable, 60), "Recovery protection expires")
-	stage.player.health_component.take_damage(60)
-	stage.player.position = Vector2(1036, 284)
-	stage.player.jump_component.ground_elevation = 96.0
-	stage.player.jump_component.land_immediately()
-	_check(await _wait_until(func() -> bool: return stage.state == PrototypeAlley.DEFEATED, 100), "Lethal Stage 3 fall uses normal defeat flow")
+	for life: int in [1, 0]:
+		stage.player.position = Vector2(1036, 284)
+		stage.player.jump_component.ground_elevation = 96.0
+		stage.player.jump_component.land_immediately()
+		_check(await _wait_until(func() -> bool: return stage.player.terrain_motor.remaining_lives == life, 100), "Every repeated fall removes one life, even during protection")
+	_check(stage.state == PrototypeAlley.DEFEATED, "Last fall life uses normal defeat flow")
 	await AudioSettle.free_level(self, stage)
 
 
@@ -218,12 +223,18 @@ func _test_transition_and_restart() -> void:
 	woods.player.position = woods.exit.position
 	await physics_frame
 	_check(woods.state == PrototypeAlley.PLAYING, "Uncleared encounters prevent early Stage 3 clear")
-	woods.player.health_component.take_damage(999)
+	woods.set_encounters_enabled(false)
+	for life: int in [2, 1, 0]:
+		woods.player.position = Vector2(1036, 284)
+		woods.player.jump_component.ground_elevation = 96.0
+		woods.player.jump_component.land_immediately()
+		_check(await _wait_until(func() -> bool: return woods.player.terrain_motor.remaining_lives == life, 100), "Real retry fixture spends exactly one life per fall")
 	_check(await _wait_until(func() -> bool: return woods._restart_armed), "Stage 3 defeat offers restart")
 	var woods_id := woods.get_instance_id()
 	woods.request_restart()
 	_check(await _wait_until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != woods_id, 20), "Stage 3 actually reloads")
 	var fresh := current_scene as PrototypeAlley
 	_check(fresh.scene_file_path == WOODS_PATH and fresh.player.health_component.current_health == 100, "Replay reloads woods, not Stage 1")
+	_check(fresh.player.terrain_motor.remaining_lives == 3 and fresh.hud.lives_label.text == "LIVES 3", "Retry resets Stage 3 fall lives and HUD")
 	current_scene = null
 	await AudioSettle.free_level(self, fresh)

@@ -33,11 +33,11 @@ def main() -> None:
             raise SystemExit(f"Missing or empty export: {path}")
     # Loading the real exported pack catches class_name-only dependencies
     # that editor/headless scene tests can accidentally satisfy from res://.
-    for scene in ("prototype_alley/prototype_alley", "industrial_yard/industrial_yard", "woods/woods", "headquarters/headquarters"):
+    for scene in ("features/stage_flow/stage_select", "levels/prototype_alley/prototype_alley", "levels/industrial_yard/industrial_yard", "levels/woods/woods", "levels/headquarters/headquarters"):
         result = subprocess.run(
             [godot, "--headless", "--path", str(ROOT), "--main-pack",
              str(output / "index.pck"), "--script", str(ROOT / "tools/smoke_test_web_export.gd"),
-             "--", f"res://levels/{scene}.tscn"],
+             "--", f"res://{scene}.tscn"],
             text=True, capture_output=True, check=False,
         )
         log = result.stdout + result.stderr

@@ -16,11 +16,11 @@ The repository is currently an almost-empty **Godot 4.7 Compatibility** project,
 
 ## 1. Import and prepare the artwork
 
-`../assets/double-dragon` is outside the Godot project. Godot cannot reliably import resources outside `res://`.
+The original sheets are vendored in `dd_assets/double-dragon` so the project is self-contained.
 
 ```bash
 mkdir -p assets/source_sheets assets/sprites assets/stages
-cp ../assets/double-dragon/*.png assets/source_sheets/
+cp dd_assets/double-dragon/*.png assets/source_sheets/
 ```
 
 These are irregular presentation sheets, not uniform sprite grids. They also have solid-color backgrounds—for example, `billy-lee.png` uses `#80A480`.

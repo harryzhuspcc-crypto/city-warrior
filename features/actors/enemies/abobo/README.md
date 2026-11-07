@@ -24,7 +24,7 @@ Abobo has 140 HP, 52/36 px/s horizontal/depth speed, four-hit knockdown resistan
 
 ## Art / regeneration
 
-The unchanged supplied source already exists at `assets/source_sheets/jick-abobo.png` and was byte-compared against `/Users/rossz/workspace/games/assets/double-dragon/jick-abobo.png`.
+The unchanged supplied source already exists at `assets/source_sheets/jick-abobo.png` and was byte-compared against `dd_assets/double-dragon/jick-abobo.png`.
 
 ```sh
 bash tools/extract_abobo_frames.sh

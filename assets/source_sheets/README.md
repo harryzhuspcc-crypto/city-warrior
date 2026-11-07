@@ -1,6 +1,6 @@
 # Source sheets
 
-Unmodified reference sheets copied from `../assets/double-dragon`.
+Unmodified reference sheets copied from `dd_assets/double-dragon` (in this repo).
 
 Godot ignores this directory because the large, opaque reference sheets are not runtime assets. Reproducible generated frames live under `assets/sprites`.
 
